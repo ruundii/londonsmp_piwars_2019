@@ -1,0 +1,9 @@
+.idea
+build
+dist
+*.pyc
+*.db
+files/*
+!files/dummy.txt
+config/config.json
+/*.npy

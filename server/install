@@ -1,0 +1,8 @@
+#!/bin/bash
+./uninstall
+
+cp piwars.service /etc/systemd/system/piwars.service
+
+sudo systemctl enable piwars.service
+
+echo "installation completed!"

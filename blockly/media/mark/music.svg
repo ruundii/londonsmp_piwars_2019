@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="128"
+   height="128"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="music.svg"
+   inkscape:export-filename="/home/benny/git/ardublockly/blockly/media/mark/music.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
+  <defs
+     id="defs4" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="2.1860776"
+     inkscape:cx="59.133659"
+     inkscape:cy="20.911743"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:window-width="947"
+     inkscape:window-height="676"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="0" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Laag 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-129.68076,83.122894)">
+    <g
+       id="g4920"
+       transform="matrix(1.0924509,0,0,1.0924509,-21.428117,-125.96662)">
+      <path
+         sodipodi:nodetypes="cscccc"
+         inkscape:connector-curvature="0"
+         id="path4918"
+         d="m 145.24597,102.51455 c 27.93885,-0.0126 50.59913,21.63911 50.61317,48.36228 3e-5,0.0645 -7e-5,0.12921 -3.1e-4,0.19393 l -11.7511,-0.0846 c -1.08092,-19.84401 -12.00377,-36.14501 -38.849,-36.97039 z"
+         style="fill:#705cd6;fill-opacity:1;stroke:none" />
+      <path
+         style="fill:#705cd6;fill-opacity:1;stroke:none"
+         d="m 145.24597,74.153253 c 42.33194,-0.01995 76.666,34.278347 76.68726,76.610307 5e-5,0.10214 -1e-4,0.20467 -4.6e-4,0.3072 L 209.2189,150.93671 C 207.58113,119.50198 185.94023,88.175147 145.26531,86.867659 z"
+         id="path4916"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cscccc" />
+      <path
+         sodipodi:nodetypes="cscccc"
+         inkscape:connector-curvature="0"
+         id="path4900"
+         d="m 14.628442,214.91365 c 10.610765,-0.005 19.216809,8.59208 19.222138,19.20285 1.3e-5,0.0256 -2.6e-5,0.0513 -1.16e-4,0.077 l -2.184186,-0.0336 C 31.255761,226.28059 24.82871,217.4257 14.63329,217.09797 z"
+         style="fill:#705cd6;fill-opacity:1;stroke:none"
+         transform="matrix(5.3893821,0,0,5.3893821,66.407706,-1111.0875)" />
+      <path
+         sodipodi:end="6.2866892"
+         sodipodi:start="4.7118868"
+         transform="matrix(1.3796222,0,0,1.3796222,125.06425,-172.02794)"
+         d="m 14.628442,214.91365 c 10.610765,-0.005 19.216809,8.59208 19.222138,19.20285 1.3e-5,0.0256 -2.6e-5,0.0513 -1.16e-4,0.077 l -19.212374,-0.0673 z"
+         sodipodi:ry="19.212492"
+         sodipodi:rx="19.212492"
+         sodipodi:cy="234.12614"
+         sodipodi:cx="14.63809"
+         id="path4883"
+         style="fill:#705cd6;fill-opacity:1;stroke:none"
+         sodipodi:type="arc" />
+    </g>
+  </g>
+</svg>

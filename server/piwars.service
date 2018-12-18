@@ -1,0 +1,14 @@
+[Unit]
+Description=PiWars Robot Service
+After=network.target
+
+[Service]
+User=pi
+WorkingDirectory=/home/pi/piwars/server
+#Environment=VIRTUAL_ENV=/home/pi/.virtualenvs/cv
+Environment=PATH=$VIRTUAL_ENV/bin:$PATH
+#ExecStart=/bin/sh -c "${VIRTUAL_ENV}/bin/python websocket_server.py"
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,8 @@
+#!/bin/sh
+
+sudo systemctl -f stop piwars.service
+sudo systemctl disable piwars.service
+
+rm -rf /etc/systemd/system/piwars.service
+
+echo "uninstallation completed!"

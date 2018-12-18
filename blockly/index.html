@@ -1,0 +1,452 @@
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <title>Pi Wars Robot</title>
+        <link href="/favicon.ico" rel="icon" type="image/x-icon" />
+        <link rel="stylesheet" href="css/materialize.min.css" media="screen,projection"/>
+        <link rel="stylesheet" href="css/main.css"/>
+        <link rel="stylesheet" href="css/codemirror.css">
+        <link rel="stylesheet" href="css/nouislider.css">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+        <script type="text/javascript" src="lib/jquery.js"></script>
+        <script type="text/javascript" src="lib/svg.min.js"></script>
+        <script type="text/javascript" src="lib/codemirror.js"></script>
+        <script type="text/javascript" src="lib/nouislider.js"></script>
+        <script type="text/javascript" src="lib/wNumb.js"></script>
+        <script type="text/javascript" src="lib/python.js"></script>
+        <!--<script type="text/javascript" src="lib/xml.js"></script>-->
+        <script type="text/javascript" src="lib/javascript.js"></script>
+        <script type="text/javascript" src="js/main.js"></script>
+        <script type="text/javascript" src="js/codeeditor.js"></script>
+        <script type="text/javascript" src="js/mapVisualiser.js"></script>
+        <script type="text/javascript" src="js/coderunner.js"></script>
+        <script type="text/javascript" src="js/webSocketManager.js"></script>
+
+        <script src="blockly_compressed.js"></script>
+        <script src="blocks_compressed.js"></script>
+        <script src="python_compressed.js"></script>
+        <script src="javascript_compressed.js"></script>
+        <script src="msg/js/en.js"></script>
+
+        <!--<script src="blocks/time.js"></script>-->
+        <!--<script src="blocks/robot.js"></script>-->
+        <!--<script src="generators/javascript/time.js"></script>-->
+        <!--<script src="generators/javascript/robot.js"></script>-->
+        <!--<script src="generators/python/time.js"></script>-->
+        <!--<script src="generators/python/robot.js"></script>-->
+
+    </head>
+    <body>
+        <!-- Dropdown Structure -->
+        <ul id="languageDropdown" class="dropdown-content">
+            <li><a href="#!" id="selectLanguagePython">Python</a></li>
+            <li><a href="#!" id="selectLanguageJavascript">Javascript</a></li>
+            <li><a href="#!" id="selectLanguageXML">XML</a></li>
+        </ul>
+        <nav>
+            <div class="nav-wrapper teal lighten-2 z-depth-1 valign-wrapper">
+                <span class="brand-logo left" style="padding-left: 10px">Pi Wars Robot</span>
+                <ul style="position: absolute; right:0">
+                    <li>
+                        <a class="waves-effect waves-light btn" id="mapButton"><i class="material-icons left" id="mapButtonIcon">check</i>Map</a>
+                    </li>
+                    <li><a class="waves-effect waves-light btn cyan lighten-2" id="driveButton">Drive</a></li>
+                    <li><a class="waves-effect waves-light btn cyan lighten-2" id="simulateButton">Simulate</a></li>
+                    <li><a class="waves-effect waves-light btn red lighten-2" id="runButton" style="width:70px">Run</a></li>
+                    <li><a class="waves-effect waves-light btn red lighten-2" id="stopButton" style="width:70px;display: none">Stop</a></li>
+                    <li><a class="dropdown-trigger btn" href="#!" data-target="languageDropdown" style="text-transform: none; width:140px">Python<i class="material-icons right" style="height:38px; line-height: 38px">arrow_drop_down</i></a></li>
+                    <li><a class="waves-effect waves-light btn red lighten-2" id="refreshConnectionButton"><i class="material-icons right">refresh</i>Connection</a></li>
+                    <li><a class='dropdown-trigger btn' href='#' data-target='menuDropDown' ><i class="material-icons center">menu</i></a>
+                        <!-- Dropdown Structure -->
+                        <ul id='menuDropDown' class='dropdown-content'>
+                            <li><a id="newProjectButton">New</a></li>
+                            <li><a class="modal-trigger" href="#fileDialog" id="openLoadProjectDialogButton">Load</a></li>
+                            <li><a class="modal-trigger" href="#fileDialog" id="openSaveProjectDialogButton">Save</a></li>
+                            <li><a id="" href="/svg-editor/svg-editor.html" target="_blank" style="white-space: nowrap">Map Editor</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        <div class="row" style="width:100%;height:94%;">
+            <div class="col s8" id="blocklyArea">
+                <div id="blocklyDiv" style="height: 100%;width:100%;min-height: 480px;"></div>
+            </div>
+            <div class="col s4 code-editor-div" id="codeArea" style="min-height: 480px;height: 100%;">
+                <textarea class='codemirror-text-area language-python' style='height:100%;width:100%;'></textarea>
+            </div>
+        </div>
+        <div id="markersReport" style="height:60px;width:300px;position: absolute; right: 10px; bottom: 10px;"></div>
+        <!-- File Dialog -->
+        <div id="fileDialog" class="modal">
+            <div class="modal-content">
+                <table style="margin-bottom:30px">
+                    <thead>
+                        <tr>
+                            <th>File name</th>
+                            <th>Modified On</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="filesList"></tbody>
+                </table>
+                <div class="row" id="fileNameToSaveRow">
+                    <div class="input-field col s6">
+                        <label class="active" for="fileNameToSave">File Name</label>
+                        <input placeholder="NewFileName.xml" id="fileNameToSave" data-length="30" type="text" class="validate" required pattern="^[A-Za-z0-9-_,\s]+[.][Xx][Mm][Ll]">
+                        <span class="helper-text" data-error="Need a valid XML file name" ></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a class="modal-action modal-close waves-effect waves-red btn red lighten-2">Cancel</a>
+                <a id="loadFileButton" class="modal-action modal-close waves-effect waves-green btn">Load</a>
+                <a id="saveFileButton" class="modal-action modal-close waves-effect waves-green btn">Save</a>
+            </div>
+        </div>
+
+        <!--Visualisation Map -->
+        <div id="divMap" style="display: none;position: absolute; left: 100px; top: 52px;z-index: 100;background: rgba(225, 245, 254, 0.7);"></div>
+        <div style="display:none;">
+            <!--<svg id="svgVisualisationMap" width="800" height="600" style="background: rgba(225, 245, 254, 0.7); "></svg>-->
+            <img id="imgChassis" src="media/chassis.svg">
+        </div>
+
+        <!--Drive controls -->
+        <div id="divDriveControls" style="display: none;position: absolute; width:90%; height: 50%; left: 50px; top: 300px;z-index: 100;background: rgba(225, 245, 254, 0.7);">
+            <div id="drive-slider-left" style="position: absolute;left:150px; height: 100%"></div>
+            <a id="btnCloseDriveControls" class="waves-effect waves-light btn-large red" style="position:absolute; top:50%; left:50%">Close</a>
+            <div id="drive-slider-right" style="position: absolute;right:150px; height: 100%"></div>
+        </div>
+
+
+        <xml id="toolbox" style="display: none">
+            <category name="Logic" colour="%{BKY_LOGIC_HUE}">
+                <block type="controls_if"></block>
+                <block type="logic_compare"></block>
+                <block type="logic_operation"></block>
+                <block type="logic_negate"></block>
+                <block type="logic_boolean"></block>
+                <block type="logic_null"></block>
+                <block type="logic_ternary"></block>
+            </category>
+            <category name="Loops" colour="%{BKY_LOOPS_HUE}">
+                <block type="controls_repeat_ext">
+                    <value name="TIMES">
+                        <shadow type="math_number">
+                            <field name="NUM">10</field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="controls_whileUntil"></block>
+                <block type="controls_for">
+                    <value name="FROM">
+                        <shadow type="math_number">
+                            <field name="NUM">1</field>
+                        </shadow>
+                    </value>
+                    <value name="TO">
+                        <shadow type="math_number">
+                            <field name="NUM">10</field>
+                        </shadow>
+                    </value>
+                    <value name="BY">
+                        <shadow type="math_number">
+                            <field name="NUM">1</field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="controls_forEach"></block>
+                <block type="controls_flow_statements"></block>
+            </category>
+            <category name="Math" colour="%{BKY_MATH_HUE}">
+                <block type="math_number">
+                    <field name="NUM">123</field>
+                </block>
+                <block type="math_arithmetic">
+                    <value name="A">
+                        <shadow type="math_number">
+                            <field name="NUM">1</field>
+                        </shadow>
+                    </value>
+                    <value name="B">
+                        <shadow type="math_number">
+                            <field name="NUM">1</field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="math_single">
+                    <value name="NUM">
+                        <shadow type="math_number">
+                            <field name="NUM">9</field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="math_trig">
+                    <value name="NUM">
+                        <shadow type="math_number">
+                            <field name="NUM">45</field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="math_constant"></block>
+                <block type="math_number_property">
+                    <value name="NUMBER_TO_CHECK">
+                        <shadow type="math_number">
+                            <field name="NUM">0</field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="math_round">
+                    <value name="NUM">
+                        <shadow type="math_number">
+                            <field name="NUM">3.1</field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="math_on_list"></block>
+                <block type="math_modulo">
+                    <value name="DIVIDEND">
+                        <shadow type="math_number">
+                            <field name="NUM">64</field>
+                        </shadow>
+                    </value>
+                    <value name="DIVISOR">
+                        <shadow type="math_number">
+                            <field name="NUM">10</field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="math_constrain">
+                    <value name="VALUE">
+                        <shadow type="math_number">
+                            <field name="NUM">50</field>
+                        </shadow>
+                    </value>
+                    <value name="LOW">
+                        <shadow type="math_number">
+                            <field name="NUM">1</field>
+                        </shadow>
+                    </value>
+                    <value name="HIGH">
+                        <shadow type="math_number">
+                            <field name="NUM">100</field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="math_random_int">
+                    <value name="FROM">
+                        <shadow type="math_number">
+                            <field name="NUM">1</field>
+                        </shadow>
+                    </value>
+                    <value name="TO">
+                        <shadow type="math_number">
+                            <field name="NUM">100</field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="math_random_float"></block>
+            </category>
+            <category name="Text" colour="%{BKY_TEXTS_HUE}">
+                <block type="text"></block>
+                <block type="text_join"></block>
+                <block type="text_append">
+                    <value name="TEXT">
+                        <shadow type="text"></shadow>
+                    </value>
+                </block>
+                <block type="text_length">
+                    <value name="VALUE">
+                        <shadow type="text">
+                            <field name="TEXT">abc</field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="text_isEmpty">
+                    <value name="VALUE">
+                        <shadow type="text">
+                            <field name="TEXT"></field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="text_indexOf">
+                    <value name="VALUE">
+                        <block type="variables_get">
+                            <field name="VAR">{textVariable}</field>
+                        </block>
+                    </value>
+                    <value name="FIND">
+                        <shadow type="text">
+                            <field name="TEXT">abc</field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="text_charAt">
+                    <value name="VALUE">
+                        <block type="variables_get">
+                            <field name="VAR">{textVariable}</field>
+                        </block>
+                    </value>
+                </block>
+                <block type="text_getSubstring">
+                    <value name="STRING">
+                        <block type="variables_get">
+                            <field name="VAR">{textVariable}</field>
+                        </block>
+                    </value>
+                </block>
+                <block type="text_changeCase">
+                    <value name="TEXT">
+                        <shadow type="text">
+                            <field name="TEXT">abc</field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="text_trim">
+                    <value name="TEXT">
+                        <shadow type="text">
+                            <field name="TEXT">abc</field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="text_print">
+                    <value name="TEXT">
+                        <shadow type="text">
+                            <field name="TEXT">abc</field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="text_prompt_ext">
+                    <value name="TEXT">
+                        <shadow type="text">
+                            <field name="TEXT">abc</field>
+                        </shadow>
+                    </value>
+                </block>
+            </category>
+            <category name="Lists" colour="%{BKY_LISTS_HUE}">
+                <block type="lists_create_with">
+                    <mutation items="0"></mutation>
+                </block>
+                <block type="lists_create_with"></block>
+                <block type="lists_repeat">
+                    <value name="NUM">
+                        <shadow type="math_number">
+                            <field name="NUM">5</field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="lists_length"></block>
+                <block type="lists_isEmpty"></block>
+                <block type="lists_indexOf">
+                    <value name="VALUE">
+                        <block type="variables_get">
+                            <field name="VAR">{listVariable}</field>
+                        </block>
+                    </value>
+                </block>
+                <block type="lists_getIndex">
+                    <value name="VALUE">
+                        <block type="variables_get">
+                            <field name="VAR">{listVariable}</field>
+                        </block>
+                    </value>
+                </block>
+                <block type="lists_setIndex">
+                    <value name="LIST">
+                        <block type="variables_get">
+                            <field name="VAR">{listVariable}</field>
+                        </block>
+                    </value>
+                </block>
+                <block type="lists_getSublist">
+                    <value name="LIST">
+                        <block type="variables_get">
+                            <field name="VAR">{listVariable}</field>
+                        </block>
+                    </value>
+                </block>
+                <block type="lists_split">
+                    <value name="DELIM">
+                        <shadow type="text">
+                            <field name="TEXT">,</field>
+                        </shadow>
+                    </value>
+                </block>
+                <block type="lists_sort"></block>
+            </category>
+            <category id="catTime" name="Time" colour="140">
+                <block type="time_wait_milliseconds">
+                    <value name="ms">
+                        <block type="math_number">
+                            <field name="NUM">1000</field>
+                        </block>
+                    </value>
+                </block>
+            </category>
+            <category id="catRobot" name="Robot" colour="0">
+                <block type="robot_drive">
+                    <value name="robot_motor_speed_left">
+                        <block type="math_number">
+                            <field name="NUM">0</field>
+                        </block>
+                    </value>
+                    <value name="robot_motor_speed_right">
+                        <block type="math_number">
+                            <field name="NUM">0</field>
+                        </block>
+                    </value>
+                </block>
+                <block type="robot_get_list_of_marker_ids">
+                </block>
+                <block type="robot_get_distance_to_marker">
+                    <value name="marker_id">
+                        <block type="math_number"></block>
+                    </value>
+                </block>
+                <block type="robot_get_x_angle_to_marker">
+                    <value name="marker_id">
+                        <block type="math_number"></block>
+                    </value>
+                </block>
+                <block type="robot_get_y_angle_to_marker">
+                    <value name="marker_id">
+                        <block type="math_number"></block>
+                    </value>
+                </block>
+                <block type="robot_say_text">
+                    <value name="text">
+                        <shadow type="text">
+                            <field name="text">I am hungry</field>
+                        </shadow>
+                    </value>
+                    <field name="lang">en-gb</field>
+                </block>
+                <block type="robot_display_text">
+                    <value name="text">
+                        <shadow type="text">
+                            <field name="text">I am hungry</field>
+                        </shadow>
+                    </value>
+                    <field name="line">1</field>
+                </block>
+                <block type="robot_display_clear">
+                    <field name="line">0</field>
+                </block>
+                <block type="robot_stop"></block>
+            </category>
+            <sep></sep>
+            <category name="Variables" colour="%{BKY_VARIABLES_HUE}" custom="VARIABLE"></category>
+            <category name="Functions" colour="%{BKY_PROCEDURES_HUE}" custom="PROCEDURE"></category>
+        </xml>
+
+        <script type="text/javascript" src="lib/materialize.min.js"></script>
+        <script>
+            $( document ).ready(function() {
+                piwarsRobot.initPiWarsRobot();
+            });
+        </script>
+    </body>
+</html>

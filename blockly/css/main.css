@@ -1,0 +1,210 @@
+/**********/
+/*  HTML  */
+/**********/
+html,
+body {
+    height: 100% !important;
+    padding: 0;
+    margin: 0;
+    min-width: 900px;
+    width:100%;
+}
+
+body {
+    background-color: #eeeeee;
+    -moz-user-select: -moz-none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    overflow-y: hidden;
+}
+
+
+@media screen and (orientation:portrait) {
+    nav{
+        height:3%;
+        min-height: 44px;
+    }
+}
+@media screen and (orientation:landscape) {
+    nav{
+        height:6%;
+        min-height: 44px;
+    }
+}
+
+#blocklyArea {
+    margin-top:2px;
+    padding:0;
+}
+.code-editor-div{
+    padding:0 !important;
+}
+
+/* Materialize messes with these, so reset them here */
+.blocklyHtmlInput {
+    border: none !important;
+    border-radius: 4px !important;
+    font-family: sans-serif !important;
+    height: 100% !important;
+    margin: 0 !important;
+    outline: none !important;
+    padding: 0 1px !important;
+    width: 100% !important;
+    background-color: white !important;
+}
+
+/* Toolbox */
+.blocklyToolboxDiv {
+    border-color: #e0e0e0 !important;
+    border-width: 0px 1px 0px 0px !important;
+    -webkit-border-radius: 0px 4px 4px 0px !important;
+    -moz-border-radius: 4px 4px 0px 0px !important;
+    border-radius: 0px 4px 4px 0px !important;
+    border: none !important;
+    margin: 0px !important;
+    padding: 0px 0px 0px 0px !important;
+    background: rgba(98, 174, 178, .2) !important;  /* Arduino Light Teal */
+    -webkit-box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+    -moz-box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+    overflow: hidden !important;
+}
+.blocklyTreeRoot {
+    background: none !important;
+    border: none !important;
+    /*margin: 36px 0px 0px 0px !important;*/
+    margin: 0px 0px 0px 0px !important;
+    padding: 0px 1px !important;
+    height: -moz-calc(100% - 37px);     /* Firefox  */
+    height: -webkit-calc(100% - 37px);  /* WebKit   */
+    height: -o-calc(100% - 37px);       /* Opera    */
+    height: calc(100% - 37px);          /* Standard */
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.blocklyTreeRow {
+    border: none !important;
+    margin: 0px 0px !important;
+    padding: 7px 16px 7px 0px !important;
+    box-sizing: content-box !important;
+}
+
+.blocklyTreeRow:not(.blocklyTreeSelected):hover {
+    background-color: rgba(255, 204, 51, .5) !important;
+}
+
+/* Toolbox second column with blocks (flyout)*/
+.blocklyFlyoutBackground {
+    fill: #DEEEEF !important;
+    fill-opacity: 0.7 !important;
+    -webkit-border-radius: 0px 4px 4px 0px !important;
+    -moz-border-radius: 0px 4px 4px 0px !important;
+    border-radius: 0px 4px 4px 0px !important;
+}
+
+/* Icons */
+
+.blocklyTreeIconOpen {
+    margin: 8px;
+}
+.blocklyTreeIconClosedLtr {
+    margin: 8px;
+}
+
+div>span.blocklyTreeIcon.blocklyTreeIconNone{
+    width:16px;height:16px;
+    float:left;
+    margin:4px;
+    background:url('../media/mark/default.png') no-repeat;
+    background-size: 100% auto;
+}
+.blocklyTreeSelected>span.blocklyTreeIcon.blocklyTreeIconNone{
+    background:url('../media/mark/default2.png') no-repeat;
+    background-size: 100% auto;
+}
+
+#\:1>div>span.blocklyTreeIcon.blocklyTreeIconNone{
+    background:url('../media/mark/logic.png') no-repeat;
+    background-size: 100% auto;
+}
+#\:1>.blocklyTreeSelected>span.blocklyTreeIcon.blocklyTreeIconNone{
+    background:url('../media/mark/logic2.png') no-repeat;
+    background-size: 100% auto;
+}
+#\:2>div>span.blocklyTreeIcon.blocklyTreeIconNone{
+    background:url('../media/mark/repeat.png') no-repeat;
+    background-size: 100% auto;
+}
+#\:2>.blocklyTreeSelected>span.blocklyTreeIcon.blocklyTreeIconNone{
+    background:url('../media/mark/repeat2.png') no-repeat;
+    background-size: 100% auto;
+}
+#\:3>div>span.blocklyTreeIcon.blocklyTreeIconNone{
+    background:url('../media/mark/math.png') no-repeat;
+    background-size: 100% auto;
+}
+#\:3>.blocklyTreeSelected>span.blocklyTreeIcon.blocklyTreeIconNone{
+    background:url('../media/mark/math2.png') no-repeat;
+    background-size: 100% auto;
+}
+#\:4>div>span.blocklyTreeIcon.blocklyTreeIconNone{
+    background:url('../media/mark/text.png') no-repeat;
+    background-size: 100% auto;
+}
+#\:4>.blocklyTreeSelected>span.blocklyTreeIcon.blocklyTreeIconNone{
+    background:url('../media/mark/text2.png') no-repeat;
+    background-size: 100% auto;
+}
+#\:5>div>span.blocklyTreeIcon.blocklyTreeIconNone{
+    background:url('../media/mark/list.png') no-repeat;
+    background-size: 100% auto;
+}
+#\:5>.blocklyTreeSelected>span.blocklyTreeIcon.blocklyTreeIconNone{
+    background:url('../media/mark/list2.png') no-repeat;
+    background-size: 100% auto;
+}
+#\:6>div>span.blocklyTreeIcon.blocklyTreeIconNone{
+    background:url('../media/mark/time.png') no-repeat;
+    background-size: 100% auto;
+}
+#\:6>.blocklyTreeSelected>span.blocklyTreeIcon.blocklyTreeIconNone{
+    background:url('../media/mark/time2.png') no-repeat;
+    background-size: 100% auto;
+}
+#\:7>div>span.blocklyTreeIcon.blocklyTreeIconNone{
+    background:url('../media/mark/component_r.png') no-repeat;
+    background-size: 100% auto;
+}
+#\:7>.blocklyTreeSelected>span.blocklyTreeIcon.blocklyTreeIconNone{
+    background:url('../media/mark/component2.png') no-repeat;
+    background-size: 100% auto;
+}
+#\:9>div>span.blocklyTreeIcon.blocklyTreeIconNone{
+    background:url('../media/mark/var.png') no-repeat;
+    background-size: 100% auto;
+}
+#\:9>.blocklyTreeSelected>span.blocklyTreeIcon.blocklyTreeIconNone{
+    background:url('../media/mark/var2.png') no-repeat;
+    background-size: 100% auto;
+}
+#\:a>div>span.blocklyTreeIcon.blocklyTreeIconNone{
+    background:url('../media/mark/func.png') no-repeat;
+    background-size: 100% auto;
+}
+#\:a>.blocklyTreeSelected>span.blocklyTreeIcon.blocklyTreeIconNone{
+    background:url('../media/mark/func2.png') no-repeat;
+    background-size: 100% auto;
+}
+
+
+
+/* code editor */
+.CodeMirror {
+    /* Set height, width, borders, and global font properties here */
+    font-family: monospace;
+    color: black;
+    font-size:14px;
+}
