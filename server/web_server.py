@@ -4,6 +4,7 @@ import json
 import sys
 
 from processors.robot_processor import RobotProcessor
+from processors.joystick_processor import JoystickProcessor
 from tornado.websocket import WebSocketHandler
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
@@ -17,6 +18,7 @@ from concurrent.futures import ThreadPoolExecutor
 isDebugUpdates = False
 isDebugCommands = False
 processor = None
+joystick_processor = None
 
 mainloop = None
 executor = None
@@ -131,12 +133,13 @@ class RobotWebsocketServer(WebSocketHandler):
 
 def run_server():
     # checking running processes.
-    global processor
     global mainloop
     global processor
     global executor
+    global joystick_processor
     executor = ThreadPoolExecutor(max_workers=1)
     processor = RobotProcessor()
+    joystick_processor = JoystickProcessor(processor)
     app = Application([(r"/ws", RobotWebsocketServer),
                        (r"/blockly/(.*)", StaticFileRequestHandler,  {"path": "../blockly/"}),
                        (r"/svg-editor/(.*)", StaticFileRequestHandler, {"path": "../svg-editor/"}),

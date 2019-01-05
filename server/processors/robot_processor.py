@@ -35,10 +35,7 @@ class RobotProcessor(RobotProcessorInterface):
         self.sendCameraUpdates = False
         self.FPS = FPS()
         self.isSimulation = False
-        self.joystickLive = False
         self.processJoystickCommands= False
-        self.JoystickThread = None
-
 
 
     def initialise(self):
@@ -59,34 +56,9 @@ class RobotProcessor(RobotProcessorInterface):
                 self.MarkersThread = Thread(target=self.updateMarkers)
                 self.MarkersThread.start()
 
-        #Joystick initialisation
-        try:
-            pygame.init()
-            joystick_count = pygame.joystick.get_count()
-            if joystick_count == 0:
-                # No joysticks!
-                print("No joystick found.")
-            else:
-                # Use joystick #0 and initialize it
-                jst = pygame.joystick.Joystick(0)
-                jst.init()
-                if jst.get_init()==1:
-                    self.joystick = jst
-                    self.joystickLive = True
-                    self.processJoystickCommands = True
-        except Exception as exc:
-            print('Failed to initialise joystick')
-
-        if self.joystickLive:
-            if self.JoystickThread is None or not self.JoystickThread.isAlive():
-                self.JoystickThread = Thread(target=self.processJoystick)
-                self.JoystickThread.start()
-
-
     def close(self):
         self.processor.close()
         self.sendCameraUpdates = False
-        self.processJoystickCommands = False
         if self.cameraLive:
             self.Camera.stop()
 
@@ -96,17 +68,6 @@ class RobotProcessor(RobotProcessorInterface):
 
     def onMarkerUpdate(self, handler):
         self.onMarkerUpdateHandler = handler
-
-    def processJoystick(self):
-        while self.processJoystickCommands:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.processJoystickCommands = False
-
-            left_drive = self.joystick.get_axis(1)
-            right_drive = self.joystick.get_axis(3)
-            self.processor.drive(-round(left_drive*10), -round(right_drive*10))
-            time.sleep(0.05)
 
     def updateMarkers(self):
         while self.sendCameraUpdates:
