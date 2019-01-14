@@ -1,13 +1,16 @@
 import serial
 from time import sleep
 from processors.robot_processor_interface import RobotProcessorInterface
-from processors.motor import Motor
+import importlib
 
-class RobotRpiProcessor(RobotProcessorInterface):
+import config.constants_global as constants
+
+class RobotPlatformProcessor(RobotProcessorInterface):
     def __init__(self):
-        super(RobotRpiProcessor, self).__init__()
-        self.motor = Motor()
-
+        super(RobotPlatformProcessor, self).__init__()
+        motor_module = importlib.import_module(constants.motor_module)
+        motor_class = getattr(motor_module, "Motor")
+        self.motor = motor_class()
 
     distanceSensorControllerLive = False
     colourSensorLive = False

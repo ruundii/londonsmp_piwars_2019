@@ -1,60 +1,35 @@
 # import the necessary packages
-from threading import Thread
-import cv2
+from videoutils.WebcamVideoStream import WebcamVideoStream
+import config.constants_global as constants
+
 
 class VideoStream:
-    def __init__(self, isPi, resolution,
-                 framerate):
-        # initialize the video camera stream and read the first frame
-        # from the stream
-        if isPi:
-            gst_str = ('nvcamerasrc !'
-                       'video/x-raw(memory:NVMM), '
-                       'width=(int)2592, height=(int)1944, '
-                       'format=(string)I420, framerate=(fraction){}/1 ! '
-                       'nvvidconv ! '
-                       'video/x-raw, width=(int){}, height=(int){}, '
-                       'format=(string)BGRx ! '
-                       'videoconvert ! appsink').format(framerate, resolution[0], resolution[1])
-            self.stream = cv2.VideoCapture(gst_str, cv2.CAP_GSTREAMER)
-        else:
-            self.stream = cv2.VideoCapture(0)
-        (self.grabbed, self.frame) = self.stream.read()
-        self.gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
+    def __init__(self):
+        # check to see if the picamera module should be used
+        if constants.use_pi_camera:
+            # only import the picamera packages unless we are
+            # explicity told to do so -- this helps remove the
+            # requirement of `picamera[array]` from desktops or
+            # laptops that still want to use the `imutils` package
+            from videoutils.PiVideoStream import PiVideoStream
 
-        # initialize the variable used to indicate if the thread should
-        # be stopped
-        self.stopped = False
+            # initialize the picamera stream and allow the camera
+            # sensor to warmup
+            self.stream = PiVideoStream()
+
+        # otherwise, we are using OpenCV so initialize the webcam
+        # stream
+        else:
+            self.stream = WebcamVideoStream()
 
     def start(self):
-        # start the thread to read frames from the video stream
-        t = Thread(target=self.update, args=())
-        t.daemon = True
-        t.start()
-        return self
-
-    def update(self):
-        # keep looping infinitely until the thread is stopped
-        while True:
-            # if the thread indicator variable is set, stop the thread
-            if self.stopped:
-                return
-
-            # otherwise, read the next frame from the stream
-            (self.grabbed, self.frame) = self.stream.read()
-            try:
-                if self.frame is not None:
-                    self.gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
-                else:
-                    self.gray = None
-            except Exception:
-                self.gray=None
-
+        # start the threaded video stream
+        return self.stream.start()
 
     def read(self):
-        # return the frame most recently read
-        return self.frame, self.gray
+        # return the current frame
+        return self.stream.read()
 
     def stop(self):
-        # indicate that the thread should be stopped
-        self.stopped = True
+        # stop the thread and release any resources
+        self.stream.stop()

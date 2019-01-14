@@ -1,24 +1,18 @@
 import cv2
 
-from videoutils.VideoStream import VideoStream
 from videoutils import util as u
 import platform
 from datetime import datetime
+import importlib
 
-isWindows = platform.system() == 'Windows'
-
-if isWindows:
-    from videoutils import constantsWindows as c
-else:
-    from videoutils import constantsPi as c
-
+import config.constants_global as constants
 
 class RobotCamera:
-    def __init__(self, id=c.cameraId, resolution=c.resolution, isPi=c.isPi):
+    def __init__(self):
         self.id = id
-        self.resolution = resolution
-        self.isPi = isPi
-        self.vs = VideoStream(resolution=resolution, isPi=self.isPi, framerate=20)
+        video_stream_module = importlib.import_module(constants.video_stream_module)
+        video_stream_class = getattr(video_stream_module, "VideoStream")
+        self.vs = video_stream_class()
         self.running = False
 
         self.cameraMatrix = None
@@ -34,19 +28,22 @@ class RobotCamera:
         self.gray = None
         self.grayUndistorted = None
         self.isPreundistored = False
+        self.load()
 
-    def load(self, calibrationsPath, loadCameraMatrix=True, loadPerspective=True, loadHeight=True):
+    def load(self, loadCameraMatrix=True, loadPerspective=False, loadHeight=False):
         if loadCameraMatrix:
-            cameraMatrix, distCoeffs = u.loadCalibration(calibrationsPath, self.id)
+            cameraMatrix, distCoeffs = u.loadCalibration()
             self.setCameraMatrix(cameraMatrix, distCoeffs)
 
         if loadPerspective and self.cameraMatrix is not None and self.distCoeffs is not None:
-            perspectiveTransform = u.loadPerspective(calibrationsPath, self.id)
+            perspectiveTransform = u.loadPerspective()
             self.setPerspective(perspectiveTransform)
 
         if loadHeight:
-            heightTransform = u.loadHeight(calibrationsPath, self.id)
+            heightTransform = u.loadHeight()
             self.setHeight(heightTransform)
+        print('loaded camera params')
+
 
     def setCameraMatrix(self, cameraMatrix, distCoeffs):
         if cameraMatrix is None or distCoeffs is None:
@@ -62,9 +59,9 @@ class RobotCamera:
         self.distCoeffs = distCoeffs
 
         self.newCameraMatrix, self.validPixROI = cv2.getOptimalNewCameraMatrix(self.cameraMatrix, self.distCoeffs,
-                                                                               self.resolution, 0)
+                                                                               constants.resolution, 0)
         self.mapx, self.mapy = cv2.initUndistortRectifyMap(self.cameraMatrix, self.distCoeffs, None,
-                                                           self.newCameraMatrix, self.resolution, 5)
+                                                           self.newCameraMatrix, constants.resolution, 5)
 
     def setPerspective(self, perspectiveTransform):
         self.perspectiveTransform = perspectiveTransform
@@ -102,7 +99,7 @@ class RobotCamera:
         if self.mapx is not None and self.mapy is not None:
             frame = cv2.remap(frame, self.mapx, self.mapy, cv2.INTER_LINEAR)
         # if self.perspectiveTransform is not None:
-        #   frame = cv2.warpPerspective(frame, self.perspectiveTransform, c.mappedImageResolution)
+        #   frame = cv2.warpPerspective(frame, self.perspectiveTransform, constants.mappedImageResolution)
 
         return frame
 
@@ -112,8 +109,8 @@ class RobotCamera:
 
         try:
             markerCorners, markerIds, rejected = cv2.aruco.detectMarkers(self.gray,
-                                                                         c.markerDictionary,
-                                                                         parameters=c.detectorParams,
+                                                                         constants.markerDictionary,
+                                                                         parameters=constants.detectorParams,
                                                                          cameraMatrix=self.cameraMatrix,
                                                                          distCoeff=self.distCoeffs
                                                                           )
@@ -122,12 +119,12 @@ class RobotCamera:
             pass
         return markerCorners, markerIds
 
-    # def transformMarkers(self, markerCorners, markerIds, imgCenter=c.mappedImageCenter, imgScale=c.outImageMappedHeight):
+    # def transformMarkers(self, markerCorners, markerIds, imgCenter=constants.mappedImageCenter, imgScale=constants.outImageMappedHeight):
     #   if markerCorners is None or markerIds is None:
     #     return []
     #
     #   positions = {}
-    #   imgCenterPx = np.divide(np.array(c.mappedImageResolution), 2.0)
+    #   imgCenterPx = np.divide(np.array(constants.mappedImageResolution), 2.0)
     #
     #   for i in range(len(markerCorners)):
     #     markerId = int(markerIds[i])

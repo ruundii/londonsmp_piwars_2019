@@ -14,7 +14,6 @@ from tornado.platform.asyncio import AnyThreadEventLoopPolicy
 from file_server import FileRequestHandler, StaticFileRequestHandler
 from concurrent.futures import ThreadPoolExecutor
 
-
 isDebugUpdates = False
 isDebugCommands = False
 processor = None

@@ -10,41 +10,29 @@ class Motor:
 
     last_drive_params = None
 
-    # correct pin settings on 24.12.2018 for XY-160D
-    # in1 = 27
-    # in2 = 22
-    # en1 = 16
-    # in3 = 17
-    # in4 = 4
-    # en2 = 19
-
-    def __init__(self, motor_left_in1 = 27, motor_left_in2 = 22, motor_left_en = 16,
-                 motor_right_in1 = 17, motor_right_in2 = 4, motor_right_en = 19):
+    def __init__(self, motor_left_direction = 26, motor_left_en = 19,
+                 motor_right_direction = 16, motor_right_en = 12):
         GPIO.setmode(GPIO.BCM)
         #
-        GPIO.setup(motor_left_in1, GPIO.OUT)
-        GPIO.setup(motor_left_in2, GPIO.OUT)
+        GPIO.setup(motor_left_direction, GPIO.OUT)
         GPIO.setup(motor_left_en, GPIO.OUT)
         #
-        GPIO.setup(motor_right_in1, GPIO.OUT)
-        GPIO.setup(motor_right_in2, GPIO.OUT)
+        GPIO.setup(motor_right_direction, GPIO.OUT)
         GPIO.setup(motor_right_en, GPIO.OUT)
         #
         self.motor_left = {'pwm': GPIO.PWM(motor_left_en, 1000),
-                           'in1': motor_left_in1,
-                           'in2': motor_left_in2}
+                           'dir': motor_left_direction}
 
         self.motor_right = {'pwm': GPIO.PWM(motor_right_en, 1000),
-                           'in1': motor_right_in1,
-                           'in2': motor_right_in2}
+                           'dir': motor_right_direction}
 
-        self.motor_left['pwm'].start(25)
-        self.motor_right['pwm'].start(25)
+        self.motor_left['pwm'].start(0)
+        self.motor_right['pwm'].start(0)
 
 
     def drive(self, speed_left, speed_right):
         #convert speed to pwm
-        speed_left=self.__get_pwm_from_motor_speed(speed_left)
+        speed_left=self.__get_pwm_from_motor_speed(-speed_left)
         speed_right = self.__get_pwm_from_motor_speed(speed_right)
 
         #check if nothing has changed since the last call
@@ -63,25 +51,24 @@ class Motor:
     def __drive_single_motor(self, set_pwm, last_pwm, motor):
         if (set_pwm * last_pwm <0 or set_pwm == 0):
             #direction has changed or motor stopped. change PWM via stop
-            GPIO.output(motor['in1'], GPIO.LOW)
-            GPIO.output(motor['in2'], GPIO.LOW)
-        motor['pwm'].ChangeDutyCycle(abs(set_pwm))
+            motor['pwm'].ChangeDutyCycle(0)
         if (set_pwm * last_pwm <=0 and set_pwm != 0):
             #direction has changed or motor started - setting in1 or in2 high
             if(set_pwm > 0):
                 #drive forward
-                GPIO.output(motor['in1'], GPIO.HIGH)
+                GPIO.output(motor['dir'], GPIO.HIGH)
             elif(set_pwm < 0):
                 #drive backward
-                GPIO.output(motor['in2'], GPIO.HIGH)
+                GPIO.output(motor['dir'], GPIO.LOW)
+        motor['pwm'].ChangeDutyCycle(abs(set_pwm))
 
     def __get_pwm_from_motor_speed(self, speed):
         if speed == 0:
             return 0
         elif speed <0:
-            return max(-20 + speed*0.8, -100)
+            return max(-30 + speed*0.7, -100)
         else:
-            return min(20 + speed*0.8, 100)
+            return min(30 + speed*0.7, 100)
 
 
     def cleanup(self):

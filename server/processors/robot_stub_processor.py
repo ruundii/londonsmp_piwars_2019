@@ -3,9 +3,9 @@ from time import sleep
 from processors.robot_processor_interface import RobotProcessorInterface
 import random
 
-class RobotStubProcessor(RobotProcessorInterface):
+class RobotPlatformProcessor(RobotProcessorInterface):
     def __init__(self):
-        super(RobotStubProcessor, self).__init__()
+        super(RobotPlatformProcessor, self).__init__()
         self.markersThread = None
 
     def initialise(self):

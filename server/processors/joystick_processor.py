@@ -2,9 +2,7 @@ import pygame
 from threading import Thread
 import time
 
-import platform
-
-isWindows = platform.system() == 'Windows'
+import config.constants_global as constants
 
 
 class JoystickProcessor:
@@ -45,8 +43,9 @@ class JoystickProcessor:
                 if event.type == pygame.QUIT:
                     self.processJoystickCommands = False
 
-            left_drive = self.joystick.get_axis(1)
-            right_drive = self.joystick.get_axis(4 if not isWindows else 3)
+            left_drive = self.joystick.get_axis(constants.joystick_left_axis)
+
+            right_drive = self.joystick.get_axis(constants.joystick_right_axis)
             self.robot_processor.drive(-round(left_drive*10)*10, -round(right_drive*10)*10)
             time.sleep(0.05)
 

@@ -5,24 +5,27 @@ from os import path
 import cv2
 import numpy as np
 
-def loadCalibration(calibrationsPath, cameraID):
-  data = loadJSON(calibrationsPath, videoFilename(cameraID, ''))
+import config.constants_global as constants
+
+
+def loadCalibration():
+  data = loadJSON(constants.camera_calibrations_path, videoFilename(''))
   cameraMatrix = np.array(data['cameraMatrix'])
   distCoeffs = np.array(data['distCoeffs'])
   return cameraMatrix, distCoeffs
 
-def loadPerspective(calibrationsPath, cameraID):
-  data = loadJSON(calibrationsPath, videoFilename(cameraID, '-perspective'))
+def loadPerspective():
+  data = loadJSON(constants.camera_calibrations_path, videoFilename('-perspective'))
   perspectiveTransform = np.array(data['perspectiveTransform'])
   return perspectiveTransform
 
-def loadHeight(calibrationsPath, cameraID):
-  data = loadJSON(calibrationsPath, videoFilename(cameraID, '-height'))
+def loadHeight():
+  data = loadJSON(constants.camera_calibrations_path, videoFilename('-height'))
   transform = np.array(data['heightTransform'])
   return transform
 
-def videoFilename(cameraID, postfix):
-  return str(cameraID)+postfix+'.json'
+def videoFilename(postfix):
+  return str(constants.camera_id)+postfix+'.json'
 
 def loadJSON(dir, filename):
   filename = path.join(dir, filename)

@@ -12,23 +12,19 @@ import os
 import pygame
 import platform
 
-isWindows = platform.system() == 'Windows'
-
-if isWindows:
-    from videoutils import constantsWindows as c
-    from processors.robot_stub_processor import RobotStubProcessor as RobotPlatformProcessor
-else:
-    from videoutils import constantsPi as c
-    from processors.robot_rpi_processor import RobotRpiProcessor as RobotPlatformProcessor
+import importlib
+import config.constants_global as constants
 
 class RobotProcessor(RobotProcessorInterface):
     processor = None
 
     def __init__(self):
         super(RobotProcessorInterface,self).__init__()
+        platform_processor_module = importlib.import_module(constants.robot_platform_processor_module)
+        platform_processor_class = getattr(platform_processor_module, "RobotPlatformProcessor")
+        self.processor = platform_processor_class()
         self.onMarkerUpdateHandler = None
 
-        self.processor = RobotPlatformProcessor()
         self.MarkersThread = None
         self.Camera = None
         self.cameraLive = False
@@ -43,8 +39,6 @@ class RobotProcessor(RobotProcessorInterface):
         #Camera initialisation
         try:
             self.Camera = RobotCamera()
-            self.Camera.load(c.calibrationsPath, loadCameraMatrix=True, loadPerspective=False, loadHeight=False)
-            print('loaded camera params')
             self.Camera.start();
             time.sleep(0.3)
             self.cameraLive = True
@@ -86,7 +80,7 @@ class RobotProcessor(RobotProcessorInterface):
                     if markerIds is not None and len(markerIds) > 0:
                         for id in markerIds[0]:
                             # rotation vectors, translation vectors, object points for all marker corners
-                            poseRes = cv2.aruco.estimatePoseSingleMarkers(markerCorners, c.markerSizeM, self.Camera.cameraMatrix,
+                            poseRes = cv2.aruco.estimatePoseSingleMarkers(markerCorners, constants.markerSizeM, self.Camera.cameraMatrix,
                                                                           self.Camera.distCoeffs)
                             x = poseRes[1][0][0][0]
                             y = poseRes[1][0][0][1]

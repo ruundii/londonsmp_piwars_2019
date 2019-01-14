@@ -1,5 +1,8 @@
-import cv2
+camera_calibrations_path = "videoutils\calibrations"
 
+
+# open cv / aruco constants
+import cv2
 imgPPI = 72
 inToM = 0.0254
 
@@ -33,14 +36,16 @@ detectorParams.adaptiveThreshWinSizeMin = 10
 # detectorParams.adaptiveThreshWinSizeStep = 3
 detectorParams.adaptiveThreshWinSizeMax = 10
 
-isPi = False
-cameraId = "surface"
-calibrationsPath = "videoutils\calibrations"
-#resolution_pi = (640, 480)
-#framerate_pi = 20
 
-resolution = (640, 480)
-framerate = 10
+#importing machine-specific constants
+import importlib
+from uuid import getnode as get_mac
+constants_specific = importlib.import_module("config.constants_"+str(get_mac()))
 
-STATE_TRACKING = 0
-STATE_FLASHLIGHT = 1
+module_dict = constants_specific.__dict__
+try:
+    to_import = constants_specific.__all__
+except AttributeError:
+    to_import = [name for name in module_dict if not name.startswith('_')]
+globals().update({name: module_dict[name] for name in to_import})
+
