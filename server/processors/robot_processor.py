@@ -39,7 +39,8 @@ class RobotProcessor(RobotProcessorInterface):
         #Camera initialisation
         try:
             self.Camera = RobotCamera()
-            self.Camera.start();
+            self.load()
+            self.Camera.start()
             time.sleep(0.3)
             self.cameraLive = True
         except Exception as exc:
@@ -76,8 +77,10 @@ class RobotProcessor(RobotProcessorInterface):
                     self.Camera.update()
                     _, fps, frameNum = self.FPS.update()
                     #print("Update markers FPS:"+str(fps)+" frame number:"+str(frameNum)+" datetime:"+ str(datetime.now()))
+                    frame,_ = self.Camera.lastFrame()
                     markerCorners, markerIds = self.Camera.detectAruco()
                     if markerIds is not None and len(markerIds) > 0:
+                        print("aruco detected")
                         for id in markerIds[0]:
                             # rotation vectors, translation vectors, object points for all marker corners
                             poseRes = cv2.aruco.estimatePoseSingleMarkers(markerCorners, constants.markerSizeM, self.Camera.cameraMatrix,

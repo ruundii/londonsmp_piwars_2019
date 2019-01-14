@@ -40,6 +40,7 @@ detectorParams.adaptiveThreshWinSizeMax = 10
 #importing machine-specific constants
 import importlib
 from uuid import getnode as get_mac
+print('loading ',"config.constants_"+str(get_mac()))
 constants_specific = importlib.import_module("config.constants_"+str(get_mac()))
 
 module_dict = constants_specific.__dict__

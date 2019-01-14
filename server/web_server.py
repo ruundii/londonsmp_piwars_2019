@@ -66,7 +66,8 @@ class RobotWebsocketServer(WebSocketHandler):
                 pass
 
             elif client_cmd == 'startRun':
-                mainloop.run_in_executor(executor, self.processor.robotController.initialiseRun, bool(payload['isSimulation']))
+                pass
+                #mainloop.run_in_executor(executor, self.processor.robotController.initialiseRun, bool(payload['isSimulation']))
 
             elif client_cmd == 'shutdown':
                 self.processor.close()

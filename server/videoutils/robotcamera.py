@@ -9,7 +9,6 @@ import config.constants_global as constants
 
 class RobotCamera:
     def __init__(self):
-        self.id = id
         video_stream_module = importlib.import_module(constants.video_stream_module)
         video_stream_class = getattr(video_stream_module, "VideoStream")
         self.vs = video_stream_class()
@@ -28,7 +27,6 @@ class RobotCamera:
         self.gray = None
         self.grayUndistorted = None
         self.isPreundistored = False
-        self.load()
 
     def load(self, loadCameraMatrix=True, loadPerspective=False, loadHeight=False):
         if loadCameraMatrix:
