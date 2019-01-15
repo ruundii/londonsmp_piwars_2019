@@ -1,3 +1,4 @@
+#trik - piwars robot
 joystick_left_axis = 1
 joystick_right_axis = 4
 
