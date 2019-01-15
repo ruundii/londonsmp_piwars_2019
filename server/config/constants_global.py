@@ -1,6 +1,3 @@
-camera_calibrations_path = "videoutils\calibrations"
-
-
 # open cv / aruco constants
 import cv2
 imgPPI = 72

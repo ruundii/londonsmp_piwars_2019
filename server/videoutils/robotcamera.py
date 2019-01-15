@@ -29,21 +29,24 @@ class RobotCamera:
         self.isPreundistored = False
 
     def load(self, loadCameraMatrix=True, loadPerspective=False, loadHeight=False):
+        print('loaded camera 1')
         if loadCameraMatrix:
             cameraMatrix, distCoeffs = u.loadCalibration()
-            self.setCameraMatrix(cameraMatrix, distCoeffs)
+            self.set_camera_matrix(cameraMatrix, distCoeffs)
 
+        print('loaded camera 2')
         if loadPerspective and self.cameraMatrix is not None and self.distCoeffs is not None:
             perspectiveTransform = u.loadPerspective()
-            self.setPerspective(perspectiveTransform)
+            self.set_perspective(perspectiveTransform)
 
+        print('loaded camera 3')
         if loadHeight:
             heightTransform = u.loadHeight()
-            self.setHeight(heightTransform)
+            self.set_height(heightTransform)
         print('loaded camera params')
 
 
-    def setCameraMatrix(self, cameraMatrix, distCoeffs):
+    def set_camera_matrix(self, cameraMatrix, distCoeffs):
         if cameraMatrix is None or distCoeffs is None:
             self.cameraMatrix = None
             self.distCoeffs = None
@@ -61,10 +64,10 @@ class RobotCamera:
         self.mapx, self.mapy = cv2.initUndistortRectifyMap(self.cameraMatrix, self.distCoeffs, None,
                                                            self.newCameraMatrix, constants.resolution, 5)
 
-    def setPerspective(self, perspectiveTransform):
+    def set_perspective(self, perspectiveTransform):
         self.perspectiveTransform = perspectiveTransform
 
-    def setHeight(self, heightTransform):
+    def set_height(self, heightTransform):
         self.heightTransform = heightTransform
 
     def start(self):
@@ -82,7 +85,7 @@ class RobotCamera:
         self.vs.stop()
         self.running = False
 
-    def isRunning(self):
+    def is_running(self):
         return self.running
 
     def undistort(self, gray=False):
@@ -101,7 +104,7 @@ class RobotCamera:
 
         return frame
 
-    def detectAruco(self):
+    def detect_aruco(self):
         if self.gray is None:
             return [], None
 
