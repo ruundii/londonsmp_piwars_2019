@@ -1,12 +1,12 @@
 # import the necessary packages
 import picamera.array
 from picamera import PiCamera
-from threading import Thread
+from threading import Thread, Lock
 import cv2
-from videoutils.fps import FPS
+from server.videoutils.fps import FPS
 from datetime import datetime
 
-import config.constants_global as constants
+import server.config.constants_global as constants
 
 
 class PiStreamOutput(picamera.array.PiAnalysisOutput):
@@ -38,13 +38,14 @@ class VideoStream:
     def __init__(self):
         # initialize the camera and stream
         self.camera = PiCamera()
+        self.camera_lock = Lock()
         self.camera.resolution = constants.resolution
         self.camera.framerate = constants.framerate
         #self.camera.awb_mode='off'
         #self.camera.awb_gains = (1.4, 1.5)
         self.camera.vflip=True
         self.camera.hflip = True
-        self.lastReadFrameNum =-1;
+        self.last_read_frame_num =-1;
         #self.camera.brightness = 60
 
         # initialize the frame and the variable used to indicate
@@ -66,7 +67,7 @@ class VideoStream:
         #dt = datetime.now()
         #_, fps, frameNum = self.FPS.update()
         #print("FPS Pi video stream:" + str(fps) + " Frame num:" + str(frameNum))
-        if self.output.bytes is not None and self.lastReadFrameNum!=self.output.FPS.frameidx:
+        if self.output.bytes is not None and self.last_read_frame_num!=self.output.FPS.frameidx:
             self.frame = picamera.array.bytes_to_rgb(self.output.bytes, self.camera.resolution)
             self.gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
             #print("read ", (datetime.now()-dt).total_seconds())
@@ -74,15 +75,23 @@ class VideoStream:
         return self.frame, self.gray
 
     def stop(self):
-        # indicate that the thread should be stopped
-        self.stopped = True
+        with self.camera_lock:
+            # indicate that the thread should be stopped
+            self.stopped = True
 
     def process_recording(self):
         self.output = PiStreamOutput(self.camera)
         self.camera.start_recording(self.output, 'rgb')
         while True:
-            self.camera.wait_recording()
-            if self.stopped:
-                self.camera.stop_recording()
-                self.camera.close()
-                return
+            with self.camera_lock:
+                self.camera.wait_recording()
+                if self.stopped:
+                    self.camera.stop_recording()
+                    self.camera.close()
+                    return
+
+    def close(self):
+        with self.camera_lock:
+            self.stopped = True
+            self.camera.close()
+            self.camera = None

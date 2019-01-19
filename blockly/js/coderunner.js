@@ -59,13 +59,11 @@ CodeRunner.prototype.runCode = function(setSimulation) {
     Blockly.JavaScript.addReservedWords('sleep');
     Blockly.JavaScript.addReservedWords('robot_drive');
     Blockly.JavaScript.addReservedWords('robot_stop');
-    Blockly.JavaScript.addReservedWords('robot_get_list_of_marker_ids');
-    Blockly.JavaScript.addReservedWords('robot_get_distance_to_marker');
-    Blockly.JavaScript.addReservedWords('robot_get_x_angle_to_marker');
-    Blockly.JavaScript.addReservedWords('robot_get_y_angle_to_marker');
-    Blockly.JavaScript.addReservedWords('robot_display_text');
-    Blockly.JavaScript.addReservedWords('robot_say_text');
-    Blockly.JavaScript.addReservedWords('robot_display_clear');
+    Blockly.JavaScript.addReservedWords('robot_get_list_of_alien_ids');
+    Blockly.JavaScript.addReservedWords('robot_get_distance_to_alien');
+    Blockly.JavaScript.addReservedWords('robot_get_x_angle_to_alien');
+    Blockly.JavaScript.addReservedWords('robot_get_y_angle_to_alien');
+    Blockly.JavaScript.addReservedWords('robot_set_camera_mode');
     latestCode = Blockly.JavaScript.workspaceToCode(workspace);
     Blockly.JavaScript.STATEMENT_PREFIX = prefix;
     Blockly.JavaScript.RESERVED_WORDS_=reserved;
@@ -122,23 +120,17 @@ CodeRunner.prototype.handleConnectionStateChanged = function(isConnected){
 CodeRunner.prototype.handleWebsocketMessages = function(msg) {
     if(worker==null || !isRunning) return;
     switch(msg.message) {
-        case 'updateMarkerReadings':
+        case 'updateAlienReadings':
             worker.postMessage(msg);
-            if(msg.markers==null||msg.markers.length==0){
-                $('#markersReport')[0].innerHTML='No markers';
+            if(msg.aliens==null||msg.aliens.length==0){
+                $('#sensorsReport')[0].innerHTML='No aliens';
             }
             else{
-                var markers="";
-                for(i=0;i<msg.markers.length;i++){
-                    markers=markers+'ID:'+msg.markers[i]['id']+' Distance:'+msg.markers[i]['distance'];
+                var aliens="";
+                for(i=0;i<msg.aliens.length;i++){
+                    aliens=aliens+'ID:'+msg.aliens[i]['id']+' Distance:'+msg.aliens[i]['distance'];
                 }
-                $('#markersReport')[0].innerHTML=markers;
-            }
-            break;
-        case 'updateLocation':
-            mapVisualiser.setRobotCoordinates(true, msg.positionEstimate['x'], msg.positionEstimate['y'], msg.positionEstimate['theta']);
-            if(isSimulation && msg.hasOwnProperty("simulatedPrecisePosition")){
-                mapVisualiser.setRobotCoordinates(false, msg.simulatedPrecisePosition['x'], msg.simulatedPrecisePosition['y'], msg.simulatedPrecisePosition['theta']);
+                $('#sensorsReport')[0].innerHTML=aliens;
             }
             break;
     }
@@ -154,7 +146,7 @@ CodeRunner.prototype.stopCode = function () {
         worker.terminate();
         worker = null;
     }
-    webSocketManager.sendMessage(JSON.stringify({"command": 'drive', 'speedLeft': 0, 'speedRight':0}));
+    webSocketManager.sendMessage(JSON.stringify({"command": 'stopRun'}));
     codeRunner.resetUi();
     isRunning = false;
     isSimulation = false;

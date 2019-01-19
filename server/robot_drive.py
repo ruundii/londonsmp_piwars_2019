@@ -1,4 +1,4 @@
-from processors.robot_processor import RobotProcessor
+from server.processors.robot_processor import RobotProcessor
 import asyncio
 import sys
 import time

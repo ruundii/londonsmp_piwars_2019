@@ -48,153 +48,103 @@ Blockly.Blocks['robot_stop'] = {
 
 
 
-Blockly.Blocks['robot_get_list_of_marker_ids'] = {
+Blockly.Blocks['robot_get_list_of_alien_ids'] = {
     init: function () {
         this.jsonInit(
             {
-                "type": "robot_get_list_of_marker_ids",
-                "message0": "Get list of visible marker ids",
+                "type": "robot_get_list_of_alien_ids",
+                "message0": "Get list of visible aliens",
                 "inputsInline": true,
                 "output": "Array",
                 "colour": Blockly.Blocks.Robot.HUE,
-                "tooltip": "Get list of ids of currently visible markers",
+                "tooltip": "Get list of ids of currently visible aliens",
                 "helpUrl": ""
             });
     }
 };
 
-Blockly.Blocks['robot_get_distance_to_marker'] = {
+Blockly.Blocks['robot_get_distance_to_alien'] = {
     init: function () {
         this.jsonInit(
             {
-                "type": "robot_get_distance_to_marker",
-                "message0": "Get distance to marker with id %1",
+                "type": "robot_get_distance_to_alien",
+                "message0": "Get distance to alien with id %1",
                 "args0": [
                     {
                         "type": "input_value",
-                        "name": "marker_id",
+                        "name": "alien_id",
                         "check": "Number"
                     }
                 ],
                 "inputsInline": true,
                 "output": "Number",
                 "colour": Blockly.Blocks.Robot.HUE,
-                "tooltip": "Get distance to marker with id in cm",
+                "tooltip": "Get distance to alien with id in cm",
                 "helpUrl": ""
             });
     }
 };
 
-Blockly.Blocks['robot_get_x_angle_to_marker'] = {
+Blockly.Blocks['robot_get_x_angle_to_alien'] = {
     init: function () {
         this.jsonInit(
             {
-                "type": "robot_get_x_angle_to_marker",
-                "message0": "Get x angle to marker with id %1",
+                "type": "robot_get_x_angle_to_alien",
+                "message0": "Get x angle to alien with id %1",
                 "args0": [
                     {
                         "type": "input_value",
-                        "name": "marker_id",
+                        "name": "alien_id",
                         "check": "Number"
                     }
                 ],
                 "inputsInline": true,
                 "output": "Number",
                 "colour": Blockly.Blocks.Robot.HUE,
-                "tooltip": "Get x angle to marker with id in degrees",
+                "tooltip": "Get x angle to alien with id in degrees",
                 "helpUrl": ""
             });
     }
 };
 
-Blockly.Blocks['robot_get_y_angle_to_marker'] = {
+Blockly.Blocks['robot_get_y_angle_to_alien'] = {
     init: function () {
         this.jsonInit(
             {
-                "type": "robot_get_y_angle_to_marker",
-                "message0": "Get y angle to marker with id %1",
+                "type": "robot_get_y_angle_to_alien",
+                "message0": "Get y angle to alien with id %1",
                 "args0": [
                     {
                         "type": "input_value",
-                        "name": "marker_id",
+                        "name": "alien_id",
                         "check": "Number"
                     }
                 ],
                 "inputsInline": true,
                 "output": "Number",
                 "colour": Blockly.Blocks.Robot.HUE,
-                "tooltip": "Get y angle to marker with id in degrees",
+                "tooltip": "Get y angle to alien with id in degrees",
                 "helpUrl": ""
             });
     }
 };
 
-Blockly.Blocks['robot_say_text'] = {
+Blockly.Blocks['robot_set_camera_mode'] = {
     init: function () {
         this.jsonInit(
             {
-                "type": "robot_say_text",
-                "message0": "Say %1 in %2",
+                "type": "robot_set_camera_mode",
+                "message0": "Set camera mode  %1",
                 "args0": [
-                    {
-                        "type": "input_value",
-                        "name": "text",
-                    },
                     {"type":"field_dropdown",
-                        "name":"lang",
-                        "options":[["English (UK)","en-gb"],["English (US)","en-us"],["Russian","ru"]]}
+                        "name":"mode",
+                        "options":[["Detect aliens","0"],["Detect colored sheets","1"],["Detect white line track","2"], ["Off","-1"]]},
                 ],
                 "inputsInline": true,
                 "previousStatement": null,
                 "nextStatement": null,
                 "colour": Blockly.Blocks.Robot.HUE,
-                "tooltip": "Pronounce the specified text",
-                "helpUrl": ""
-            });
-    }
-};
-
-Blockly.Blocks['robot_display_text'] = {
-    init: function () {
-        this.jsonInit(
-            {
-                "type": "robot_display_text",
-                "message0": "Display %1 in line %2",
-                "args0": [
-                    {
-                        "type": "input_value",
-                        "name": "text",
-                    },
-                    {"type":"field_dropdown",
-                        "name":"line",
-                        "options":[["1","1"],["2","2"]]},
-                ],
-                "inputsInline": true,
-                "previousStatement": null,
-                "nextStatement": null,
-                "colour": Blockly.Blocks.Robot.HUE,
-                "tooltip": "Display the specified text (up to 16 characters) in a specified line of the display",
-                "helpUrl": ""
-            });
-    }
-};
-
-Blockly.Blocks['robot_display_clear'] = {
-    init: function () {
-        this.jsonInit(
-            {
-                "type": "robot_display_clear",
-                "message0": "Clear display line(s) %1",
-                "args0": [
-                    {"type":"field_dropdown",
-                        "name":"line",
-                        "options":[["1 and 2","0"],["1","1"],["2","2"]]},
-                ],
-                "inputsInline": true,
-                "previousStatement": null,
-                "nextStatement": null,
-                "colour": Blockly.Blocks.Robot.HUE,
-                "tooltip": "Clear specified lines of the display",
+                "tooltip": "Set camera mode according to a challenge",
                 "helpUrl": ""
             });
     }

@@ -1,9 +1,8 @@
 var window = new WindowStub();
 var running = false;
-var lastMarkers = null;
+var lastAliens = null;
 
 var lastDriveParams = null;
-var lastTurnParams = null;
 
 function WindowStub(){
 
@@ -17,8 +16,8 @@ self.onmessage = function(e) {
    if(e.data=='start'){
        runBlocklyCode();
    }
-   else if(e.data.message=='updateMarkerReadings'){
-       lastMarkers = e.data['markers'];
+   else if(e.data.message=='updateAlienReadings'){
+       lastAliens = e.data['aliens'];
    }
 }
 
@@ -63,67 +62,56 @@ function robot_drive(speedLeft, speedRight) {
 }
 
 
-function robot_get_list_of_marker_ids() {
-    if(lastMarkers==null) return [];
-    var markerIds=[];
-    for(i=0;i<lastMarkers.length;i++) {
-        markerIds.push(lastMarkers[i].id);
-    }
-    return markerIds;
-}
-
-function robot_get_distance_to_marker(markerId) {
-    if(lastMarkers==null) return 0;
-    for(i=0;i<lastMarkers.length;i++) {
-        if(lastMarkers[i].id==markerId){
-            return lastMarkers[i]['distance'];
-        }
-    }
-    return 0;
-}
-
-function robot_get_x_angle_to_marker(markerId) {
-    if(lastMarkers==null) return 0;
-    for(i=0;i<lastMarkers.length;i++) {
-        if(lastMarkers[i].id==markerId){
-            return lastMarkers[i]['xAngle'];
-        }
-    }
-    return 0;
-}
-
-function robot_get_y_angle_to_marker(markerId) {
-    if(lastMarkers==null) return 0;
-    for(i=0;i<lastMarkers.length;i++) {
-        if(lastMarkers[i].id==markerId){
-            return lastMarkers[i]['yAngle'];
-        }
-    }
-    return 0;
-}
-
-function robot_say_text(text, lang){
-    var msg = {"command": 'say', 'text': text, 'lang':lang};
-    console.log('say text');
-    self.postMessage({"message":"serverCall", "msg":JSON.stringify(msg)})
-}
-
-function robot_display_text(text, lines){
-    var msg = {"command": 'display_text', 'text': text, 'lines': lines};
-    console.log('display text');
-    self.postMessage({"message":"serverCall", "msg":JSON.stringify(msg)})
-}
-
-function robot_display_clear(lines){
-    var msg = {"command": 'display_clear', 'lines': lines};
-    console.log('display clear');
-    self.postMessage({"message":"serverCall", "msg":JSON.stringify(msg)})
-}
-
 function robot_stop() {
     console.log('stop robot: start');
     lastDriveParams = {'speedLeft':0, 'speedRight':0}
     self.postMessage({"message":"serverCall", "msg":JSON.stringify({"command": 'drive', 'speedLeft': 0, 'speedRight':0})});
     console.log('stop robot: end');
 }
+
+function robot_get_list_of_alien_ids() {
+    if(lastAliens==null) return [];
+    var alienIds=[];
+    for(i=0; i<lastAliens.length; i++) {
+        alienIds.push(lastAliens[i].id);
+    }
+    return alienIds;
+}
+
+function robot_get_distance_to_alien(alienId) {
+    if(lastAliens==null) return 0;
+    for(i=0; i<lastAliens.length; i++) {
+        if(lastAliens[i].id==alienId){
+            return lastAliens[i]['distance'];
+        }
+    }
+    return 0;
+}
+
+function robot_get_x_angle_to_alien(alienId) {
+    if(lastAliens==null) return 0;
+    for(i=0; i<lastAliens.length; i++) {
+        if(lastAliens[i].id==alienId){
+            return lastAliens[i]['xAngle'];
+        }
+    }
+    return 0;
+}
+
+function robot_get_y_angle_to_alien(alienId) {
+    if(lastAliens==null) return 0;
+    for(i=0; i<lastAliens.length; i++) {
+        if(lastAliens[i].id==alienId){
+            return lastAliens[i]['yAngle'];
+        }
+    }
+    return 0;
+}
+
+function robot_set_camera_mode(mode){
+    var msg = {"command": 'setCameraMode', 'mode': mode};
+    console.log('robot_set_camera_mode');
+    self.postMessage({"message":"serverCall", "msg":JSON.stringify(msg)})
+}
+
 

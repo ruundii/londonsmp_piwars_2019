@@ -77,7 +77,7 @@
                 <textarea class='codemirror-text-area language-python' style='height:100%;width:100%;'></textarea>
             </div>
         </div>
-        <div id="markersReport" style="height:60px;width:300px;position: absolute; right: 10px; bottom: 10px;"></div>
+        <div id="sensorsReport" style="height:60px;width:300px;position: absolute; right: 10px; bottom: 10px;"></div>
         <!-- File Dialog -->
         <div id="fileDialog" class="modal">
             <div class="modal-content">
@@ -399,43 +399,27 @@
                         </block>
                     </value>
                 </block>
-                <block type="robot_get_list_of_marker_ids">
+                <block type="robot_stop"></block>
+                <block type="robot_get_list_of_alien_ids">
                 </block>
-                <block type="robot_get_distance_to_marker">
-                    <value name="marker_id">
+                <block type="robot_get_distance_to_alien">
+                    <value name="alien_id">
                         <block type="math_number"></block>
                     </value>
                 </block>
-                <block type="robot_get_x_angle_to_marker">
-                    <value name="marker_id">
+                <block type="robot_get_x_angle_to_alien">
+                    <value name="alien_id">
                         <block type="math_number"></block>
                     </value>
                 </block>
-                <block type="robot_get_y_angle_to_marker">
-                    <value name="marker_id">
+                <block type="robot_get_y_angle_to_alien">
+                    <value name="alien_id">
                         <block type="math_number"></block>
                     </value>
                 </block>
-                <block type="robot_say_text">
-                    <value name="text">
-                        <shadow type="text">
-                            <field name="text">I am hungry</field>
-                        </shadow>
-                    </value>
-                    <field name="lang">en-gb</field>
-                </block>
-                <block type="robot_display_text">
-                    <value name="text">
-                        <shadow type="text">
-                            <field name="text">I am hungry</field>
-                        </shadow>
-                    </value>
-                    <field name="line">1</field>
-                </block>
-                <block type="robot_display_clear">
+                <block type="robot_set_camera_mode">
                     <field name="line">0</field>
                 </block>
-                <block type="robot_stop"></block>
             </category>
             <sep></sep>
             <category name="Variables" colour="%{BKY_VARIABLES_HUE}" custom="VARIABLE"></category>

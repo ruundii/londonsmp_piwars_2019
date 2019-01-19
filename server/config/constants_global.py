@@ -1,38 +1,7 @@
-# open cv / aruco constants
-import cv2
-imgPPI = 72
-inToM = 0.0254
+green_lower_bound_hsv = (40,100,20)
+green_higher_bound_hsv = (80,255,255)
 
-posterMaxWidthIn = 8.1
-posterMaxHeightIn = 11.5
-posterMaxWidthM = posterMaxWidthIn * inToM
-posterMaxHeightM = posterMaxHeightIn * inToM
-
-charucoNSqVert = 10
-charucoSqSizeM = float(posterMaxHeightM) / float(charucoNSqVert)
-charucoMarkerSizeM = charucoSqSizeM * 0.7
-charucoNSqHoriz = int(posterMaxWidthM / charucoSqSizeM)
-
-charucoDictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
-charucoBoard = cv2.aruco.CharucoBoard_create(charucoNSqHoriz, charucoNSqVert, charucoSqSizeM, charucoMarkerSizeM, charucoDictionary)
-charucoDimsM = charucoImgDims = (charucoNSqHoriz * charucoSqSizeM / inToM, charucoNSqVert * charucoSqSizeM / inToM)
-charucoImgDims = (int(charucoDimsM[0] * imgPPI), int(charucoDimsM[1] * imgPPI))
-
-markerDictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
-markerSizeIn = 3
-markerSizeM = markerSizeIn * inToM
-
-detectorParams = cv2.aruco.DetectorParameters_create()
-detectorParams.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_SUBPIX
-detectorParams.cornerRefinementMaxIterations = 500
-# detectorParams.cornerRefinementWinSize = 1
-detectorParams.cornerRefinementMinAccuracy = 0.001
-# detectorParams.minMarkerPerimeterRate = 0.05
-# detectorParams.maxMarkerPerimeterRate = 0.2
-detectorParams.adaptiveThreshWinSizeMin = 10
-# detectorParams.adaptiveThreshWinSizeStep = 3
-detectorParams.adaptiveThreshWinSizeMax = 10
-
+alien_image_height_mm = 35
 
 #importing machine-specific constants
 import importlib

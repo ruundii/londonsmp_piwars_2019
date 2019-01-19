@@ -3,33 +3,35 @@
 import json
 import sys
 
-from processors.robot_processor import RobotProcessor
-from processors.joystick_processor import JoystickProcessor
+from server.processors.robot_processor import RobotProcessor
+from server.processors.joystick_processor import JoystickProcessor
 from tornado.websocket import WebSocketHandler
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 from tornado.web import Application
 import asyncio
 from tornado.platform.asyncio import AnyThreadEventLoopPolicy
-from file_server import FileRequestHandler, StaticFileRequestHandler
+from server.file_server import FileRequestHandler, StaticFileRequestHandler
 from concurrent.futures import ThreadPoolExecutor
 
-isDebugUpdates = False
-isDebugCommands = False
+is_debug_updates = False
+is_debug_commands = False
 processor = None
 joystick_processor = None
 
 mainloop = None
 executor = None
+import os
+os.environ["OPENCV_VIDEOIO_PRIORITY_MSMF"] = "0"
 
 for argument in sys.argv:
     if str(argument).lower() == '-debug':
-        isDebugUpdates = True
-        isDebugCommands = True
+        is_debug_updates = True
+        is_debug_commands = True
     if str(argument).lower() == '-debugupdates':
-        isDebugUpdates = True
+        is_debug_updates = True
     if str(argument).lower() == '-debugcommands':
-        isDebugCommands = True
+        is_debug_commands = True
 
 
 class RobotWebsocketServer(WebSocketHandler):
@@ -43,31 +45,29 @@ class RobotWebsocketServer(WebSocketHandler):
     def on_message(self, message):
         try:
             payload = json.loads(message)
-            if isDebugCommands:
+            if is_debug_commands:
                 print(payload)
             client_cmd = payload['command']
 
             if client_cmd == 'drive':
-                speedLeft = int(payload['speedLeft'])
-                speedRight = int(payload['speedRight'])
-                #print("drive ",speedLeft,speedRight)
-                mainloop.run_in_executor(executor, self.processor.drive, speedLeft, speedRight)
+                speed_left = int(payload['speedLeft'])
+                speed_right = int(payload['speedRight'])
+                #print("drive ",speed_left,speed_right)
+                mainloop.run_in_executor(executor, self.processor.drive, speed_left, speed_right)
 
-            elif client_cmd == 'say':
-                mainloop.run_in_executor(executor, self.processor.say, payload['text'], payload['lang'])
-
-            elif client_cmd == 'displayText':
-                mainloop.run_in_executor(executor, self.processor.displayText, payload['text'], payload['lines'])
-
-            elif client_cmd == 'display_clear':
-                mainloop.run_in_executor(executor, self.processor.displayText, "", payload['lines'])
+            elif client_cmd == 'setCameraMode':
+                mode = int(payload['mode'])
+                mainloop.run_in_executor(executor, self.processor.set_camera_mode, mode)
 
             elif client_cmd == 'ready':
                 pass
 
             elif client_cmd == 'startRun':
                 pass
-                #mainloop.run_in_executor(executor, self.processor.robotController.initialiseRun, bool(payload['isSimulation']))
+                #mainloop.run_in_executor(executor, self.processor.robotController.initialiseRun, bool(payload['is_simulation']))
+
+            elif client_cmd == 'stopRun':
+                mainloop.run_in_executor(executor, self.processor.stop_run)
 
             elif client_cmd == 'shutdown':
                 self.processor.close()
@@ -77,13 +77,13 @@ class RobotWebsocketServer(WebSocketHandler):
         except Exception as exc:
             print(exc)
 
-    def handleSensorUpdate(self, data):
+    def handle_update_from_robot(self, data):
         if self.connected:
             global mainloop
-            mainloop.add_callback(self.writeUpdateMessage, json.dumps(data))
+            mainloop.add_callback(self.write_update_message, json.dumps(data))
 
-    def writeUpdateMessage(self, data):
-        if isDebugUpdates:
+    def write_update_message(self, data):
+        if is_debug_updates:
             print(data)
         if self.connected and self.stream is not None and not self.stream._closed:
             self.write_message(data)
@@ -97,21 +97,21 @@ class RobotWebsocketServer(WebSocketHandler):
             global processor
             self.processor = processor
             self.set_nodelay(True)
-            mainloop.run_in_executor(executor, self.initProcessor)
+            mainloop.run_in_executor(executor, self.init_processor)
             print('ws connect success')
             self.connected = True
         except Exception as exc:
             print(exc)
             raise exc
 
-    def initProcessor(self):
+    def init_processor(self):
         self.processor.initialise()
-        self.processor.onDistanceUpdate(self.handleSensorUpdate)
-        self.processor.onColourUpdate(self.handleSensorUpdate)
-        self.processor.onLineSensorsUpdate(self.handleSensorUpdate)
-        self.processor.onMarkerUpdate(self.handleSensorUpdate)
+        self.processor.set_alien_update_handler(self.handle_update_from_robot)
+        self.processor.set_coloured_sheet_update_handler(self.handle_update_from_robot)
+        self.processor.set_distance_update_handler(self.handle_update_from_robot)
+        self.processor.set_line_sensors_update_handler(self.handle_update_from_robot)
 
-    def closeProcessor(self):
+    def close_processor(self):
         if len(self.clients)>0:
             return
         try:
@@ -125,7 +125,7 @@ class RobotWebsocketServer(WebSocketHandler):
     def on_close(self):
         print('ws close called')
         self.clients.remove(self)
-        mainloop.run_in_executor(executor, self.closeProcessor)
+        mainloop.run_in_executor(executor, self.close_processor)
 
     def check_origin(self, origin):
         return True
