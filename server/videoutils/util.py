@@ -5,7 +5,7 @@ from os import path
 import cv2
 import numpy as np
 
-import server.config.constants_global as constants
+import config.constants_global as constants
 
 
 def load_calibration():

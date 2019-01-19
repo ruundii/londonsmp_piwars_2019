@@ -3,10 +3,10 @@ import picamera.array
 from picamera import PiCamera
 from threading import Thread, Lock
 import cv2
-from server.videoutils.fps import FPS
+from videoutils.fps import FPS
 from datetime import datetime
 
-import server.config.constants_global as constants
+import config.constants_global as constants
 
 
 class PiStreamOutput(picamera.array.PiAnalysisOutput):

@@ -1,10 +1,10 @@
 import math
 import time
-from server.processors.camera_processor import CameraProcessor
-from server.processors.sensors_processor import SensorsProcessor
+from processors.camera_processor import CameraProcessor
+from processors.sensors_processor import SensorsProcessor
 
 import importlib
-import server.config.constants_global as constants
+import config.constants_global as constants
 
 class RobotProcessor:
 

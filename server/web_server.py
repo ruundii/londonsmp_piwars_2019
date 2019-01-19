@@ -3,15 +3,15 @@
 import json
 import sys
 
-from server.processors.robot_processor import RobotProcessor
-from server.processors.joystick_processor import JoystickProcessor
+from processors.robot_processor import RobotProcessor
+from processors.joystick_processor import JoystickProcessor
 from tornado.websocket import WebSocketHandler
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 from tornado.web import Application
 import asyncio
 from tornado.platform.asyncio import AnyThreadEventLoopPolicy
-from server.file_server import FileRequestHandler, StaticFileRequestHandler
+from file_server import FileRequestHandler, StaticFileRequestHandler
 from concurrent.futures import ThreadPoolExecutor
 
 is_debug_updates = False

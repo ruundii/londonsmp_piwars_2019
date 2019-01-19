@@ -1,8 +1,8 @@
 import time
-from server.videoutils.robot_camera import RobotCamera
-from server.videoutils.fps import FPS
+from videoutils.robot_camera import RobotCamera
+from videoutils.fps import FPS
 from threading import Thread, Lock
-import server.config.constants_global as constants
+import config.constants_global as constants
 
 CAMERA_MODE_OFF = -1
 CAMERA_MODE_DETECT_ALIENS = 0

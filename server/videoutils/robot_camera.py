@@ -1,10 +1,10 @@
 import cv2
 
-from server.videoutils import util as u
-from server.videoutils import centroid_area_tracker
+from videoutils import util as u
+from videoutils import centroid_area_tracker
 import importlib
 
-import server.config.constants_global as constants
+import config.constants_global as constants
 
 
 class RobotCamera:
