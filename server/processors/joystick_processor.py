@@ -2,7 +2,7 @@ import pygame
 from threading import Thread
 import time
 
-import server.config.constants_global as constants
+import config.constants_global as constants
 
 
 class JoystickProcessor:
