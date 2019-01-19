@@ -1,7 +1,4 @@
-green_lower_bound_hsv = (40,100,20)
-green_higher_bound_hsv = (80,255,255)
-
-alien_image_height_mm = 35
+alien_image_height_mm = 77
 
 #importing machine-specific constants
 import importlib

@@ -126,7 +126,7 @@ class RobotCamera:
             ellipse = cv2.fitEllipse(cnt)
             area = cv2.contourArea(cnt)
             ellipseRatio = ellipse[1][1] / ellipse[1][0]
-            print('size:',ellipse[1], ' ratio:',ellipseRatio, ' area:',area)
+            #print('size:',ellipse[1], ' ratio:',ellipseRatio, ' area:',area)
             if ellipseRatio > 1.3 and ellipseRatio < 3 and ellipse[1][1] > 3 and area>15:
                 aliens.append(
                     (ellipse[0][0], #x
