@@ -52,7 +52,7 @@ class RobotWebsocketServer(WebSocketHandler):
             if client_cmd == 'drive':
                 speed_left = int(payload['speedLeft'])
                 speed_right = int(payload['speedRight'])
-                #print("drive ",speed_left,speed_right)
+                #print("drive command",speed_left,speed_right)
                 mainloop.run_in_executor(executor, self.processor.drive, speed_left, speed_right)
 
             elif client_cmd == 'setCameraMode':
@@ -63,11 +63,14 @@ class RobotWebsocketServer(WebSocketHandler):
                 pass
 
             elif client_cmd == 'startRun':
+                global joystick_processor
+                joystick_processor.set_state(False)
                 pass
                 #mainloop.run_in_executor(executor, self.processor.robotController.initialiseRun, bool(payload['is_simulation']))
 
             elif client_cmd == 'stopRun':
                 mainloop.run_in_executor(executor, self.processor.stop_run)
+                joystick_processor.set_state(True)
 
             elif client_cmd == 'shutdown':
                 self.processor.close()

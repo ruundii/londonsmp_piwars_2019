@@ -11,6 +11,7 @@ class JoystickProcessor:
         self.robot_processor = robot_processor
         self.joystickLive = False
         self.JoystickThread = None
+        self.is_active = True
 
         #Joystick initialisation
         print('joystick init')
@@ -39,6 +40,9 @@ class JoystickProcessor:
 
     def processJoystick(self):
         while self.processJoystickCommands:
+            if not self.is_active:
+                time.sleep(0.5)
+                continue
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.processJoystickCommands = False
@@ -48,6 +52,9 @@ class JoystickProcessor:
             right_drive = self.joystick.get_axis(constants.joystick_right_axis)
             self.robot_processor.drive(-round(left_drive*10)*10, -round(right_drive*10)*10)
             time.sleep(0.05)
+
+    def set_state(self, is_active):
+        self.is_active = is_active
 
     def close(self):
         self.processJoystickCommands = False
