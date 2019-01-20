@@ -10,6 +10,7 @@ alien_distance_offset = 0.06
 
 motor_module = "processors.motor_stub"
 
+alien_template = "videoutils\\alien_template.png"
 camera_calibrations_path = "videoutils\calibrations"
 video_stream_module = "videoutils.video_stream_webcam"
 camera_id = "surface"

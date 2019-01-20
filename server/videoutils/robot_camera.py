@@ -6,6 +6,15 @@ import importlib
 
 import config.constants_global as constants
 
+alien_template = cv2.imread(constants.alien_template)
+kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+alien_template = cv2.morphologyEx(alien_template, cv2.MORPH_CLOSE, kernel)
+alien_template = cv2.morphologyEx(alien_template, cv2.MORPH_OPEN, kernel)
+alien_template_hsv = cv2.cvtColor(alien_template, cv2.COLOR_RGB2HSV)
+alien_template_mask = cv2.inRange(alien_template_hsv, constants.green_lower_bound_hsv, constants.green_higher_bound_hsv)
+_, alien_template_contours, _ = cv2.findContours(alien_template_mask, cv2.RETR_EXTERNAL,
+                                            cv2.CHAIN_APPROX_TC89_L1)
+
 
 class RobotCamera:
     def __init__(self):
@@ -120,14 +129,15 @@ class RobotCamera:
         mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
 
         _, contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL,
-                                                    cv2.CHAIN_APPROX_SIMPLE)
+                                                    cv2.CHAIN_APPROX_TC89_L1)
         for cnt in contours:
             if (len(cnt) < 5): continue
             ellipse = cv2.fitEllipse(cnt)
             area = cv2.contourArea(cnt)
             ellipseRatio = ellipse[1][1] / ellipse[1][0]
+            likelihood = cv2.matchShapes(cnt, alien_template_contours[0], 1, 0)
             #print('size:',ellipse[1], ' ratio:',ellipseRatio, ' area:',area)
-            if ellipseRatio > 1.3 and ellipseRatio < 3 and ellipse[1][1] > 3 and area>15:
+            if ellipseRatio > 1.1 and ellipseRatio < 3 and ellipse[1][1] > 3 and area>15 and likelihood < 0.25:
                 aliens.append(
                     (ellipse[0][0], #x
                      ellipse[0][1], #y

@@ -7,9 +7,10 @@ alien_distance_offset = 0
 
 motor_module = "processors.motor_xy160d"
 
-green_lower_bound_hsv = (40,20,20)
+green_lower_bound_hsv = (40,60,80)
 green_higher_bound_hsv = (85,255,255)
 
+alien_template = "videoutils/alien_template.png"
 camera_calibrations_path = "videoutils/calibrations"
 video_stream_module = "videoutils.video_stream_pi"
 camera_id = "pi640"
