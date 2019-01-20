@@ -12,6 +12,7 @@ class JoystickProcessor:
         self.joystickLive = False
         self.JoystickThread = None
         self.is_active = True
+        self.speed_gear = 0.3
 
         #Joystick initialisation
         print('joystick init')
@@ -38,6 +39,15 @@ class JoystickProcessor:
                 self.JoystickThread = Thread(target=self.processJoystick)
                 self.JoystickThread.start()
 
+    def speed_control(self, increase=True):  # Speed control
+
+        if(increase):
+            self.speed_gear += 0.3
+            if(self.speed_gear>=0.9): self.speed_gear=0.9
+        else:
+            self.speed_gear -= 0.3
+            if(self.speed_gear<=0.3): self.speed_gear=0.3
+
     def processJoystick(self):
         while self.processJoystickCommands:
             if not self.is_active:
@@ -47,9 +57,18 @@ class JoystickProcessor:
                 if event.type == pygame.QUIT:
                     self.processJoystickCommands = False
 
-            left_drive = self.joystick.get_axis(constants.joystick_left_axis)
+                if self.joystick.get_button(4):
+                    self.speed_control(True)
+                    print("Speed UP. Gear: {}.".format(self.speed_gear))
 
-            right_drive = self.joystick.get_axis(constants.joystick_right_axis)
+                if self.joystick.get_button(5):
+                    self.speed_control(False)
+                    print("Speed DOWN. Gear: {}.".format(self.speed_gear))
+
+            left_drive = self.joystick.get_axis(constants.joystick_left_axis)*self.speed_gear
+
+            right_drive = self.joystick.get_axis(constants.joystick_right_axis)*self.speed_gear
+
             self.robot_processor.drive(-round(left_drive*10)*10, -round(right_drive*10)*10)
             time.sleep(0.05)
 

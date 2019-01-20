@@ -1,19 +1,10 @@
 import cv2
 
 from videoutils import util as u
-from videoutils import centroid_area_tracker
 import importlib
+from videoutils import alien_detector
 
 import config.constants_global as constants
-
-alien_template = cv2.imread(constants.alien_template)
-kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
-alien_template = cv2.morphologyEx(alien_template, cv2.MORPH_CLOSE, kernel)
-alien_template = cv2.morphologyEx(alien_template, cv2.MORPH_OPEN, kernel)
-alien_template_hsv = cv2.cvtColor(alien_template, cv2.COLOR_RGB2HSV)
-alien_template_mask = cv2.inRange(alien_template_hsv, constants.green_lower_bound_hsv, constants.green_higher_bound_hsv)
-_, alien_template_contours, _ = cv2.findContours(alien_template_mask, cv2.RETR_EXTERNAL,
-                                            cv2.CHAIN_APPROX_TC89_L1)
 
 
 class RobotCamera:
@@ -33,7 +24,7 @@ class RobotCamera:
         self.frame = None
         self.gray = None
 
-        self.alien_tracker = centroid_area_tracker.CentroidAreaTracker()
+        self.alien_detector = alien_detector.AlienDetector()
 
     def load(self, load_camera_matrix=True):
         if load_camera_matrix:
@@ -112,35 +103,6 @@ class RobotCamera:
             pass
         return marker_corners, marker_ids
 
-    def detect_aliens(self):
-        # https://www.pyimagesearch.com/2015/09/14/ball-tracking-with-opencv/
-        # https://github.com/llSourcell/Object_Detection_demo_LIVE/blob/master/demo.py
-        # https://pythonprogramming.net/morphological-transformation-python-opencv-tutorial/
-        aliens = []
-        image_hsv = cv2.cvtColor(self.undistort(), cv2.COLOR_BGR2HSV)
-        # frame = imutils.resize(frame, width=600)
-        # image_hsv = cv2.medianBlur(image_hsv, 15)
-        # image_hsv = cv2.GaussianBlur(image_hsv, (11, 11), 0)
-        mask = cv2.inRange(image_hsv, constants.green_lower_bound_hsv, constants.green_higher_bound_hsv)
-        # mask = cv2.erode(mask, None, iterations=2)
-        # mask = cv2.dilate(mask, None, iterations=2)
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
-        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
-        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
 
-        _, contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL,
-                                                    cv2.CHAIN_APPROX_TC89_L1)
-        for cnt in contours:
-            if (len(cnt) < 5): continue
-            ellipse = cv2.fitEllipse(cnt)
-            area = cv2.contourArea(cnt)
-            ellipseRatio = ellipse[1][1] / ellipse[1][0]
-            likelihood = cv2.matchShapes(cnt, alien_template_contours[0], 1, 0)
-            #print('size:',ellipse[1], ' ratio:',ellipseRatio, ' area:',area)
-            if ellipseRatio > 1.1 and ellipseRatio < 3 and ellipse[1][1] > 3 and area>15 and likelihood < 0.25:
-                aliens.append(
-                    (ellipse[0][0], #x
-                     ellipse[0][1], #y
-                     area,
-                     ellipse[1][1])) #height
-        return self.alien_tracker.update(aliens)
+    def detect_aliens(self):
+        return self.alien_detector.detect_aliens(self.undistort(), False)

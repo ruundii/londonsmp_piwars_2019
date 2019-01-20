@@ -10,6 +10,9 @@ motor_module = "processors.motor_xy160d"
 green_lower_bound_hsv = (40,60,80)
 green_higher_bound_hsv = (85,255,255)
 
+background_lower_bound_hsv = (0,0,180)
+background_higher_bound_hsv = (255,255,255)
+
 alien_template = "videoutils/alien_template.png"
 camera_calibrations_path = "videoutils/calibrations"
 video_stream_module = "videoutils.video_stream_pi"
