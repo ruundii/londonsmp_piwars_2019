@@ -52,7 +52,7 @@ class AlienDetector:
         y2 = min(int(r[1]+r[3]) + y_border, constants.resolution[1])
         x1 = max(int(r[0]) - x_border, 0)
         x2 = min(int(r[0]+r[2]) + x_border, constants.resolution[0])
-        extended_rectange = image_hsv[y1:y2, x1:x2]
+        extended_rectange = image_hsv[y1:y2, x1:x2].copy()
         contours, mask = self.__get_alien_contours(extended_rectange)
         black_img = np.zeros([y2 - y1, x2 - x1, 1], dtype=np.uint8)
         drawn_contour = cv2.drawContours(black_img, contours, -1, 255, -1)
@@ -79,7 +79,7 @@ class AlienDetector:
     def detect_aliens(self, image, is_rgb):
         image_hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV if is_rgb else cv2.COLOR_BGR2HSV)
         contours, _ = self.__get_alien_contours(image_hsv)
-        #real_contours_num = 0
+        real_contours_num = 0
         aliens = []
         for contour in contours:
             is_alien_contour, ellipse, area = self.__is_alien_contour(contour, image_hsv)
@@ -91,8 +91,8 @@ class AlienDetector:
                  area,
                  ellipse[1][1]))  # height
             #image = cv2.ellipse(image, ellipse, (0,125,255), 2)
-            #real_contours_num = real_contours_num + 1
-        #cv2.imwrite("frame"+str(self.counter)+'.png',image)
+            real_contours_num = real_contours_num + 1
+        cv2.imwrite("frame"+str(self.counter)+'_'+str(real_contours_num)+'.jpg',image)
         self.counter += 1
         #print(real_contours_num, ":", len(contours))
         return self.alien_tracker.update(aliens)

@@ -105,4 +105,4 @@ class RobotCamera:
 
 
     def detect_aliens(self):
-        return self.alien_detector.detect_aliens(self.undistort(), False)
+        return self.alien_detector.detect_aliens(self.undistort(), constants.is_rgb_not_bgr)

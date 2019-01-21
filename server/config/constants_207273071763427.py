@@ -17,6 +17,7 @@ alien_template = "videoutils\\alien_template.png"
 camera_calibrations_path = "videoutils\calibrations"
 video_stream_module = "videoutils.video_stream_webcam"
 camera_id = "surface"
+is_rgb_not_bgr=False
 resolution = (640, 480)
 camera_pov = (120, 100)
 framerate = 20
