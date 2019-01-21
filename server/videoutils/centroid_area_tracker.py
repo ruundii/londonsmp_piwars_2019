@@ -75,12 +75,14 @@ class CentroidAreaTracker():
 					frame_object_index = 0
 					for frame_object_descriptor in frame_object_descriptors:
 						area_ratio = max(registered_object_descriptor[2], frame_object_descriptor[2])/min(registered_object_descriptor[2], frame_object_descriptor[2])
-						if(area_ratio<2): #if area difference is more than 2x - do not even consider correspondence
-							difference = math.sqrt(
-								(registered_object_descriptor[0]-frame_object_descriptor[0])**2 +
-								(registered_object_descriptor[1]-frame_object_descriptor[1])**2
-							) * area_ratio
-							differences.append((difference, registered_object_index, frame_object_index))
+						# if (area_ratio >= 2):
+						# 	print('area ratio >2')
+						# if(area_ratio<2): #if area difference is more than 2x - do not even consider correspondence
+						difference = math.sqrt(
+							(registered_object_descriptor[0]-frame_object_descriptor[0])**2 +
+							(registered_object_descriptor[1]-frame_object_descriptor[1])**2
+						) * area_ratio
+						differences.append((difference, registered_object_index, frame_object_index))
 						frame_object_index += 1
 					registered_object_index += 1
 

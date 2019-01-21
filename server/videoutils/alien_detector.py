@@ -92,7 +92,7 @@ class AlienDetector:
                  ellipse[1][1]))  # height
             #image = cv2.ellipse(image, ellipse, (0,125,255), 2)
             real_contours_num = real_contours_num + 1
-        cv2.imwrite("frame"+str(self.counter)+'_'+str(real_contours_num)+'.jpg',image)
+        #cv2.imwrite("frame"+str(self.counter)+'_'+str(real_contours_num)+'.jpg',image)
         self.counter += 1
         #print(real_contours_num, ":", len(contours))
         return self.alien_tracker.update(aliens)

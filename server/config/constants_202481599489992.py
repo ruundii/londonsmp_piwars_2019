@@ -2,8 +2,8 @@
 joystick_left_axis = 1
 joystick_right_axis = 4
 
-alien_distance_multiplier = 1.0/1.7
-alien_distance_offset = 0
+alien_distance_multiplier = 1.0/2.2
+alien_distance_offset = 0.1
 
 motor_module = "processors.motor_ifx9201sg"
 
