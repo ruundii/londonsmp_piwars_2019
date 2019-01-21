@@ -49,9 +49,9 @@ class AlienDetector:
         y_border = max(int(r[3] / 2), 15)
         x_border = max(int(r[2] / 2), 15)
         y1 = max(int(r[1]) - y_border, 0)
-        y2 = min(int(r[1]) + y_border, constants.resolution[1])
+        y2 = min(int(r[1]+r[3]) + y_border, constants.resolution[1])
         x1 = max(int(r[0]) - x_border, 0)
-        x2 = min(int(r[0]) + x_border, constants.resolution[0])
+        x2 = min(int(r[0]+r[2]) + x_border, constants.resolution[0])
         extended_rectange = image_hsv[y1:y2, x1:x2]
         contours, mask = self.__get_alien_contours(extended_rectange)
         black_img = np.zeros([y2 - y1, x2 - x1, 1], dtype=np.uint8)
