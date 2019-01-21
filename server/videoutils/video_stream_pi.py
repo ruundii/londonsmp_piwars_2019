@@ -42,11 +42,13 @@ class VideoStream:
         self.camera.resolution = constants.resolution
         self.camera.framerate = constants.framerate
         self.camera.awb_mode='off'
-        self.camera.awb_gains = (0.9, 2.5)
+        self.camera.awb_gains = (1.0, 2.6)
+        self.camera.iso = 800
         self.camera.vflip=True
         self.camera.hflip = True
         self.last_read_frame_num =-1;
-        self.camera.brightness = 65
+        self.camera.brightness = 55
+        self.camera.saturation = 40
 
         # initialize the frame and the variable used to indicate
         # if the thread should be stopped
@@ -68,6 +70,7 @@ class VideoStream:
         #_, fps, frameNum = self.FPS.update()
         #print("FPS Pi video stream:" + str(fps) + " Frame num:" + str(frameNum))
         if self.output.bytes is not None and self.last_read_frame_num!=self.output.FPS.frameidx:
+            self.last_read_frame_num = self.output.FPS.frameidx
             self.frame = picamera.array.bytes_to_rgb(self.output.bytes, self.camera.resolution)
             #pic = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
             #cv2.imwrite("frame"+str(self.output.FPS.frameidx)+".jpg", pic)
@@ -84,7 +87,7 @@ class VideoStream:
 
     def process_recording(self):
         self.output = PiStreamOutput(self.camera)
-        self.camera.start_recording(self.output, 'rgb')
+        self.camera.start_recording(self.output, 'bgr')
         while True:
             with self.camera_lock:
                 if self.camera is None:

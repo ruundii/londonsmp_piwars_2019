@@ -2,13 +2,13 @@
 joystick_left_axis = 1
 joystick_right_axis = 4
 
-alien_distance_multiplier = 1.0
+alien_distance_multiplier = 1.0/1.7
 alien_distance_offset = 0
 
 motor_module = "processors.motor_xy160d"
 
-green_lower_bound_hsv = (40,60,80)
-green_higher_bound_hsv = (85,255,255)
+green_lower_bound_hsv = (40,80,20)
+green_higher_bound_hsv = (90,255,255)
 
 background_lower_bound_hsv = (0,0,180)
 background_higher_bound_hsv = (255,255,255)

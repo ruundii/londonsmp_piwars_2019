@@ -12,7 +12,7 @@ alien_template_contour = None
 
 class AlienDetector:
     def __init__(self):
-        #self.counter = 0
+        self.counter = 0
         global alien_template_contour
         if alien_template_contour is None:
             alien_template_contour = self.__get_template_contour()
@@ -93,7 +93,7 @@ class AlienDetector:
             #image = cv2.ellipse(image, ellipse, (0,125,255), 2)
             #real_contours_num = real_contours_num + 1
         #cv2.imwrite("frame"+str(self.counter)+'.png',image)
-        #self.counter += 1
+        self.counter += 1
         #print(real_contours_num, ":", len(contours))
         return self.alien_tracker.update(aliens)
 
