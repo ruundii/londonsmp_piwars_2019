@@ -159,18 +159,18 @@ CodeRunner.prototype.highlightBlock = function (id) {
 
 CodeRunner.prototype.setRunningUI = function() {
     $('#runButton').hide();
-    $('#simulateButton').hide();
-    $('#driveButton').hide();
-    $('#mapButton').hide();
+    //$('#simulateButton').hide();
+    //$('#driveButton').hide();
+    //$('#mapButton').hide();
     $('#stopButton').show();
 }
 
 CodeRunner.prototype.resetUi = function() {
     workspace.highlightBlock(null);
     $('#runButton').show();
-    $('#simulateButton').show();
-    $('#driveButton').show();
-    $('#mapButton').show();
+    //$('#simulateButton').show();
+    //$('#driveButton').show();
+    //$('#mapButton').show();
     $('#stopButton').hide();
     mapVisualiser.stopVisualisation();
 }

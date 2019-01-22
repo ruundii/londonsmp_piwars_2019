@@ -149,6 +149,9 @@ PiWarsRobot.prototype.initialisePageComponents = function () {
 		decimals: 0
 	    })
     });
+    $('#mapButton').hide();
+    $('#driveButton').hide();
+    $('#simulateButton').hide();
 }
 
 PiWarsRobot.prototype.startNewProject = function () {
