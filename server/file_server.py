@@ -42,9 +42,13 @@ class FileRequestHandler(tornado.web.RequestHandler):
         name, ext = os.path.splitext(fileName)
 
         pathBackup = os.path.join(os.getcwd(), 'backup_files')
+        if not os.path.exists(pathBackup):
+            os.mkdir(pathBackup)
 
         if 'files' in self.request.path:
             path = os.path.join(os.getcwd(), 'files')
+            if not os.path.exists(path):
+                os.mkdir(path)
             if ext not in ('.xml'):
                 raise tornado.web.HTTPError(status_code=403, log_message="File extension not allowed.")
             fullname = os.path.join(path, fileName)
