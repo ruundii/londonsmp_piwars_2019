@@ -1,5 +1,12 @@
 alien_image_height_mm = 77
 
+image_processing_tracing_show_original = True
+image_processing_tracing_show_colour_mask = True
+image_processing_tracing_show_backgroud_colour_mask = True
+image_processing_tracing_show_detected_objects = True
+
+performance_tracing_robot_camera_detect_aliens = True
+
 #importing machine-specific constants
 import importlib
 from uuid import getnode as get_mac

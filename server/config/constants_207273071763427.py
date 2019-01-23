@@ -1,9 +1,9 @@
 #windows, surface book
-green_lower_bound_hsv = (30,100,20)
+green_lower_bound_hsv = (30,105,20)
 green_higher_bound_hsv = (80,255,255)
 
 background_lower_bound_hsv = (0,0,150)
-background_higher_bound_hsv = (255,255,255)
+background_higher_bound_hsv = (255,165,255)
 
 joystick_left_axis = 1
 joystick_right_axis = 3

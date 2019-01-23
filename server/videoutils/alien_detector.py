@@ -2,7 +2,7 @@ from videoutils import centroid_area_tracker
 import cv2
 import config.constants_global as constants
 import numpy as np
-
+import time
 alien_template_contour = None
 
 
@@ -69,7 +69,7 @@ class AlienDetector:
         matching_background_plus_mask = cv2.bitwise_or(matching_background, drawn_contour_dilated)
         #cv2.imshow("Crop mask", matching_background_plus_mask)
         mean = cv2.mean(matching_background_plus_mask)
-        if (mean[0] < 225):
+        if (mean[0] < 230):
             #print('killing by background', ellipse, mean)
             return (False, None, None)
 
@@ -78,7 +78,15 @@ class AlienDetector:
 
     def detect_aliens(self, image, is_rgb):
         image_hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV if is_rgb else cv2.COLOR_BGR2HSV)
-        contours, _ = self.__get_alien_contours(image_hsv)
+        contours, mask = self.__get_alien_contours(image_hsv)
+        if constants.image_processing_tracing_show_colour_mask:
+            cv2.imshow("ColourMask", mask)
+            cv2.waitKey(1)
+        if constants.image_processing_tracing_show_backgroud_colour_mask:
+            back_mask = cv2.inRange(image_hsv, constants.background_lower_bound_hsv, constants.background_higher_bound_hsv)
+            cv2.imshow("BackColourMask", back_mask)
+            cv2.waitKey(1)
+
         real_contours_num = 0
         aliens = []
         for contour in contours:
@@ -90,9 +98,12 @@ class AlienDetector:
                  ellipse[0][1],  # y
                  area,
                  ellipse[1][1]))  # height
-            #image = cv2.ellipse(image, ellipse, (0,125,255), 2)
+            if constants.image_processing_tracing_show_detected_objects:
+                image = cv2.ellipse(image, ellipse, (0,125,255), 2)
             real_contours_num = real_contours_num + 1
-        #cv2.imwrite("frame"+str(self.counter)+'_'+str(real_contours_num)+'.jpg',image)
+        if constants.image_processing_tracing_show_detected_objects:
+            cv2.imshow("DetectedObject", image)
+            cv2.waitKey(1)
         self.counter += 1
         #print(real_contours_num, ":", len(contours))
         return self.alien_tracker.update(aliens)

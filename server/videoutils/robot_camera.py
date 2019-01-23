@@ -1,5 +1,5 @@
 import cv2
-
+import time
 from videoutils import util as u
 import importlib
 from videoutils import alien_detector
@@ -105,4 +105,10 @@ class RobotCamera:
 
 
     def detect_aliens(self):
-        return self.alien_detector.detect_aliens(self.undistort(), constants.is_rgb_not_bgr)
+        t = time.time()
+        image = self.undistort()
+        if image is None:
+            return None
+        aliens = self.alien_detector.detect_aliens(image, constants.is_rgb_not_bgr)
+        if constants.performance_tracing_robot_camera_detect_aliens: print('robot_camera.detect_aliens:',time.time()-t)
+        return aliens

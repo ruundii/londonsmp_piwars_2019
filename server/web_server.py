@@ -2,7 +2,6 @@
 
 import json
 import sys
-
 from processors.robot_processor import RobotProcessor
 from processors.joystick_processor import JoystickProcessor
 from tornado.websocket import WebSocketHandler
@@ -22,7 +21,7 @@ joystick_processor = None
 mainloop = None
 executor = None
 import os
-os.environ["OPENCV_VIDEOIO_PRIORITY_MSMF"] = "0"
+#os.environ["OPENCV_VIDEOIO_PRIORITY_MSMF"] = "0"
 
 for argument in sys.argv:
     if str(argument).lower() == '-debug':

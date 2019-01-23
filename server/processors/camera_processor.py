@@ -3,6 +3,7 @@ from videoutils.robot_camera import RobotCamera
 from videoutils.fps import FPS
 from threading import Thread, Lock
 import config.constants_global as constants
+import cv2
 
 CAMERA_MODE_OFF = -1
 CAMERA_MODE_DETECT_ALIENS = 0
@@ -82,6 +83,10 @@ class CameraProcessor:
                 _, fps, frame_num = self.fps.update()
                 #print("Camera processing FPS:"+str(fps)+" frame number:"+str(frameNum)+" datetime:"+ str(datetime.now()))
                 frame,_ = self.camera.last_frame()
+                if constants.image_processing_tracing_show_original:
+                    cv2.imshow("Original", frame)
+                    cv2.waitKey(1)
+
                 alien_objects = self.camera.detect_aliens()
                 if alien_objects is not None:
                     for (alien_id, alien_object) in alien_objects.items():
@@ -96,3 +101,5 @@ class CameraProcessor:
                     self.on_alien_update_handler(payload)
             except Exception as exc:
                 print(exc)
+        cv2.destroyAllWindows()
+
