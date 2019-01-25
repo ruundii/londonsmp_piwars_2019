@@ -23,7 +23,6 @@ class RobotCamera:
         self.mapy = None
 
         self.frame = None
-        self.gray = None
 
         self.alien_detector = alien_detector.AlienDetector()
         self.coloured_sheet_detector = coloured_sheet_detector.ColouredSheetDetector()
@@ -57,11 +56,11 @@ class RobotCamera:
         self.running = True
 
     def update(self):
-        self.frame, self.gray = self.vs.read()
-        return self.frame, self.gray
+        self.frame = self.vs.read()
+        return self.frame
 
     def last_frame(self):
-        return self.frame, self.gray
+        return self.frame
 
     def stop(self):
         self.vs.stop()
@@ -75,11 +74,8 @@ class RobotCamera:
     def is_running(self):
         return self.running
 
-    def undistort(self, gray=False):
-        if gray:
-            frame = self.gray
-        else:
-            frame = self.frame
+    def undistort(self):
+        frame = self.frame
 
         if frame is None:
             return None
@@ -88,23 +84,6 @@ class RobotCamera:
             frame = cv2.remap(frame, self.mapx, self.mapy, cv2.INTER_LINEAR)
 
         return frame
-
-    def detect_aruco(self):
-        if self.gray is None:
-            return [], None
-
-        try:
-            marker_corners, marker_ids, rejected = cv2.aruco.detectMarkers(self.gray,
-                                                                         constants.marker_dictionary,
-                                                                         parameters=constants.detector_params,
-                                                                         cameraMatrix=self.camera_matrix,
-                                                                         distCoeff=self.distortion_coeffs
-                                                                         )
-        except Exception as exc:
-            print(exc)
-            pass
-        return marker_corners, marker_ids
-
 
     def detect_aliens(self):
         t = time.time()

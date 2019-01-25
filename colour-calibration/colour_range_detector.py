@@ -1,11 +1,9 @@
 import cv2
 import time
-from piwars import alien_detector, coloured_sheet_detector
 import json
+from videoutils.video_stream_webcam import VideoStream
 
 use_webcam = True
-try_alien_detection = False
-try_sheet_detection = True
 current_filter_id = 0
 current_window_name = ""
 
@@ -103,23 +101,19 @@ def save_trackbar_values():
 def main():
     global use_webcam, try_alien_detection, try_sheet_detection
     if use_webcam:
-        camera = cv2.VideoCapture(0)
-        camera.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-        camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+        camera = VideoStream(resolution=(640,480), framerate=20)
+        camera.start()
 
     setup_trackbars()
     count = 0
     while True:
         image=None
         if use_webcam:
-            ret, image = camera.read()
+            image = camera.read()
             isBgr = True
             #image = adjust_gamma(image)
             #image = normalise_colours(image, False)
             #alien_detector.detect_aliens(image, True)
-
-            if not ret:
-                break
         else:
 
             res = cv2.waitKey(20) & 0xFF
@@ -131,12 +125,6 @@ def main():
             image = cv2.imread("alienpi\\frame18.jpg")
             isBgr = False
             time.sleep(0.1)
-
-        if(try_alien_detection):
-            alien_detector.detect_aliens(image, not isBgr)
-
-        if(try_sheet_detection):
-            coloured_sheet_detector.detect_coloured_sheet(image, False)
 
         image_hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV if isBgr else cv2.COLOR_RGB2HSV)
 

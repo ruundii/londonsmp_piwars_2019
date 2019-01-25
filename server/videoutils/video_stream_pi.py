@@ -50,7 +50,7 @@ class VideoStream:
         # initialize the frame and the variable used to indicate
         # if the thread should be stopped
         self.frame = None
-        self.gray = None
+        #self.gray = None
 
         self.stopped = False
         #self.FPS = FPS()
@@ -72,10 +72,10 @@ class VideoStream:
             #pic = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
             #cv2.imwrite("frame"+str(self.output.FPS.frameidx)+".jpg", pic)
             #print("gains:",self.camera.awb_gains)
-            self.gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
+            #self.gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
             #print("read ", (datetime.now()-dt).total_seconds())
 
-        return self.frame, self.gray
+        return self.frame#, self.gray
 
     def stop(self):
         with self.camera_lock:
