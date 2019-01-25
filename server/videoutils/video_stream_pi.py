@@ -4,9 +4,6 @@ from picamera import PiCamera
 from threading import Thread, Lock
 import cv2
 from videoutils.fps import FPS
-from datetime import datetime
-
-import config.constants_global as constants
 
 
 class PiStreamOutput(picamera.array.PiAnalysisOutput):
@@ -35,18 +32,18 @@ class PiStreamOutput(picamera.array.PiAnalysisOutput):
 
 
 class VideoStream:
-    def __init__(self):
+    def __init__(self, resolution, framerate):
         # initialize the camera and stream
         self.camera = PiCamera()
         self.camera_lock = Lock()
-        self.camera.resolution = constants.resolution
-        self.camera.framerate = constants.framerate
+        self.camera.resolution = resolution
+        self.camera.framerate = framerate
         self.camera.awb_mode='off'
         self.camera.awb_gains = (1.0, 2.6)
         self.camera.iso = 800
         self.camera.vflip=True
         self.camera.hflip = True
-        self.last_read_frame_num =-1;
+        self.last_read_frame_num =-1
         self.camera.brightness = 55
         self.camera.saturation = 40
 

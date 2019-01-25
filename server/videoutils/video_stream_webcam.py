@@ -1,17 +1,16 @@
 # import the necessary packages
 from threading import Thread, Lock
 import cv2
-import config.constants_global as constants
 
 
 class VideoStream:
-    def __init__(self):
+    def __init__(self, resolution, framerate):
         # initialize the video camera stream and read the first frame
         # from the stream
         self.stream = cv2.VideoCapture(0)
-        self.stream.set(cv2.CAP_PROP_FRAME_WIDTH , constants.resolution[0])
-        self.stream.set(cv2.CAP_PROP_FRAME_HEIGHT, constants.resolution[1])
-        self.stream.set(cv2.CAP_PROP_FPS, constants.framerate)
+        self.stream.set(cv2.CAP_PROP_FRAME_WIDTH , resolution[0])
+        self.stream.set(cv2.CAP_PROP_FRAME_HEIGHT, resolution[1])
+        self.stream.set(cv2.CAP_PROP_FPS, framerate)
         self.camera_lock = Lock()
         (self.grabbed, self.frame) = self.stream.read()
         self.gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)

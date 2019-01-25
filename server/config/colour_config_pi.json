@@ -1,0 +1,67 @@
+{
+  "alien_hsv_ranges": {
+    "green_min": [
+      40,
+      105,
+      50
+    ],
+
+    "green_max": [
+      90,
+      255,
+      255
+    ],
+    "background_min": [
+      0,
+      0,
+      90
+    ],
+    "background_max": [
+      255,
+      165,
+      255
+    ]
+  },
+  "colour_sheets_hsv_ranges": {
+    "green_min": [
+      40,
+      120,
+      70
+    ],
+    "green_max": [
+      95,
+      255,
+      255
+    ],
+    "blue_min": [
+      96,
+      120,
+      70
+    ],
+    "blue_max": [
+      125,
+      255,
+      255
+    ],
+    "red_min": [
+      165,
+      120,
+      70
+    ],
+    "red_max": [
+      13,
+      255,
+      255
+    ],
+    "yellow_min": [
+      23,
+      120,
+      70
+    ],
+    "yellow_max": [
+      39,
+      255,
+      255
+    ]
+  }
+}

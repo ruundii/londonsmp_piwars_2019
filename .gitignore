@@ -1,3 +1,7 @@
 .idea
 backup_files
 files
+/colour-calibration/alien
+/colour-calibration/alienpi
+/colour-calibration/aliensurf
+/colour-calibration/test

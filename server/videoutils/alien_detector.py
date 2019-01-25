@@ -4,6 +4,7 @@ import config.constants_global as constants
 import numpy as np
 import time
 alien_template_contour = None
+import json
 
 
 # https://www.pyimagesearch.com/2015/09/14/ball-tracking-with-opencv/
@@ -14,6 +15,9 @@ class AlienDetector:
     def __init__(self):
         self.counter = 0
         global alien_template_contour
+        with open(constants.colour_config_name) as json_config_file:
+            config = json.load(json_config_file)
+        self.colour_config = config["alien_hsv_ranges"]
         if alien_template_contour is None:
             alien_template_contour = self.__get_template_contour()
         self.alien_template_contour = alien_template_contour
@@ -49,9 +53,9 @@ class AlienDetector:
         y_border = max(int(r[3] / 2), 15)
         x_border = max(int(r[2] / 2), 15)
         y1 = max(int(r[1]) - y_border, 0)
-        y2 = min(int(r[1]+r[3]) + y_border, constants.resolution[1])
+        y2 = min(int(r[1]+r[3]) + y_border, len(image_hsv))
         x1 = max(int(r[0]) - x_border, 0)
-        x2 = min(int(r[0]+r[2]) + x_border, constants.resolution[0])
+        x2 = min(int(r[0]+r[2]) + x_border, len(image_hsv[0]))
         extended_rectange = image_hsv[y1:y2, x1:x2].copy()
         contours, mask = self.__get_alien_contours(extended_rectange)
         black_img = np.zeros([y2 - y1, x2 - x1, 1], dtype=np.uint8)
@@ -63,7 +67,7 @@ class AlienDetector:
 
         background = cv2.bitwise_and(extended_rectange, extended_rectange, mask=cv2.bitwise_not(mask))
         #cv2.imshow("background", background)
-        matching_background = cv2.inRange(background, constants.background_lower_bound_hsv, constants.background_higher_bound_hsv)
+        matching_background = cv2.inRange(background, tuple(self.colour_config["background_min"]), tuple(self.colour_config["background_max"]))
         #cv2.imshow("matching_background", matching_background)
         # matching_background_plus_mask = cv2.drawContours(matching_background, contours, -1, 255, -1)
         matching_background_plus_mask = cv2.bitwise_or(matching_background, drawn_contour_dilated)
@@ -83,7 +87,7 @@ class AlienDetector:
             cv2.imshow("ColourMask", mask)
             cv2.waitKey(1)
         if constants.image_processing_tracing_show_backgroud_colour_mask:
-            back_mask = cv2.inRange(image_hsv, constants.background_lower_bound_hsv, constants.background_higher_bound_hsv)
+            back_mask = cv2.inRange(image_hsv, tuple(self.colour_config["background_min"]), tuple(self.colour_config["background_max"]))
             cv2.imshow("BackColourMask", back_mask)
             cv2.waitKey(1)
 
@@ -112,7 +116,7 @@ class AlienDetector:
         #frame = imutils.resize(frame, width=600)
         #image_hsv = cv2.medianBlur(image_hsv, 15)
         #image_hsv = cv2.GaussianBlur(image_hsv, (11, 11), 0)
-        mask = cv2.inRange(image_hsv, constants.green_lower_bound_hsv, constants.green_higher_bound_hsv)
+        mask = cv2.inRange(image_hsv, tuple(self.colour_config["green_min"]), tuple(self.colour_config["green_max"]))
         #mask = cv2.erode(mask, None, iterations=2)
         #mask = cv2.dilate(mask, None, iterations=2)
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (4, 4))

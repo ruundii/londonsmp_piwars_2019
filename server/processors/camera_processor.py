@@ -32,8 +32,11 @@ class CameraProcessor:
                 return
             elif(new_camera_mode == CAMERA_MODE_OFF):
                 self.__stop_camera()
-            elif(new_camera_mode == CAMERA_MODE_DETECT_ALIENS or new_camera_mode == CAMERA_MODE_DETECT_COLOURED_SHEETS):
-                self.__start_camera()
+            elif(new_camera_mode == CAMERA_MODE_DETECT_ALIENS):
+                self.__start_camera(constants.resolution_aliens, constants.framerate)
+            elif(new_camera_mode == CAMERA_MODE_DETECT_COLOURED_SHEETS):
+                self.__start_camera(constants.resolution_coloured_sheet, constants.framerate)
+
             self.camera_mode=new_camera_mode
 
     def set_alien_update_handler(self, handler):
@@ -43,11 +46,11 @@ class CameraProcessor:
         self.on_coloured_sheet_update_handler=handler
 
 
-    def __start_camera(self):
+    def __start_camera(self, resolution, framerate):
         with self.camera_lock:
             # Camera initialisation
             try:
-                self.camera = RobotCamera()
+                self.camera = RobotCamera(resolution, framerate)
                 self.camera.load()
                 self.camera.start()
                 time.sleep(0.3)
@@ -90,11 +93,13 @@ class CameraProcessor:
                 alien_objects = self.camera.detect_aliens()
                 if alien_objects is not None:
                     for (alien_id, alien_object) in alien_objects.items():
+                        w = len(frame[0])
+                        h = len(frame)
                         distance = constants.alien_image_height_mm/alien_object[3]*constants.alien_distance_multiplier+constants.alien_distance_offset
-                        x = min(max(alien_object[0],0),constants.resolution[0])
-                        y = min(max(alien_object[1], 0), constants.resolution[1])
-                        x_angle = ((x - constants.resolution[0]/2.0) / constants.resolution[0]) * constants.camera_pov[0]
-                        y_angle = ((constants.resolution[1]/2.0-y) / constants.resolution[1]) * constants.camera_pov[1]
+                        x = min(max(alien_object[0],0), w)
+                        y = min(max(alien_object[1], 0), h)
+                        x_angle = ((x - w/2.0) / w) * constants.camera_fov[0]
+                        y_angle = ((h/2.0-y) / h) * constants.camera_fov[1]
                         payload['aliens'].append(
                             {'id': int(alien_id), 'distance': int(distance * 100), 'xAngle': int(x_angle), 'yAngle': int(y_angle)})
                 if self.on_alien_update_handler is not None:

@@ -8,12 +8,13 @@ import config.constants_global as constants
 
 
 class RobotCamera:
-    def __init__(self):
+    def __init__(self, resolution, framerate):
         video_stream_module = importlib.import_module(constants.video_stream_module)
         video_stream_class = getattr(video_stream_module, "VideoStream")
-        self.vs = video_stream_class()
+        self.vs = video_stream_class(resolution, framerate)
         self.running = False
-
+        self.resolution = resolution
+        self.framerate = framerate
         self.camera_matrix = None
         self.distortion_coeffs = None
         self.new_camera_matrix = None
@@ -46,9 +47,9 @@ class RobotCamera:
         self.distortion_coeffs = distortion_coeffs
 
         self.new_camera_matrix, self.valid_pix_ROI = cv2.getOptimalNewCameraMatrix(self.camera_matrix, self.distortion_coeffs,
-                                                                                   constants.resolution, 0)
+                                                                                   self.resolution, 0)
         self.mapx, self.mapy = cv2.initUndistortRectifyMap(self.camera_matrix, self.distortion_coeffs, None,
-                                                           self.new_camera_matrix, constants.resolution, 5)
+                                                           self.new_camera_matrix, self.resolution, 5)
 
     def start(self):
         self.vs.start()
