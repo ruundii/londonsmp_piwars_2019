@@ -47,6 +47,26 @@ Blockly.Blocks['robot_stop'] = {
 };
 
 
+Blockly.Blocks['robot_set_camera_mode'] = {
+    init: function () {
+        this.jsonInit(
+            {
+                "type": "robot_set_camera_mode",
+                "message0": "Set camera mode  %1",
+                "args0": [
+                    {"type":"field_dropdown",
+                        "name":"mode",
+                        "options":[["Detect aliens","0"],["Detect colored sheets","1"],["Detect white line track","2"], ["Off","-1"]]},
+                ],
+                "inputsInline": true,
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": Blockly.Blocks.Robot.HUE,
+                "tooltip": "Set camera mode according to a challenge",
+                "helpUrl": ""
+            });
+    }
+};
 
 Blockly.Blocks['robot_get_list_of_alien_ids'] = {
     init: function () {
@@ -129,22 +149,56 @@ Blockly.Blocks['robot_get_y_angle_to_alien'] = {
     }
 };
 
-Blockly.Blocks['robot_set_camera_mode'] = {
+Blockly.Blocks['robot_get_list_of_coloured_sheets'] = {
     init: function () {
         this.jsonInit(
             {
-                "type": "robot_set_camera_mode",
-                "message0": "Set camera mode  %1",
+                "type": "robot_get_list_of_coloured_sheets",
+                "message0": "Get list of visible coloured sheets",
+                "inputsInline": true,
+                "output": "Array",
+                "colour": Blockly.Blocks.Robot.HUE,
+                "tooltip": "Get list of currently visible coloured sheets",
+                "helpUrl": ""
+            });
+    }
+};
+
+Blockly.Blocks['robot_get_distance_to_a_coloured_sheet'] = {
+    init: function () {
+        this.jsonInit(
+            {
+                "type": "robot_get_distance_to_a_coloured_sheet",
+                "message0": "Get distance to a sheet painted in %1",
                 "args0": [
                     {"type":"field_dropdown",
-                        "name":"mode",
-                        "options":[["Detect aliens","0"],["Detect colored sheets","1"],["Detect white line track","2"], ["Off","-1"]]},
+                        "name":"colour",
+                        "options":[["green","green"],["blue","blue"],["red","red"], ["yellow","yellow"]]},
                 ],
+                "output": "String",
                 "inputsInline": true,
-                "previousStatement": null,
-                "nextStatement": null,
                 "colour": Blockly.Blocks.Robot.HUE,
-                "tooltip": "Set camera mode according to a challenge",
+                "tooltip": "Get distance to a coloured sheet in cm",
+                "helpUrl": ""
+            });
+    }
+};
+
+Blockly.Blocks['robot_get_x_angle_to_a_coloured_sheet'] = {
+    init: function () {
+        this.jsonInit(
+            {
+                "type": "robot_get_x_angle_to_a_coloured_sheet",
+                "message0": "Get x angle to a sheet painted in %1",
+                "args0": [
+                    {"type":"field_dropdown",
+                        "name":"colour",
+                         "options":[["green","green"],["blue","blue"],["red","red"], ["yellow","yellow"]]},
+                ],
+                "output": "String",
+                "inputsInline": true,
+                "colour": Blockly.Blocks.Robot.HUE,
+                "tooltip": "Get x angle to a coloured sheet in degrees",
                 "helpUrl": ""
             });
     }

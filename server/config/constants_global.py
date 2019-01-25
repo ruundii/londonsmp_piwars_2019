@@ -1,11 +1,13 @@
 alien_image_height_mm = 77
+coloured_sheet_height_mm = 200#260
 
 image_processing_tracing_show_original = True
 image_processing_tracing_show_colour_mask = True
-image_processing_tracing_show_backgroud_colour_mask = True
+image_processing_tracing_show_background_colour_mask = True
 image_processing_tracing_show_detected_objects = True
 
 performance_tracing_robot_camera_detect_aliens = True
+performance_tracing_robot_camera_detect_coloured_sheets = True
 
 #importing machine-specific constants
 import importlib

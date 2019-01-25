@@ -5,6 +5,9 @@ joystick_right_axis = 4
 alien_distance_multiplier = 1.0/2.2
 alien_distance_offset = 0.1
 
+coloured_sheet_distance_multiplier = 1.0/2.2
+coloured_sheet_distance_offset = 0.1
+
 motor_module = "processors.motor_ifx9201sg"
 
 colour_config_name = "config/colour_config_pi.json"

@@ -2,7 +2,7 @@ import cv2
 import time
 from videoutils import util as u
 import importlib
-from videoutils import alien_detector
+from videoutils import alien_detector, coloured_sheet_detector
 
 import config.constants_global as constants
 
@@ -26,6 +26,7 @@ class RobotCamera:
         self.gray = None
 
         self.alien_detector = alien_detector.AlienDetector()
+        self.coloured_sheet_detector = coloured_sheet_detector.ColouredSheetDetector()
 
     def load(self, load_camera_matrix=True):
         if load_camera_matrix:
@@ -113,3 +114,12 @@ class RobotCamera:
         aliens = self.alien_detector.detect_aliens(image, constants.is_rgb_not_bgr)
         if constants.performance_tracing_robot_camera_detect_aliens: print('robot_camera.detect_aliens:',time.time()-t)
         return aliens
+
+    def detect_coloured_sheets(self):
+        t = time.time()
+        image = self.undistort()
+        if image is None:
+            return None
+        coloured_sheets = self.coloured_sheet_detector.detect_coloured_sheets(image, constants.is_rgb_not_bgr)
+        if constants.performance_tracing_robot_camera_detect_coloured_sheets: print('robot_camera.detect_coloured_sheets:',time.time()-t)
+        return coloured_sheets

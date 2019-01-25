@@ -59,11 +59,14 @@ CodeRunner.prototype.runCode = function(setSimulation) {
     Blockly.JavaScript.addReservedWords('sleep');
     Blockly.JavaScript.addReservedWords('robot_drive');
     Blockly.JavaScript.addReservedWords('robot_stop');
+    Blockly.JavaScript.addReservedWords('robot_set_camera_mode');
     Blockly.JavaScript.addReservedWords('robot_get_list_of_alien_ids');
     Blockly.JavaScript.addReservedWords('robot_get_distance_to_alien');
     Blockly.JavaScript.addReservedWords('robot_get_x_angle_to_alien');
     Blockly.JavaScript.addReservedWords('robot_get_y_angle_to_alien');
-    Blockly.JavaScript.addReservedWords('robot_set_camera_mode');
+    Blockly.JavaScript.addReservedWords('robot_get_list_of_coloured_sheets');
+    Blockly.JavaScript.addReservedWords('robot_get_distance_to_a_coloured_sheet');
+    Blockly.JavaScript.addReservedWords('robot_get_x_angle_to_a_coloured_sheet');
     latestCode = Blockly.JavaScript.workspaceToCode(workspace);
     Blockly.JavaScript.STATEMENT_PREFIX = prefix;
     Blockly.JavaScript.RESERVED_WORDS_=reserved;
@@ -131,6 +134,19 @@ CodeRunner.prototype.handleWebsocketMessages = function(msg) {
                     aliens=aliens+'ID:'+msg.aliens[i]['id']+' Distance:'+msg.aliens[i]['distance'];
                 }
                 $('#sensorsReport')[0].innerHTML=aliens;
+            }
+            break;
+        case 'updateColouredSheetsReadings':
+            worker.postMessage(msg);
+            if(msg.sheets==null||msg.sheets.length==0){
+                $('#sensorsReport')[0].innerHTML='No coloured sheets';
+            }
+            else{
+                var sheets="";
+                for(i=0;i<msg.sheets.length;i++){
+                    sheets=sheets+' '+msg.sheets[i]['colour']+':'+msg.sheets[i]['distance'];
+                }
+                $('#sensorsReport')[0].innerHTML=sheets;
             }
             break;
     }

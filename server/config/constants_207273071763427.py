@@ -5,6 +5,9 @@ joystick_right_axis = 3
 alien_distance_multiplier = 1.0/2.65
 alien_distance_offset = 0.06
 
+coloured_sheet_distance_multiplier = 1.0/2.65
+coloured_sheet_distance_offset = 0.06
+
 motor_module = "processors.motor_stub"
 
 colour_config_name = "config\\colour_config_win.json"

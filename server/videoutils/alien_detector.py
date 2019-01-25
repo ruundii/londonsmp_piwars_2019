@@ -86,7 +86,7 @@ class AlienDetector:
         if constants.image_processing_tracing_show_colour_mask:
             cv2.imshow("ColourMask", mask)
             cv2.waitKey(1)
-        if constants.image_processing_tracing_show_backgroud_colour_mask:
+        if constants.image_processing_tracing_show_background_colour_mask:
             back_mask = cv2.inRange(image_hsv, tuple(self.colour_config["background_min"]), tuple(self.colour_config["background_max"]))
             cv2.imshow("BackColourMask", back_mask)
             cv2.waitKey(1)
@@ -97,11 +97,15 @@ class AlienDetector:
             is_alien_contour, ellipse, area = self.__is_alien_contour(contour, image_hsv)
             if not is_alien_contour:
                 continue
-            aliens.append(
-                (ellipse[0][0],  # x
-                 ellipse[0][1],  # y
-                 area,
-                 ellipse[1][1]))  # height
+            w = len(image_hsv[0])
+            h = len(image_hsv)
+            alien_height = ellipse[1][1]
+            distance = constants.alien_image_height_mm / alien_height * constants.alien_distance_multiplier + constants.alien_distance_offset
+            x = min(max(ellipse[0][0], 0), w)
+            y = min(max(ellipse[0][1], 0), h)
+            x_angle = ((x - w / 2.0) / w) * constants.camera_fov[0]
+            y_angle = ((h / 2.0 - y) / h) * constants.camera_fov[1]
+            aliens.append((x, y, area, distance, x_angle, y_angle))
             if constants.image_processing_tracing_show_detected_objects:
                 image = cv2.ellipse(image, ellipse, (0,125,255), 2)
             real_contours_num = real_contours_num + 1

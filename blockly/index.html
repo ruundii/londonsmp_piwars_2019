@@ -400,6 +400,9 @@
                     </value>
                 </block>
                 <block type="robot_stop"></block>
+                <block type="robot_set_camera_mode">
+                    <field name="line">0</field>
+                </block>
                 <block type="robot_get_list_of_alien_ids">
                 </block>
                 <block type="robot_get_distance_to_alien">
@@ -417,8 +420,15 @@
                         <block type="math_number"></block>
                     </value>
                 </block>
-                <block type="robot_set_camera_mode">
-                    <field name="line">0</field>
+                <block type="robot_get_list_of_coloured_sheets">
+                </block>
+                <block type="robot_get_distance_to_a_coloured_sheet">
+                    <value name="colour">
+                        <field name="colour">green</field>
+                    </value>
+                </block>
+                <block type="robot_get_x_angle_to_a_coloured_sheet">
+                    <field name="colour">green</field>
                 </block>
             </category>
             <sep></sep>

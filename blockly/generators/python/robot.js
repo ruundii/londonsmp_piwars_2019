@@ -17,6 +17,12 @@ Blockly.Python['robot_stop'] = function(block) {
     return code;
 };
 
+Blockly.Python['robot_set_camera_mode'] = function(block) {
+    var mode = block.getFieldValue('mode');
+    var code = "robot_set_camera_mode("+mode+")\n";
+    return code;
+};
+
 Blockly.Python['robot_get_list_of_alien_ids'] = function(block) {
     var code = "robot_get_list_of_alien_ids()";
     return [code, Blockly.Python.ORDER_FUNCTION_CALL];
@@ -40,10 +46,21 @@ Blockly.Python['robot_get_y_angle_to_alien'] = function(block) {
     return [code, Blockly.Python.ORDER_FUNCTION_CALL];
 };
 
-Blockly.Python['robot_set_camera_mode'] = function(block) {
-    var mode = block.getFieldValue('mode');
-    var code = "robot_set_camera_mode("+mode+")\n";
-    return code;
+Blockly.Python['robot_get_list_of_coloured_sheets'] = function(block) {
+    var code = "robot_get_list_of_coloured_sheets()";
+    return [code, Blockly.Python.ORDER_FUNCTION_CALL];
+};
+
+Blockly.Python['robot_get_distance_to_a_coloured_sheet'] = function(block) {
+    var colour = block.getFieldValue('colour');
+    var code = "robot_get_distance_to_a_coloured_sheet('"+colour+"')";
+    return [code, Blockly.Python.ORDER_FUNCTION_CALL];
+};
+
+Blockly.Python['robot_get_x_angle_to_a_coloured_sheet'] = function(block) {
+    var colour = block.getFieldValue('colour');
+    var code = "robot_get_x_angle_to_a_coloured_sheet('"+colour+"')";
+    return [code, Blockly.Python.ORDER_FUNCTION_CALL];
 };
 
 function escape (val) {

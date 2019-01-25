@@ -78,8 +78,6 @@ class CameraProcessor:
 
     def __camera_processing_loop(self):
         while self.keep_camera_processing:
-            time.sleep(0.1)
-            payload = {'message': 'updateAlienReadings', 'aliens': []}
 
             try:
                 self.camera.update()
@@ -90,20 +88,26 @@ class CameraProcessor:
                     cv2.imshow("Original", frame)
                     cv2.waitKey(1)
 
-                alien_objects = self.camera.detect_aliens()
-                if alien_objects is not None:
-                    for (alien_id, alien_object) in alien_objects.items():
-                        w = len(frame[0])
-                        h = len(frame)
-                        distance = constants.alien_image_height_mm/alien_object[3]*constants.alien_distance_multiplier+constants.alien_distance_offset
-                        x = min(max(alien_object[0],0), w)
-                        y = min(max(alien_object[1], 0), h)
-                        x_angle = ((x - w/2.0) / w) * constants.camera_fov[0]
-                        y_angle = ((h/2.0-y) / h) * constants.camera_fov[1]
-                        payload['aliens'].append(
-                            {'id': int(alien_id), 'distance': int(distance * 100), 'xAngle': int(x_angle), 'yAngle': int(y_angle)})
-                if self.on_alien_update_handler is not None:
-                    self.on_alien_update_handler(payload)
+                if(self.camera_mode == CAMERA_MODE_DETECT_ALIENS):
+                    payload = {'message': 'updateAlienReadings', 'aliens': []}
+                    alien_objects = self.camera.detect_aliens()
+                    if alien_objects is not None:
+                        for (alien_id, alien_object) in alien_objects.items():
+                            payload['aliens'].append(
+                                {'id': int(alien_id), 'distance': int(alien_object[3] * 100), 'xAngle': int(alien_object[4]), 'yAngle': int(alien_object[5])})
+                    if self.on_alien_update_handler is not None:
+                        self.on_alien_update_handler(payload)
+                    time.sleep(0.1)
+                elif (self.camera_mode == CAMERA_MODE_DETECT_COLOURED_SHEETS):
+                    payload = {'message': 'updateColouredSheetsReadings', 'sheets': []}
+                    sheets = self.camera.detect_coloured_sheets()
+                    if(sheets is not None and len(sheets)>0):
+                        for colour, distance, x_angle in sheets:
+                            payload['sheets'].append({'colour': colour, 'distance':int(distance * 100), 'xAngle': int(x_angle)})
+                    if self.on_coloured_sheet_update_handler is not None:
+                        self.on_coloured_sheet_update_handler(payload)
+                    time.sleep(0.05)
+
             except Exception as exc:
                 print(exc)
         cv2.destroyAllWindows()

@@ -1,6 +1,7 @@
 var window = new WindowStub();
 var running = false;
 var lastAliens = null;
+var lastColouredSheets = null;
 
 var lastDriveParams = null;
 
@@ -18,6 +19,9 @@ self.onmessage = function(e) {
    }
    else if(e.data.message=='updateAlienReadings'){
        lastAliens = e.data['aliens'];
+   }
+   else if(e.data.message=='updateColouredSheetsReadings'){
+       lastColouredSheets = e.data['sheets'];
    }
 }
 
@@ -69,6 +73,12 @@ function robot_stop() {
     console.log('stop robot: end');
 }
 
+function robot_set_camera_mode(mode){
+    var msg = {"command": 'setCameraMode', 'mode': mode};
+    console.log('robot_set_camera_mode');
+    self.postMessage({"message":"serverCall", "msg":JSON.stringify(msg)})
+}
+
 function robot_get_list_of_alien_ids() {
     if(lastAliens==null) return [];
     var alienIds=[];
@@ -108,10 +118,32 @@ function robot_get_y_angle_to_alien(alienId) {
     return 0;
 }
 
-function robot_set_camera_mode(mode){
-    var msg = {"command": 'setCameraMode', 'mode': mode};
-    console.log('robot_set_camera_mode');
-    self.postMessage({"message":"serverCall", "msg":JSON.stringify(msg)})
+function robot_get_list_of_coloured_sheets() {
+    if(lastColouredSheets==null) return [];
+    var colouredSheets=[];
+    for(i=0; i<lastColouredSheets.length; i++) {
+        colouredSheets.push(lastColouredSheets[i].colour);
+    }
+    return colouredSheets;
 }
 
+function robot_get_distance_to_a_coloured_sheet(colour) {
+    if(lastColouredSheets==null) return 0;
+    for(i=0; i<lastColouredSheets.length; i++) {
+        if(lastColouredSheets[i].colour==colour){
+            return lastColouredSheets[i]['distance'];
+        }
+    }
+    return 0;
+}
+
+function robot_get_x_angle_to_a_coloured_sheet(colour) {
+    if(lastColouredSheets==null) return 0;
+    for(i=0; i<lastColouredSheets.length; i++) {
+        if(lastColouredSheets[i].colour==colour){
+            return lastColouredSheets[i]['xAngle'];
+        }
+    }
+    return 0;
+}
 
