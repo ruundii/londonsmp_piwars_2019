@@ -101,12 +101,12 @@ class RobotCamera:
     def process_frames(self):
         last_frame_num = -1
         while self.running:
-            if(last_frame_num==self.vs.last_read_frame_num):
+            self.original_frame = self.vs.read()
+            if(last_frame_num==self.vs.last_read_frame_num or self.original_frame is None):
                 time.sleep(0.005)
                 continue
             else:
                 last_frame_num = self.vs.last_read_frame_num
-            self.original_frame = self.vs.read()
             self.image = self.undistort(self.original_frame)
             if(self.region_of_interest is not None):
                 self.image = self.image[self.region_of_interest[0]:len(self.image)-self.region_of_interest[1], self.region_of_interest[2]:len(self.image[0])-self.region_of_interest[3]]
