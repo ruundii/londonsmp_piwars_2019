@@ -2,6 +2,7 @@ alien_image_height_mm = 77
 coloured_sheet_height_mm = 200#260
 
 image_processing_tracing_show_original = True
+image_processing_tracing_show_region_of_interest = True
 image_processing_tracing_show_colour_mask = True
 image_processing_tracing_show_background_colour_mask = True
 image_processing_tracing_show_detected_objects = True

@@ -11,6 +11,7 @@ coloured_sheet_distance_offset = 0.06
 motor_module = "processors.motor_stub"
 
 colour_config_name = "config\\colour_config_win.json"
+regions_config_name = "config\\regions_config_win.json"
 
 alien_template = "videoutils\\alien_template.png"
 camera_calibrations_path = "videoutils\calibrations"

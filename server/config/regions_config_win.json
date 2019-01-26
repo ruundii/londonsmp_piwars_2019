@@ -1,0 +1,23 @@
+{
+  "speed_line": {
+    "top": 0,
+    "bottom": 0,
+    "left": 0,
+    "right": 0,
+    "cross_line_1": 82,
+    "cross_line_2": 160,
+    "cross_line_3": 261
+  },
+  "labyrinth": {
+    "top": 50,
+    "bottom": 50,
+    "left": 50,
+    "right": 50
+  },
+  "colour_sheets": {
+    "top": 50,
+    "bottom": 50,
+    "left": 50,
+    "right": 50
+  }
+}

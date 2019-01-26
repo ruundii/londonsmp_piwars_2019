@@ -80,8 +80,7 @@ class AlienDetector:
         # print('likelihood: ', likelihood, ' area:', area, ' height:', ellipse[1][1], ' ellipse ratio:', ellipseRatio, ' mean:',mean[0])
         return (True, ellipse, area)
 
-    def detect_aliens(self, image, is_rgb):
-        image_hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV if is_rgb else cv2.COLOR_BGR2HSV)
+    def detect_aliens(self, image, image_hsv, fov):
         contours, mask = self.__get_alien_contours(image_hsv)
         if constants.image_processing_tracing_show_colour_mask:
             cv2.imshow("ColourMask", mask)
@@ -103,8 +102,8 @@ class AlienDetector:
             distance = constants.alien_image_height_mm / alien_height * constants.alien_distance_multiplier + constants.alien_distance_offset
             x = min(max(ellipse[0][0], 0), w)
             y = min(max(ellipse[0][1], 0), h)
-            x_angle = ((x - w / 2.0) / w) * constants.camera_fov[0]
-            y_angle = ((h / 2.0 - y) / h) * constants.camera_fov[1]
+            x_angle = ((x - w / 2.0) / w) * fov[0]
+            y_angle = ((h / 2.0 - y) / h) * fov[1]
             aliens.append((x, y, area, distance, x_angle, y_angle))
             if constants.image_processing_tracing_show_detected_objects:
                 image = cv2.ellipse(image, ellipse, (0,125,255), 2)

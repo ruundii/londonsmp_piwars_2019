@@ -4,6 +4,7 @@ from videoutils.fps import FPS
 from threading import Thread, Lock
 import config.constants_global as constants
 import cv2
+import json
 
 CAMERA_MODE_OFF = -1
 CAMERA_MODE_DETECT_ALIENS = 0
@@ -20,6 +21,8 @@ class CameraProcessor:
         self.keep_camera_processing = False
         self.fps = FPS()
         self.camera_mode = CAMERA_MODE_OFF
+        with open(constants.regions_config_name) as json_config_file:
+            self.regions_config = json.load(json_config_file)
 
         self.on_alien_update_handler = None
         self.on_coloured_sheet_update_handler = None
@@ -33,11 +36,20 @@ class CameraProcessor:
             elif(new_camera_mode == CAMERA_MODE_OFF):
                 self.__stop_camera()
             elif(new_camera_mode == CAMERA_MODE_DETECT_ALIENS):
-                self.__start_camera(constants.resolution_aliens, constants.framerate)
+                self.__start_camera(constants.resolution_aliens, constants.framerate, region_of_interest=self.__get_region_of_interest(self.regions_config["labyrinth"]), prepare_hsv=True)
             elif(new_camera_mode == CAMERA_MODE_DETECT_COLOURED_SHEETS):
-                self.__start_camera(constants.resolution_coloured_sheet, constants.framerate)
+                self.__start_camera(constants.resolution_coloured_sheet, constants.framerate, region_of_interest=self.__get_region_of_interest(self.regions_config["colour_sheets"]), prepare_hsv=True)
 
             self.camera_mode=new_camera_mode
+
+    def __get_region_of_interest(self, config_section):
+        t = config_section["top"]
+        b = config_section["bottom"]
+        l = config_section["left"]
+        r = config_section["right"]
+        if t>0 or b > 0 or l>0 or r>0:
+            return (t,b,l,r)
+        return None
 
     def set_alien_update_handler(self, handler):
         self.on_alien_update_handler=handler
@@ -46,11 +58,11 @@ class CameraProcessor:
         self.on_coloured_sheet_update_handler=handler
 
 
-    def __start_camera(self, resolution, framerate):
+    def __start_camera(self, resolution, framerate, region_of_interest = None, prepare_gray = False, prepare_hsv=False):
         with self.camera_lock:
             # Camera initialisation
             try:
-                self.camera = RobotCamera(resolution, framerate)
+                self.camera = RobotCamera(resolution, framerate, region_of_interest, prepare_gray, prepare_hsv)
                 self.camera.load()
                 self.camera.start()
                 time.sleep(0.3)
@@ -80,12 +92,13 @@ class CameraProcessor:
         while self.keep_camera_processing:
 
             try:
-                self.camera.update()
                 _, fps, frame_num = self.fps.update()
                 #print("Camera processing FPS:"+str(fps)+" frame number:"+str(frameNum)+" datetime:"+ str(datetime.now()))
-                frame,_ = self.camera.last_frame()
                 if constants.image_processing_tracing_show_original:
-                    cv2.imshow("Original", frame)
+                    cv2.imshow("Original", self.camera.original_frame)
+                    cv2.waitKey(1)
+                if constants.image_processing_tracing_show_region_of_interest:
+                    cv2.imshow("Region Of Interest", self.camera.image)
                     cv2.waitKey(1)
 
                 if(self.camera_mode == CAMERA_MODE_DETECT_ALIENS):

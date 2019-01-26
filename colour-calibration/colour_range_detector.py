@@ -1,11 +1,18 @@
 import cv2
 import time
 import json
-from videoutils.video_stream_webcam import VideoStream
 
+resolution = (640,480)
+framerate = 20
 use_webcam = True
-current_filter_id = 0
+is_raspberry = False
+current_challenge_id = 0
 current_window_name = ""
+
+if is_raspberry:
+    from videoutils.video_stream_pi import VideoStream
+else:
+    from videoutils.video_stream_webcam import VideoStream
 
 
 def callback(value):
@@ -15,7 +22,7 @@ def callback_filter(value):
     setup_trackbars(value)
 
 def setup_trackbars(filter_id = 0):
-    global current_filter_id, current_window_name
+    global current_challenge_id, current_window_name
     filter_name, h_min, h_max, s_min, s_max, v_min, v_max = get_trackbars_config(filter_id)
     cv2.destroyWindow(current_window_name)
     current_filter_id = filter_id
@@ -72,7 +79,7 @@ def get_trackbar_values():
     return values
 
 def save_trackbar_values():
-    global current_filter_id
+    global current_challenge_id
     trackbar_values = get_trackbar_values()
     with open('colour_config.json') as json_config_file:
         config = json.load(json_config_file)
@@ -99,9 +106,9 @@ def save_trackbar_values():
 
 
 def main():
-    global use_webcam, try_alien_detection, try_sheet_detection
+    global use_webcam, resolution, framerate
     if use_webcam:
-        camera = VideoStream(resolution=(640,480), framerate=20)
+        camera = VideoStream(resolution=resolution, framerate=framerate)
         camera.start()
 
     setup_trackbars()

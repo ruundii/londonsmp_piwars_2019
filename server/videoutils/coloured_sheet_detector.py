@@ -17,9 +17,7 @@ class ColouredSheetDetector:
         self.colour_config = config["colour_sheets_hsv_ranges"]
 
 
-    def detect_coloured_sheets(self, image, is_rgb):
-        image_hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV if is_rgb else cv2.COLOR_BGR2HSV)
-
+    def detect_coloured_sheets(self, image, image_hsv, fov):
         colour_sets = []
         for colour in ["green", "blue", "red", "yellow"]:
             mask_column_aggr, mask = self.__get_colored_mask_sums(image_hsv, colour, self.colour_config[colour + "_min"], self.colour_config[colour + "_max"])
@@ -55,7 +53,7 @@ class ColouredSheetDetector:
             mid_column_index = int((high_zone_column_start_index + high_zone_column_end_index) / 2)
             pixel_height = high_zone_row_end_index - high_zone_row_start_index
             distance = constants.coloured_sheet_height_mm / pixel_height * constants.coloured_sheet_distance_multiplier + constants.coloured_sheet_distance_offset
-            x_angle = int((mid_column_index - int(len(image_hsv[0]) / 2)) * constants.camera_fov[0] / len(image_hsv[0]))
+            x_angle = int((mid_column_index - int(len(image_hsv[0]) / 2)) * fov[0] / len(image_hsv[0]))
             #print('top', colour_index + 1, 'colour:', colour, 'columns:', high_zone_start_index, ':', high_zone_end_index,'x angle:',x_angle)
             if(constants.image_processing_tracing_show_detected_objects):
                 cv2.rectangle(image,(high_zone_column_start_index, high_zone_row_start_index),

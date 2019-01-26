@@ -13,7 +13,7 @@ class VideoStream:
         self.stream.set(cv2.CAP_PROP_FPS, framerate)
         self.camera_lock = Lock()
         (self.grabbed, self.frame) = self.stream.read()
-        #self.gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
+        self.last_read_frame_num = 0
 
         # initialize the variable used to indicate if the thread should
         # be stopped
@@ -36,17 +36,11 @@ class VideoStream:
 
                 # otherwise, read the next frame from the stream
                 (self.grabbed, self.frame) = self.stream.read()
-                # try:
-                #     if self.frame is not None:
-                #         self.gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
-                #     else:
-                #         self.gray = None
-                # except Exception:
-                #     self.gray=None
+                self.last_read_frame_num += 1
 
     def read(self):
         # return the frame most recently read
-        return self.frame#, self.gray
+        return self.frame
 
     def stop(self):
         with self.camera_lock:

@@ -14,20 +14,11 @@ class PiStreamOutput(picamera.array.PiAnalysisOutput):
 
     def analyse(self, array):
         pass
-    # def analyse(self, array):
-    #     _, fps, frameNum = self.FPS.update()
-    #     # grab the frame from the stream and clear the stream in
-    #     # preparation for the next frame
-    #     # self.frame = cv2.flip(f.array, 0)
-    #     self.frame = array
-    #     print("FPS:" + str(fps) + " Frame num:" + str(frameNum))
 
     def write(self, b):
         result = super(PiStreamOutput, self).write(b)
         self.bytes = b
-        _, fps, frameNum = self.FPS.update()
-        #print("FPS Analyser:" + str(fps) + " Frame num:" + str(frameNum))
-        #self.analyze(bytes_to_rgb(b, self.size or self.camera.resolution))
+        _, fps, frame_num = self.FPS.update()
         return result
 
 
@@ -50,10 +41,8 @@ class VideoStream:
         # initialize the frame and the variable used to indicate
         # if the thread should be stopped
         self.frame = None
-        #self.gray = None
 
         self.stopped = False
-        #self.FPS = FPS()
 
     def start(self):
         # start the thread to read frames from the video stream
@@ -63,19 +52,11 @@ class VideoStream:
         return self
 
     def read(self):
-        #dt = datetime.now()
-        #_, fps, frameNum = self.FPS.update()
-        #print("FPS Pi video stream:" + str(fps) + " Frame num:" + str(frameNum))
         if self.output.bytes is not None and self.last_read_frame_num!=self.output.FPS.frameidx:
             self.last_read_frame_num = self.output.FPS.frameidx
             self.frame = picamera.array.bytes_to_rgb(self.output.bytes, self.camera.resolution)
-            #pic = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
-            #cv2.imwrite("frame"+str(self.output.FPS.frameidx)+".jpg", pic)
-            #print("gains:",self.camera.awb_gains)
-            #self.gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
-            #print("read ", (datetime.now()-dt).total_seconds())
 
-        return self.frame#, self.gray
+        return self.frame
 
     def stop(self):
         with self.camera_lock:
