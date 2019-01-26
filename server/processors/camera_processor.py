@@ -10,6 +10,8 @@ CAMERA_MODE_OFF = -1
 CAMERA_MODE_DETECT_ALIENS = 0
 CAMERA_MODE_DETECT_COLOURED_SHEETS = 1
 CAMERA_MODE_DETECT_WHITE_LINE_TRACK = 2
+import os
+havedisplay = "DISPLAY" in os.environ
 
 class CameraProcessor:
     def __init__(self):
@@ -23,9 +25,12 @@ class CameraProcessor:
         self.camera_mode = CAMERA_MODE_OFF
         with open(constants.regions_config_name) as json_config_file:
             self.regions_config = json.load(json_config_file)
+        self.console_mode = not havedisplay
 
         self.on_alien_update_handler = None
         self.on_coloured_sheet_update_handler = None
+        print("CameraProcessor init finished")
+
 
     def set_camera_mode(self, new_camera_mode):
         print("set_camera_mode ", new_camera_mode)
@@ -62,7 +67,7 @@ class CameraProcessor:
         with self.camera_lock:
             # Camera initialisation
             try:
-                self.camera = RobotCamera(resolution, framerate, region_of_interest, prepare_gray, prepare_hsv)
+                self.camera = RobotCamera(resolution, framerate, self.console_mode, region_of_interest, prepare_gray, prepare_hsv)
                 self.camera.load()
                 self.camera.start()
                 time.sleep(0.3)
@@ -94,10 +99,10 @@ class CameraProcessor:
             try:
                 _, fps, frame_num = self.fps.update()
                 #print("Camera processing FPS:"+str(fps)+" frame number:"+str(frameNum)+" datetime:"+ str(datetime.now()))
-                if constants.image_processing_tracing_show_original:
+                if not self.console_mode and constants.image_processing_tracing_show_original:
                     cv2.imshow("Original", self.camera.original_frame)
                     cv2.waitKey(1)
-                if constants.image_processing_tracing_show_region_of_interest:
+                if not self.console_mode and constants.image_processing_tracing_show_region_of_interest:
                     cv2.imshow("Region Of Interest", self.camera.image)
                     cv2.waitKey(1)
 

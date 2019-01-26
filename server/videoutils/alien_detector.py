@@ -12,8 +12,9 @@ import json
 # https://pythonprogramming.net/morphological-transformation-python-opencv-tutorial/
 
 class AlienDetector:
-    def __init__(self):
+    def __init__(self, console_mode):
         self.counter = 0
+        self.console_mode = console_mode
         global alien_template_contour
         with open(constants.colour_config_name) as json_config_file:
             config = json.load(json_config_file)
@@ -43,8 +44,8 @@ class AlienDetector:
             return (False, None, None)
 
         # compare shapes
-        likelihood = cv2.matchShapes(contour, self.alien_template_contour, 1, 0)
-        if likelihood > 0.4:
+        difference_factor = cv2.matchShapes(contour, self.alien_template_contour, 1, 0)
+        if difference_factor > 0.4:
             #print('killing by shape', ellipse)
             return (False, None, None)
 
@@ -82,10 +83,10 @@ class AlienDetector:
 
     def detect_aliens(self, image, image_hsv, fov):
         contours, mask = self.__get_alien_contours(image_hsv)
-        if constants.image_processing_tracing_show_colour_mask:
+        if not self.console_mode and constants.image_processing_tracing_show_colour_mask:
             cv2.imshow("ColourMask", mask)
             cv2.waitKey(1)
-        if constants.image_processing_tracing_show_background_colour_mask:
+        if not self.console_mode and constants.image_processing_tracing_show_background_colour_mask:
             back_mask = cv2.inRange(image_hsv, tuple(self.colour_config["background_min"]), tuple(self.colour_config["background_max"]))
             cv2.imshow("BackColourMask", back_mask)
             cv2.waitKey(1)
@@ -108,7 +109,7 @@ class AlienDetector:
             if constants.image_processing_tracing_show_detected_objects:
                 image = cv2.ellipse(image, ellipse, (0,125,255), 2)
             real_contours_num = real_contours_num + 1
-        if constants.image_processing_tracing_show_detected_objects:
+        if not self.console_mode and constants.image_processing_tracing_show_detected_objects:
             cv2.imshow("DetectedObject", image)
             cv2.waitKey(1)
         self.counter += 1

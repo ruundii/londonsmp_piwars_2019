@@ -6,7 +6,7 @@ resolution = (640,480)
 framerate = 20
 use_webcam = True
 is_raspberry = False
-current_challenge_id = 0
+current_filter_id = 0
 current_window_name = ""
 
 if is_raspberry:
@@ -22,7 +22,7 @@ def callback_filter(value):
     setup_trackbars(value)
 
 def setup_trackbars(filter_id = 0):
-    global current_challenge_id, current_window_name
+    global current_filter_id, current_window_name
     filter_name, h_min, h_max, s_min, s_max, v_min, v_max = get_trackbars_config(filter_id)
     cv2.destroyWindow(current_window_name)
     current_filter_id = filter_id
@@ -79,7 +79,7 @@ def get_trackbar_values():
     return values
 
 def save_trackbar_values():
-    global current_challenge_id
+    global current_filter_id
     trackbar_values = get_trackbar_values()
     with open('colour_config.json') as json_config_file:
         config = json.load(json_config_file)

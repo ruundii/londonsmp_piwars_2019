@@ -9,7 +9,7 @@ import config.constants_global as constants
 
 
 class RobotCamera:
-    def __init__(self, resolution, framerate, region_of_interest = None, prepare_gray = False, prepare_hsv=False):
+    def __init__(self, resolution, framerate, console_mode, region_of_interest = None, prepare_gray = False, prepare_hsv=False):
         video_stream_module = importlib.import_module(constants.video_stream_module)
         video_stream_class = getattr(video_stream_module, "VideoStream")
         self.vs = video_stream_class(resolution, framerate)
@@ -23,6 +23,7 @@ class RobotCamera:
         self.mapx = None
         self.mapy = None
 
+        self.console_mode=console_mode
         self.original_frame = None
         self.image = None
         self.image_gray = None
@@ -35,8 +36,9 @@ class RobotCamera:
         else:
             self.fov = (int(constants.camera_fov[0] * (resolution[0]-region_of_interest[2]-region_of_interest[3])/resolution[0]) , int(constants.camera_fov[1] * (resolution[1]-region_of_interest[0]-region_of_interest[1])/resolution[1]))
 
-        self.alien_detector = alien_detector.AlienDetector()
-        self.coloured_sheet_detector = coloured_sheet_detector.ColouredSheetDetector()
+        self.alien_detector = alien_detector.AlienDetector(self.console_mode)
+        self.coloured_sheet_detector = coloured_sheet_detector.ColouredSheetDetector(self.console_mode)
+        print("RobotCamera init finished")
 
 
     def load(self, load_camera_matrix=True):

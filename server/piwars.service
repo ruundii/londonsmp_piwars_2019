@@ -8,7 +8,7 @@ WorkingDirectory=/home/pi/piwars/server
 #Environment=VIRTUAL_ENV=/home/pi/.virtualenvs/cv
 #Environment=PATH=$VIRTUAL_ENV/bin:$PATH
 #ExecStart=/bin/sh -c "${VIRTUAL_ENV}/bin/python websocket_server.py"
-ExecStart=/bin/sh /home/pi/piwars/server/launch.sh
+ExecStart=/bin/sh /home/pi/piwars/server/launch_console.sh
 Restart=always
 
 [Install]
