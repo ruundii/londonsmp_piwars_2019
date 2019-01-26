@@ -66,7 +66,7 @@ class RobotCamera:
     def start(self):
         self.vs.start()
         self.running = True
-        start_new_thread(self.process_frames)
+        start_new_thread(self.process_frames,())
 
     def current_image(self):
         return self.image
