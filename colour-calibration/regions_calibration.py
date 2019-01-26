@@ -6,7 +6,7 @@ import numpy as np
 resolution = (640,480)
 framerate = 20
 use_webcam = True
-is_raspberry = False
+is_raspberry = True
 current_window_name = ""
 
 CHALLENGE_SPEED_LINE = 0
@@ -16,9 +16,19 @@ CHALLENGE_COLOURED_SHEETS = 2
 current_challenge_id = CHALLENGE_SPEED_LINE
 
 if is_raspberry:
-    from videoutils.video_stream_pi import VideoStream
+    try:
+        from videoutils.video_stream_pi import VideoStream
+    except:
+        import sys, os
+        sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'server'))
+        from videoutils.video_stream_pi import VideoStream
 else:
-    from videoutils.video_stream_webcam import VideoStream
+    try:
+        from videoutils.video_stream_webcam import VideoStream
+    except:
+        import sys, os
+        sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'server'))
+        from videoutils.video_stream_webcam import VideoStream
 
 
 def callback(value):
@@ -121,6 +131,10 @@ def main():
             image = cv2.imread("alienpi\\frame18.jpg")
             isBgr = False
             time.sleep(0.1)
+        if image is None:
+            time.sleep(0.1)
+            continue
+
         challenge_name, top, bottom, left, right, cross_line_1, cross_line_2, cross_line_3 = get_trackbars_config(
             current_challenge_id)
         cv2.rectangle(image, (left, top),(len(image[0])-right, len(image)-bottom), (0,255,0), 2)

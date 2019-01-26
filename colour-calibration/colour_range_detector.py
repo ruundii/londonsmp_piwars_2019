@@ -5,14 +5,24 @@ import json
 resolution = (640,480)
 framerate = 20
 use_webcam = True
-is_raspberry = False
+is_raspberry = True
 current_filter_id = 0
 current_window_name = ""
 
 if is_raspberry:
-    from videoutils.video_stream_pi import VideoStream
+    try:
+        from videoutils.video_stream_pi import VideoStream
+    except:
+        import sys, os
+        sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'server'))
+        from videoutils.video_stream_pi import VideoStream
 else:
-    from videoutils.video_stream_webcam import VideoStream
+    try:
+        from videoutils.video_stream_webcam import VideoStream
+    except:
+        import sys, os
+        sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'server'))
+        from videoutils.video_stream_webcam import VideoStream
 
 
 def callback(value):
@@ -24,7 +34,10 @@ def callback_filter(value):
 def setup_trackbars(filter_id = 0):
     global current_filter_id, current_window_name
     filter_name, h_min, h_max, s_min, s_max, v_min, v_max = get_trackbars_config(filter_id)
-    cv2.destroyWindow(current_window_name)
+    try:
+        cv2.destroyWindow(current_window_name)
+    except:
+        pass
     current_filter_id = filter_id
     current_window_name = "Trackbars "+filter_name
     cv2.namedWindow(current_window_name)
@@ -132,7 +145,9 @@ def main():
             image = cv2.imread("alienpi\\frame18.jpg")
             isBgr = False
             time.sleep(0.1)
-
+        if image is None:
+            time.sleep(0.1)
+            continue
         image_hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV if isBgr else cv2.COLOR_RGB2HSV)
 
         h_min, h_max, s_min, s_max, v_min, v_max = get_trackbar_values()
