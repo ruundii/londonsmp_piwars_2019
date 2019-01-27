@@ -5,6 +5,8 @@ import numpy as np
 import time
 alien_template_contour = None
 import json
+import videoutils.image_display as display
+
 
 
 # https://www.pyimagesearch.com/2015/09/14/ball-tracking-with-opencv/
@@ -12,9 +14,8 @@ import json
 # https://pythonprogramming.net/morphological-transformation-python-opencv-tutorial/
 
 class AlienDetector:
-    def __init__(self, console_mode):
+    def __init__(self):
         self.counter = 0
-        self.console_mode = console_mode
         self.resolution = (100,100)
         self.fov = None
         global alien_template_contour
@@ -93,13 +94,11 @@ class AlienDetector:
         t = time.time()
         contours, mask = self.__get_alien_contours(image_hsv)
         if constants.performance_tracing_alien_detector_details: print('alien_detector.detect_aliens.__get_alien_contours:',time.time()-t)
-        if not self.console_mode and constants.image_processing_tracing_show_colour_mask:
-            cv2.imshow("ColourMask", mask)
-            cv2.waitKey(1)
-        if not self.console_mode and constants.image_processing_tracing_show_background_colour_mask:
+        if constants.image_processing_tracing_show_colour_mask:
+            display.image_display.add_image_to_queue("ColourMask", mask)
+        if constants.image_processing_tracing_show_background_colour_mask:
             back_mask = cv2.inRange(image_hsv, tuple(self.colour_config["background_min"]), tuple(self.colour_config["background_max"]))
-            cv2.imshow("BackColourMask", back_mask)
-            cv2.waitKey(1)
+            display.image_display.add_image_to_queue("BackColourMask", back_mask)
 
         real_contours_num = 0
         aliens = []
@@ -119,9 +118,8 @@ class AlienDetector:
             if constants.image_processing_tracing_show_detected_objects:
                 image = cv2.ellipse(image, ellipse, (0,125,255), 2)
             real_contours_num = real_contours_num + 1
-        if not self.console_mode and constants.image_processing_tracing_show_detected_objects:
-            cv2.imshow("DetectedObject", image)
-            cv2.waitKey(1)
+        if constants.image_processing_tracing_show_detected_objects:
+            display.image_display.add_image_to_queue("DetectedObject", image)
         self.counter += 1
         #print(real_contours_num, ":", len(contours))
         return self.alien_tracker.update(aliens)

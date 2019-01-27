@@ -5,6 +5,8 @@ from threading import Thread, Lock
 import config.constants_global as constants
 import cv2
 import json
+import videoutils.image_display as display
+
 
 CAMERA_MODE_OFF = -1
 CAMERA_MODE_DETECT_ALIENS = 0
@@ -12,6 +14,7 @@ CAMERA_MODE_DETECT_COLOURED_SHEETS = 1
 CAMERA_MODE_DETECT_WHITE_LINE_TRACK = 2
 import os
 havedisplay = "DISPLAY" in os.environ or os.name == 'nt'
+display.image_display.set_mode(havedisplay)
 
 class CameraProcessor:
     def __init__(self):
@@ -25,7 +28,6 @@ class CameraProcessor:
         self.camera_mode = CAMERA_MODE_OFF
         with open(constants.regions_config_name) as json_config_file:
             self.regions_config = json.load(json_config_file)
-        self.console_mode = not havedisplay
 
         self.on_alien_update_handler = None
         self.on_coloured_sheet_update_handler = None
@@ -67,7 +69,7 @@ class CameraProcessor:
         with self.camera_lock:
             # Camera initialisation
             try:
-                self.camera = RobotCamera(resolution, framerate, self.console_mode, region_of_interest, prepare_gray, prepare_hsv)
+                self.camera = RobotCamera(resolution, framerate, region_of_interest, prepare_gray, prepare_hsv)
                 self.camera.load()
                 self.camera.start()
                 time.sleep(0.3)
@@ -95,16 +97,13 @@ class CameraProcessor:
 
     def __camera_processing_loop(self):
         while self.keep_camera_processing:
-
             try:
                 _, fps, frame_num = self.fps.update()
                 #print("Camera processing FPS:"+str(fps)+" frame number:"+str(frameNum)+" datetime:"+ str(datetime.now()))
-                if not self.console_mode and constants.image_processing_tracing_show_original:
-                    cv2.imshow("Original", self.camera.original_frame)
-                    cv2.waitKey(1)
-                if not self.console_mode and constants.image_processing_tracing_show_region_of_interest:
-                    cv2.imshow("Region Of Interest", self.camera.image)
-                    cv2.waitKey(1)
+                if constants.image_processing_tracing_show_original:
+                    display.image_display.add_image_to_queue("Original", self.camera.original_frame)
+                if constants.image_processing_tracing_show_region_of_interest:
+                    display.image_display.add_image_to_queue("Region Of Interest", self.camera.image)
 
                 if(self.camera_mode == CAMERA_MODE_DETECT_ALIENS):
                     payload = {'message': 'updateAlienReadings', 'aliens': []}
@@ -128,5 +127,6 @@ class CameraProcessor:
 
             except Exception as exc:
                 print(exc)
-        cv2.destroyAllWindows()
+        print("cv2.destroyAllWindows")
+        display.image_display.destroy_windows()
 

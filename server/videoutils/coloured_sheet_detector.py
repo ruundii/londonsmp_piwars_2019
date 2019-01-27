@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import json
 import config.constants_global as constants
-
+import videoutils.image_display as display
 
 min_number_of_coloured_pixels_per_peak_column = 20
 max_number_of_coloured_sheets_per_image = 2
@@ -11,11 +11,10 @@ min_width_for_high_zone = 10
 min_height_for_high_zone = 7
 
 class ColouredSheetDetector:
-    def __init__(self, console_mode):
+    def __init__(self):
         with open(constants.colour_config_name) as json_config_file:
             config = json.load(json_config_file)
         self.colour_config = config["colour_sheets_hsv_ranges"]
-        self.console_mode = console_mode
         self.resolution = None
         self.fov = None
         print("ColouredSheetDetector initialised")
@@ -63,11 +62,11 @@ class ColouredSheetDetector:
             distance = constants.coloured_sheet_height_mm / pixel_height * constants.coloured_sheet_distance_multiplier + constants.coloured_sheet_distance_offset
             x_angle = int((mid_column_index - int(self.resolution[0] / 2)) * self.fov[0] / self.resolution[0])
             #print('top', colour_index + 1, 'colour:', colour, 'columns:', high_zone_start_index, ':', high_zone_end_index,'x angle:',x_angle)
-            if(not self.console_mode and constants.image_processing_tracing_show_detected_objects):
-                cv2.rectangle(image,(high_zone_column_start_index, high_zone_row_start_index),
+            if(constants.image_processing_tracing_show_detected_objects):
+                im = image.get().copy()
+                cv2.rectangle(im,(high_zone_column_start_index, high_zone_row_start_index),
                               (high_zone_column_end_index, high_zone_row_end_index), (0,255,0))
-                cv2.imshow("DetectedObject_"+colour, image)
-                cv2.waitKey(1)
+                display.image_display.add_image_to_queue("DetectedObject_"+colour, im)
             found_sheets.append((colour, distance, x_angle))
         return found_sheets
 
@@ -108,7 +107,6 @@ class ColouredSheetDetector:
             mask = cv2.bitwise_or(mask1,mask2)
         else:
             mask = cv2.inRange(image_hsv, (hsv_min[0], hsv_min[1], hsv_min[2]), (hsv_max[0], hsv_max[1], hsv_max[2]))
-        if(not self.console_mode and constants.image_processing_tracing_show_colour_mask):
-            cv2.imshow("ColourMask_"+colour, mask)
-            cv2.waitKey(1)
+        if(constants.image_processing_tracing_show_colour_mask):
+            display.image_display.add_image_to_queue("ColourMask_"+colour, mask)
         return cv2.reduce(mask, 0, cv2.REDUCE_SUM, dtype=cv2.CV_32S).get()[0], mask
