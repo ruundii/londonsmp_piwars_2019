@@ -16,9 +16,16 @@ class ColouredSheetDetector:
             config = json.load(json_config_file)
         self.colour_config = config["colour_sheets_hsv_ranges"]
         self.console_mode = console_mode
+        self.resolution = None
+        self.fov = None
+        print("ColouredSheetDetector initialised")
+
+    def set_image_params(self, actual_resolution, fov):
+        self.resolution = actual_resolution
+        self.fov = fov
 
 
-    def detect_coloured_sheets(self, image, image_hsv, fov):
+    def detect_coloured_sheets(self, image, image_hsv):
         colour_sets = []
         for colour in ["green", "blue", "red", "yellow"]:
             mask_column_aggr, mask = self.__get_colored_mask_sums(image_hsv, colour, self.colour_config[colour + "_min"], self.colour_config[colour + "_max"])
@@ -38,10 +45,10 @@ class ColouredSheetDetector:
             if high_zone_column_end_index is None:
                 continue
 
-            h = len(image_hsv)
-            w = len(image_hsv[0])
+            h = self.resolution[1]
+            w = self.resolution[0]
 
-            mask_high_zone_row_arrg = cv2.reduce(mask[0:h, high_zone_column_start_index:high_zone_column_end_index], 1, cv2.REDUCE_SUM, dtype=cv2.CV_32S)[:,0]
+            mask_high_zone_row_arrg = cv2.reduce(mask.get()[0:h, high_zone_column_start_index:high_zone_column_end_index], 1, cv2.REDUCE_SUM, dtype=cv2.CV_32S)[:,0]
             peak = np.max(mask_high_zone_row_arrg)
 
             high_zone_row_start_index = self.__get_high_zone_start_index(mask_high_zone_row_arrg, min_height_for_high_zone, peak=peak)
@@ -54,7 +61,7 @@ class ColouredSheetDetector:
             mid_column_index = int((high_zone_column_start_index + high_zone_column_end_index) / 2)
             pixel_height = high_zone_row_end_index - high_zone_row_start_index
             distance = constants.coloured_sheet_height_mm / pixel_height * constants.coloured_sheet_distance_multiplier + constants.coloured_sheet_distance_offset
-            x_angle = int((mid_column_index - int(len(image_hsv[0]) / 2)) * fov[0] / len(image_hsv[0]))
+            x_angle = int((mid_column_index - int(self.resolution[0] / 2)) * self.fov[0] / self.resolution[0])
             #print('top', colour_index + 1, 'colour:', colour, 'columns:', high_zone_start_index, ':', high_zone_end_index,'x angle:',x_angle)
             if(not self.console_mode and constants.image_processing_tracing_show_detected_objects):
                 cv2.rectangle(image,(high_zone_column_start_index, high_zone_row_start_index),
@@ -98,10 +105,10 @@ class ColouredSheetDetector:
         if hsv_min[0] > hsv_max[0]:
             mask1 = cv2.inRange(image_hsv, (0, hsv_min[1], hsv_min[2]), (hsv_max[0], hsv_max[1], hsv_max[2]))
             mask2 = cv2.inRange(image_hsv, (hsv_min[0], hsv_min[1], hsv_min[2]), (180, hsv_max[1], hsv_max[2]))
-            mask = mask1 + mask2
+            mask = cv2.bitwise_or(mask1,mask2)
         else:
             mask = cv2.inRange(image_hsv, (hsv_min[0], hsv_min[1], hsv_min[2]), (hsv_max[0], hsv_max[1], hsv_max[2]))
         if(not self.console_mode and constants.image_processing_tracing_show_colour_mask):
             cv2.imshow("ColourMask_"+colour, mask)
             cv2.waitKey(1)
-        return cv2.reduce(mask, 0, cv2.REDUCE_SUM, dtype=cv2.CV_32S)[0], mask
+        return cv2.reduce(mask, 0, cv2.REDUCE_SUM, dtype=cv2.CV_32S).get()[0], mask

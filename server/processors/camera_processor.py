@@ -11,7 +11,7 @@ CAMERA_MODE_DETECT_ALIENS = 0
 CAMERA_MODE_DETECT_COLOURED_SHEETS = 1
 CAMERA_MODE_DETECT_WHITE_LINE_TRACK = 2
 import os
-havedisplay = "DISPLAY" in os.environ
+havedisplay = "DISPLAY" in os.environ or os.name == 'nt'
 
 class CameraProcessor:
     def __init__(self):

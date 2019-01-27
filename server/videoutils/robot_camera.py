@@ -4,6 +4,7 @@ from videoutils import util as u
 import importlib
 from videoutils import alien_detector, coloured_sheet_detector
 from _thread import start_new_thread
+from threading import Lock
 
 import config.constants_global as constants
 
@@ -22,6 +23,7 @@ class RobotCamera:
         self.valid_pix_ROI = None
         self.mapx = None
         self.mapy = None
+        self.image_lock = Lock()
 
         self.console_mode=console_mode
         self.original_frame = None
@@ -31,6 +33,7 @@ class RobotCamera:
         self.prepare_gray = prepare_gray
         self.prepare_hsv=prepare_hsv
         self.region_of_interest = region_of_interest
+        self.actual_resolution = None
         if region_of_interest is None:
             self.fov = constants.camera_fov
         else:
@@ -67,6 +70,20 @@ class RobotCamera:
 
     def start(self):
         self.vs.start()
+        self.original_frame = self.vs.read()
+        while self.original_frame is None:
+            time.sleep(0.005)
+            self.original_frame = self.vs.read()
+
+        if self.actual_resolution is None:
+            if(self.region_of_interest is not None):
+                self.actual_resolution = (len(self.original_frame[0])-self.region_of_interest[2]-self.region_of_interest[3], len(self.original_frame)-self.region_of_interest[0]-self.region_of_interest[1])
+            else:
+                self.actual_resolution = (len(self.original_frame[0]), len(self.original_frame))
+
+        self.alien_detector.set_image_params(self.actual_resolution, self.fov)
+        self.coloured_sheet_detector.set_image_params(self.actual_resolution, self.fov)
+
         self.running = True
         start_new_thread(self.process_frames,())
 
@@ -109,26 +126,36 @@ class RobotCamera:
                 continue
             else:
                 last_frame_num = self.vs.last_read_frame_num
-            self.image = self.undistort(self.original_frame)
+            t = time.time()
+            im = self.original_frame# self.undistort(self.original_frame)
             if(self.region_of_interest is not None):
-                self.image = self.image[self.region_of_interest[0]:len(self.image)-self.region_of_interest[1], self.region_of_interest[2]:len(self.image[0])-self.region_of_interest[3]]
+                im = im[self.region_of_interest[0]:len(im)-self.region_of_interest[1], self.region_of_interest[2]:len(im[0])-self.region_of_interest[3]]
+            umat_im = cv2.UMat(im)
+            umat_im_hsv = None
+            umat_im_gray = None
             if self.prepare_hsv:
-                self.image_hsv = cv2.cvtColor(self.image, cv2.COLOR_RGB2HSV if constants.is_rgb_not_bgr else cv2.COLOR_BGR2HSV)
+                umat_im_hsv = cv2.cvtColor(umat_im, cv2.COLOR_RGB2HSV if constants.is_rgb_not_bgr else cv2.COLOR_BGR2HSV)
             if self.prepare_gray:
-                self.image_gray = cv2.cvtColor(self.image, cv2.COLOR_RGB2GRAY if constants.is_rgb_not_bgr else cv2.COLOR_BGR2GRAY)
+                umat_im_gray = cv2.cvtColor(umat_im, cv2.COLOR_RGB2GRAY if constants.is_rgb_not_bgr else cv2.COLOR_BGR2GRAY)
+            with(self.image_lock):
+                self.image = umat_im
+                self.image_hsv = umat_im_hsv
+                self.image_gray = umat_im_gray
+            if constants.performance_tracing_robot_camera_image_preparation: print('robot_camera.process_frames:',time.time()-t)
+
 
     def detect_aliens(self):
         t = time.time()
-        if self.image is None and self.image_hsv is None:
+        if self.image is None or self.image_hsv is None:
             return None
-        aliens = self.alien_detector.detect_aliens(self.image, self.image_hsv, self.fov)
+        aliens = self.alien_detector.detect_aliens(self.image, self.image_hsv)
         if constants.performance_tracing_robot_camera_detect_aliens: print('robot_camera.detect_aliens:',time.time()-t)
         return aliens
 
     def detect_coloured_sheets(self):
         t = time.time()
-        if self.image is None and self.image_hsv is None:
+        if self.image is None or self.image_hsv is None:
             return None
-        coloured_sheets = self.coloured_sheet_detector.detect_coloured_sheets(self.image, self.image_hsv, self.fov)
+        coloured_sheets = self.coloured_sheet_detector.detect_coloured_sheets(self.image, self.image_hsv)
         if constants.performance_tracing_robot_camera_detect_coloured_sheets: print('robot_camera.detect_coloured_sheets:',time.time()-t)
         return coloured_sheets

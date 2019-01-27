@@ -13,7 +13,9 @@ class FPS:
     now = datetime.now()
     delta = now - self.lastTime
     self.lastTime = now
-    currFps = 1.0 / delta.total_seconds()
+    if(delta.total_seconds()<0.000001):
+      currFps = 100000
+    else: currFps = 1.0 / delta.total_seconds()
     self.fps = self.fps + (currFps - self.fps) * 0.2
     self.frameidx = self.frameidx + 1
 
