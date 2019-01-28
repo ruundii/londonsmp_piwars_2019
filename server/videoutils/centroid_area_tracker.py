@@ -6,7 +6,7 @@ import math
 from threading import Lock
 
 class CentroidAreaTracker():
-	def __init__(self, max_disappeared_frames=10):
+	def __init__(self, max_disappeared_frames=3):
 		# initialize the next unique object ID along with two ordered
 		# dictionaries used to keep track of mapping a given object
 		# ID to its centroid and number of consecutive frames it has

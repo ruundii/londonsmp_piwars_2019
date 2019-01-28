@@ -5,7 +5,7 @@ import json
 resolution = (640,480)
 framerate = 20
 use_webcam = True
-is_raspberry = True
+is_raspberry = False
 current_filter_id = 0
 current_window_name = ""
 

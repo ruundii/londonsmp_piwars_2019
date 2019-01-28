@@ -2,8 +2,8 @@
   "alien_hsv_ranges": {
     "green_min": [
       40,
-      105,
-      20
+      70,
+      70
     ],
     "green_max": [
       90,
@@ -11,13 +11,13 @@
       255
     ],
     "background_min": [
-      0,
-      0,
-      90
+      165,
+      70,
+      70
     ],
     "background_max": [
+      13,
       255,
-      165,
       255
     ]
   },

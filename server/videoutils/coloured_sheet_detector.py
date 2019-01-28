@@ -3,6 +3,7 @@ import numpy as np
 import json
 import config.constants_global as constants
 import videoutils.image_display as display
+from videoutils.util import get_in_range_mask
 
 min_number_of_coloured_pixels_per_peak_column = 20
 max_number_of_coloured_sheets_per_image = 2
@@ -101,12 +102,7 @@ class ColouredSheetDetector:
         return high_zone_start_index
 
     def __get_colored_mask_sums(self, image_hsv, colour, hsv_min, hsv_max):
-        if hsv_min[0] > hsv_max[0]:
-            mask1 = cv2.inRange(image_hsv, (0, hsv_min[1], hsv_min[2]), (hsv_max[0], hsv_max[1], hsv_max[2]))
-            mask2 = cv2.inRange(image_hsv, (hsv_min[0], hsv_min[1], hsv_min[2]), (180, hsv_max[1], hsv_max[2]))
-            mask = cv2.bitwise_or(mask1,mask2)
-        else:
-            mask = cv2.inRange(image_hsv, (hsv_min[0], hsv_min[1], hsv_min[2]), (hsv_max[0], hsv_max[1], hsv_max[2]))
+        mask = get_in_range_mask(image_hsv, hsv_min, hsv_max)
         if(constants.image_processing_tracing_show_colour_mask):
             display.image_display.add_image_to_queue("ColourMask_"+colour, mask)
         return cv2.reduce(mask, 0, cv2.REDUCE_SUM, dtype=cv2.CV_32S).get()[0], mask

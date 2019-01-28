@@ -7,6 +7,14 @@ import numpy as np
 
 import config.constants_global as constants
 
+def get_in_range_mask(image, hsv_min, hsv_max):
+  if hsv_min[0] > hsv_max[0]:
+    mask1 = cv2.inRange(image, (0, hsv_min[1], hsv_min[2]), (hsv_max[0], hsv_max[1], hsv_max[2]))
+    mask2 = cv2.inRange(image, (hsv_min[0], hsv_min[1], hsv_min[2]), (180, hsv_max[1], hsv_max[2]))
+    return cv2.bitwise_or(mask1, mask2)
+  else:
+    return cv2.inRange(image, (hsv_min[0], hsv_min[1], hsv_min[2]), (hsv_max[0], hsv_max[1], hsv_max[2]))
+
 
 def load_calibration():
   data = load_JSON(constants.camera_calibrations_path, video_filename(''))

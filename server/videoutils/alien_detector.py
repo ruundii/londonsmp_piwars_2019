@@ -6,6 +6,7 @@ import time
 alien_template_contour = None
 import json
 import videoutils.image_display as display
+from videoutils.util import get_in_range_mask
 
 
 
@@ -18,13 +19,9 @@ class AlienDetector:
         self.counter = 0
         self.resolution = (100,100)
         self.fov = None
-        global alien_template_contour
         with open(constants.colour_config_name) as json_config_file:
             config = json.load(json_config_file)
         self.colour_config = config["alien_hsv_ranges"]
-        if alien_template_contour is None:
-            alien_template_contour = self.__get_template_contour()
-        self.alien_template_contour = alien_template_contour
         self.alien_tracker = centroid_area_tracker.CentroidAreaTracker()
         print("AlienDetector initialised")
 
@@ -33,38 +30,26 @@ class AlienDetector:
         self.fov = fov
 
     def __is_alien_contour(self, contour, image_hsv, green_mask):
-        try:
-            ellipse = cv2.fitEllipse(contour)
-        except:
-            #print('killing by ellipse constr')
-            return (False, None, None)
-        ellipseRatio = ellipse[1][1] / ellipse[1][0]
+        x, y, w, h = cv2.boundingRect(contour)
+        sideRatio = h / w
 
-        # check ellipse radius ratio and hieght
-        if ellipseRatio < 1.1 or ellipseRatio > 3 or ellipse[1][1] < 3:
-            #print('killing by ellipse', ellipse)
-            return (False, None, None)
+        # check ellipse radius ratio and height
+        if sideRatio < 1.1 or sideRatio > 3 or h < 3:
+            #print('killing by weird rect', ellipse)
+            return (False, None, None, None, None, None)
 
         # check area
-        area = cv2.contourArea(contour)
-        if area < 15:
+        if w*h < 50:
             #print('killing by area', ellipse)
-            return (False, None, None)
-
-        # compare shapes
-        difference_factor = cv2.matchShapes(contour, self.alien_template_contour, 1, 0)
-        if difference_factor > 0.4:
-            #print('killing by shape', ellipse)
-            return (False, None, None)
+            return (False, None, None, None, None, None)
 
         # check background
-        r = cv2.boundingRect(contour)
-        y_border = max(int(r[3] / 2), 15)
-        x_border = max(int(r[2] / 2), 15)
-        y1 = max(int(r[1]) - y_border, 0)
-        y2 = min(int(r[1]+r[3]) + y_border, self.resolution[1])
-        x1 = max(int(r[0]) - x_border, 0)
-        x2 = min(int(r[0]+r[2]) + x_border, self.resolution[0])
+        y_border = max(int(h / 2), 15)
+        x_border = max(int(w / 2), 15)
+        y1 = max(int(y) - y_border, 0)
+        y2 = min(int(y+h) + y_border, self.resolution[1])
+        x1 = max(int(x) - x_border, 0)
+        x2 = min(int(x+w) + x_border, self.resolution[0])
         extended_rectange = image_hsv.get()[y1:y2, x1:x2].copy()
         extended_rectange_mask = green_mask.get()[y1:y2, x1:x2]
         _, contours, _ = cv2.findContours(extended_rectange_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_TC89_L1)
@@ -77,7 +62,7 @@ class AlienDetector:
 
         background = cv2.bitwise_and(extended_rectange, extended_rectange, mask=cv2.bitwise_not(extended_rectange_mask))
         #cv2.imshow("background", background)
-        matching_background = cv2.inRange(background, tuple(self.colour_config["background_min"]), tuple(self.colour_config["background_max"]))
+        matching_background  = get_in_range_mask(background,tuple(self.colour_config["background_min"]), tuple(self.colour_config["background_max"]))
         #cv2.imshow("matching_background", matching_background)
         # matching_background_plus_mask = cv2.drawContours(matching_background, contours, -1, 255, -1)
         matching_background_plus_mask = cv2.bitwise_or(matching_background, drawn_contour_dilated)
@@ -85,10 +70,10 @@ class AlienDetector:
         mean = cv2.mean(matching_background_plus_mask)
         if (mean[0] < 230):
             #print('killing by background', ellipse, mean)
-            return (False, None, None)
+            return (False, None, None, None, None, None)
 
         # print('likelihood: ', likelihood, ' area:', area, ' height:', ellipse[1][1], ' ellipse ratio:', ellipseRatio, ' mean:',mean[0])
-        return (True, ellipse, area)
+        return (True, x, y, w, h, w*h)
 
     def detect_aliens(self, image, image_hsv):
         t = time.time()
@@ -97,26 +82,25 @@ class AlienDetector:
         if constants.image_processing_tracing_show_colour_mask:
             display.image_display.add_image_to_queue("ColourMask", mask)
         if constants.image_processing_tracing_show_background_colour_mask:
-            back_mask = cv2.inRange(image_hsv, tuple(self.colour_config["background_min"]), tuple(self.colour_config["background_max"]))
+            back_mask = get_in_range_mask(image_hsv, tuple(self.colour_config["background_min"]), tuple(self.colour_config["background_max"]))
             display.image_display.add_image_to_queue("BackColourMask", back_mask)
 
         real_contours_num = 0
         aliens = []
         for contour in contours:
-            is_alien_contour, ellipse, area = self.__is_alien_contour(contour, image_hsv, mask)
+            is_alien_contour, alien_x, alien_y, alien_w, alien_h, alien_area = self.__is_alien_contour(contour, image_hsv, mask)
             if not is_alien_contour:
                 continue
             w = self.resolution[0]
             h = self.resolution[1]
-            alien_height = ellipse[1][1]
-            distance = constants.alien_image_height_mm / alien_height * constants.alien_distance_multiplier + constants.alien_distance_offset
-            x = min(max(ellipse[0][0], 0), w)
-            y = min(max(ellipse[0][1], 0), h)
+            distance = constants.alien_image_height_mm / alien_h * constants.alien_distance_multiplier + constants.alien_distance_offset
+            x = min(max(alien_x, 0), w)
+            y = min(max(alien_y, 0), h)
             x_angle = ((x - w / 2.0) / w) * self.fov[0]
             y_angle = ((h / 2.0 - y) / h) * self.fov[1]
-            aliens.append((x, y, area, distance, x_angle, y_angle))
+            aliens.append((x, y, alien_area, distance, x_angle, y_angle))
             if constants.image_processing_tracing_show_detected_objects:
-                image = cv2.ellipse(image, ellipse, (0,125,255), 2)
+                image = cv2.rectangle(image, (alien_x, alien_y),(alien_x+alien_w, alien_y+alien_h), (0,125,255), 2)
             real_contours_num = real_contours_num + 1
         if constants.image_processing_tracing_show_detected_objects:
             display.image_display.add_image_to_queue("DetectedObject", image)
@@ -129,7 +113,7 @@ class AlienDetector:
         #image_hsv = cv2.medianBlur(image_hsv, 15)
         #image_hsv = cv2.GaussianBlur(image_hsv, (11, 11), 0)
         t = time.time()
-        mask = cv2.inRange(image_hsv, tuple(self.colour_config["green_min"]), tuple(self.colour_config["green_max"]))
+        mask = get_in_range_mask(image_hsv, tuple(self.colour_config["green_min"]), tuple(self.colour_config["green_max"]))
         if constants.performance_tracing_alien_detector_details and self.resolution[0]>400:
             print('alien_detector.__get_alien_contours.apply_green_mask:', time.time() - t)
             t=time.time()
@@ -143,7 +127,7 @@ class AlienDetector:
             print('alien_detector.__get_alien_contours.morphology:', time.time() - t)
             t=time.time()
 
-        _, contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_TC89_L1)
+        _, contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         if constants.performance_tracing_alien_detector_details and self.resolution[0]>400:
             print('alien_detector.__get_alien_contours.find_contours:', time.time() - t)
             t=time.time()
@@ -154,8 +138,3 @@ class AlienDetector:
         #cv2.imshow("Preview", preview)
         return contours, mask
 
-    def __get_template_contour(self):
-        alien_template = cv2.imread(constants.alien_template)
-        alien_template_hsv = cv2.cvtColor(alien_template, cv2.COLOR_RGB2HSV)
-        alien_template_contours, _ = self.__get_alien_contours(alien_template_hsv)
-        return alien_template_contours[0]
