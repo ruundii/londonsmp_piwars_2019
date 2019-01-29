@@ -73,7 +73,7 @@ class RobotCamera:
         while self.original_frame is None:
             time.sleep(0.005)
             self.original_frame = self.vs.read()
-
+        #cv2.resize(self.original_frame, (320,240))
         if self.actual_resolution is None:
             if(self.region_of_interest is not None):
                 self.actual_resolution = (len(self.original_frame[0])-self.region_of_interest[2]-self.region_of_interest[3], len(self.original_frame)-self.region_of_interest[0]-self.region_of_interest[1])

@@ -19,7 +19,7 @@ video_stream_module = "videoutils.video_stream_pi"
 
 camera_id = "pi640"
 is_rgb_not_bgr=True
-resolution_aliens = (640, 480)
+resolution_aliens = (640,480)
 resolution_coloured_sheet = (320, 240)
 camera_fov = (120, 100)
 framerate = 20

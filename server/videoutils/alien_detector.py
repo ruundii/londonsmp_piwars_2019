@@ -19,6 +19,7 @@ class AlienDetector:
         self.counter = 0
         self.resolution = (100,100)
         self.fov = None
+        self.kernel = np.ones((7, 7), np.uint8)
         with open(constants.colour_config_name) as json_config_file:
             config = json.load(json_config_file)
         self.colour_config = config["alien_hsv_ranges"]
@@ -51,24 +52,28 @@ class AlienDetector:
         x1 = max(int(x) - x_border, 0)
         x2 = min(int(x+w) + x_border, self.resolution[0])
         extended_rectange = image_hsv.get()[y1:y2, x1:x2].copy()
-        extended_rectange_mask = green_mask.get()[y1:y2, x1:x2]
-        _, contours, _ = cv2.findContours(extended_rectange_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_TC89_L1)
-        black_img = np.zeros([y2 - y1, x2 - x1, 1], dtype=np.uint8)
-        drawn_contour = cv2.drawContours(black_img, contours, -1, 255, -1)
-        # cv2.imshow("drawn_contour", drawn_contour)
-        kernel = np.ones((7, 7), np.uint8)
-        drawn_contour_dilated = cv2.dilate(drawn_contour, kernel, iterations=1)
-        #cv2.imshow("drawn_contour_dilated", drawn_contour_dilated)
+        #extended_rectange_mask = green_mask.get()[y1:y2, x1:x2]
+        t = time.time()
+        #_, contours, _ = cv2.findContours(extended_rectange_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_TC89_L1)
+        # contour -= [x1,y1]
+        # if (constants.performance_tracing_alien_detector_details):
+        #     print('alien_detector.detect_aliens.__is_alien_contour.cv2.findContours:', time.time() - t)
+        # black_img = np.zeros([y2 - y1, x2 - x1, 1], dtype=np.uint8)
+        # #drawn_contour = cv2.drawContours(black_img, contour, -1, 255, thickness=-1)
+        # drawn_contour = cv2.fillPoly(black_img, contour, 255)
+        # display.image_display.add_image_to_queue("drawn_contour", drawn_contour)
+        # drawn_contour_dilated = cv2.dilate(drawn_contour, self.kernel, iterations=1)
+        # display.image_display.add_image_to_queue("drawn_contour_dilated", drawn_contour_dilated)
 
-        background = cv2.bitwise_and(extended_rectange, extended_rectange, mask=cv2.bitwise_not(extended_rectange_mask))
-        #cv2.imshow("background", background)
-        matching_background  = get_in_range_mask(background,tuple(self.colour_config["background_min"]), tuple(self.colour_config["background_max"]))
-        #cv2.imshow("matching_background", matching_background)
-        # matching_background_plus_mask = cv2.drawContours(matching_background, contours, -1, 255, -1)
-        matching_background_plus_mask = cv2.bitwise_or(matching_background, drawn_contour_dilated)
-        #cv2.imshow("Crop mask", matching_background_plus_mask)
-        mean = cv2.mean(matching_background_plus_mask)
-        if (mean[0] < 230):
+        #background = cv2.bitwise_and(extended_rectange, extended_rectange, mask=cv2.bitwise_not(extended_rectange_mask))
+        #display.image_display.add_image_to_queue("background", background)
+        matching_background  = get_in_range_mask(extended_rectange,tuple(self.colour_config["background_min"]), tuple(self.colour_config["background_max"]))
+        #display.image_display.add_image_to_queue("matching_background", matching_background)
+        #matching_background_plus_mask = cv2.drawContours(matching_background, contours, -1, 255, -1)
+        #matching_background_plus_mask = cv2.bitwise_or(matching_background, drawn_contour_dilated)
+        #display.image_display.add_image_to_queue("Crop mask", matching_background_plus_mask)
+        mean = cv2.mean(matching_background)[0]+255*cv2.contourArea(contour)/((x2-x1)*(y2-y1))
+        if (mean < 220):
             #print('killing by background', ellipse, mean)
             return (False, None, None, None, None, None)
 
