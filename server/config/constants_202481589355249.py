@@ -2,8 +2,8 @@
 joystick_left_axis = 1
 joystick_right_axis = 4
 
-alien_distance_multiplier = 1.0/2.2
-alien_distance_offset = 0.1
+alien_distance_multiplier = 1.0/2.1
+alien_distance_offset = 0
 
 coloured_sheet_distance_multiplier = 1.0/2.2
 coloured_sheet_distance_offset = 0.1
@@ -21,5 +21,5 @@ camera_id = "pi640"
 is_rgb_not_bgr=True
 resolution_aliens = (640, 480)
 resolution_coloured_sheet = (320, 240)
-camera_fov = (120, 100)
+camera_fov = (60, 50)
 framerate = 20

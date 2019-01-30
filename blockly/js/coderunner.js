@@ -131,7 +131,7 @@ CodeRunner.prototype.handleWebsocketMessages = function(msg) {
             else{
                 var aliens="";
                 for(i=0;i<msg.aliens.length;i++){
-                    aliens=aliens+'ID:'+msg.aliens[i]['id']+' Distance:'+msg.aliens[i]['distance'];
+                    aliens=aliens+'ID:'+msg.aliens[i]['id']+' D:'+msg.aliens[i]['distance']+' A:'+msg.aliens[i]['xAngle'];
                 }
                 $('#sensorsReport')[0].innerHTML=aliens;
             }

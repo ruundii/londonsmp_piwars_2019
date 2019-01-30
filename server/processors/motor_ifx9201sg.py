@@ -63,6 +63,7 @@ class Motor:
         motor['pwm'].ChangeDutyCycle(abs(set_pwm))
 
     def __get_pwm_from_motor_speed(self, speed):
+        speed = -speed
         if speed == 0:
             return 0
         elif speed <0:
