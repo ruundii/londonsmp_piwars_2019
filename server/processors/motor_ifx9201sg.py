@@ -10,8 +10,8 @@ class Motor:
 
     last_drive_params = None
 
-    def __init__(self, motor_left_direction = 26, motor_left_en = 19,
-                 motor_right_direction = 16, motor_right_en = 12):
+    def __init__(self, motor_left_direction = 16, motor_left_en = 12,
+                 motor_right_direction = 26, motor_right_en = 19):
         GPIO.setmode(GPIO.BCM)
         #
         GPIO.setup(motor_left_direction, GPIO.OUT)
@@ -63,7 +63,7 @@ class Motor:
         motor['pwm'].ChangeDutyCycle(abs(set_pwm))
 
     def __get_pwm_from_motor_speed(self, speed):
-        speed = -speed
+        #speed = -speed
         if speed == 0:
             return 0
         elif speed <0:
