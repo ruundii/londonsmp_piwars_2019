@@ -1,5 +1,6 @@
 from _thread import start_new_thread
 code_processor = None
+import time
 
 class BlocklyCodeProcessor:
 
@@ -20,8 +21,11 @@ class BlocklyCodeProcessor:
         start_new_thread(self.__start_code, (code,))
 
     def __start_code(self, code):
+        code = code.replace('time.sleep(','sleep_in_ms(')
+
         try:
             exec(code, {'is_thread_stopped': is_thread_stopped,
+                          'sleep_in_ms': sleep_in_ms,
                           'run_finished': run_finished,
                           'robot_drive': robot_drive,
                           'robot_stop': robot_stop,
@@ -62,6 +66,9 @@ last_aliens = None
 last_coloured_sheets = None
 last_drive_params = None
 
+def sleep_in_ms(ms):
+    time.sleep(ms/1000.0)
+
 def is_thread_stopped():
     global thread_stop
     return thread_stop
@@ -71,6 +78,7 @@ def run_finished():
 
 def alien_update_handler(data):
     global last_aliens
+    #print('alien_update_handler:',len(data['aliens']))
     last_aliens = data['aliens']
 
 def coloured_sheet_update_handler(data):
@@ -78,6 +86,7 @@ def coloured_sheet_update_handler(data):
     last_coloured_sheets = data['sheets']
 
 def robot_drive(speed_left, speed_right):
+    #print('robot_drive',speed_left, speed_right)
     global last_drive_params
     if(last_drive_params is not None and last_drive_params['speed_left'] == speed_left and last_drive_params['speed_right'] == speed_right):
         return
