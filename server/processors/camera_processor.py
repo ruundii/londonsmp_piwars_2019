@@ -108,7 +108,7 @@ class CameraProcessor:
 
                 if(self.camera_mode == CAMERA_MODE_DETECT_ALIENS):
                     alien_objects, frame_timestamp = self.camera.detect_aliens()
-                    payload = {'message': 'updateAlienReadings', 'frame_timestamp':frame_timestamp, 'aliens': []}
+                    payload = {'message': 'updateAlienReadings', 'frame_timestamp':frame_timestamp-self.client_server_time_difference, 'aliens': []}
                     if alien_objects is not None:
                         for (alien_id, alien_object) in alien_objects.items():
                             payload['aliens'].append(
