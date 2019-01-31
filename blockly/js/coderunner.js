@@ -3,7 +3,6 @@ var latestCode = null;
 var worker = null;
 var workerTemplate = null;
 var isRunning = false;
-var isSimulation = false;
 
 function CodeRunner(){}
 
@@ -26,27 +25,62 @@ CodeRunner.prototype.initCodeRunner = function() {
 }
 
 CodeRunner.prototype.runCodeButtonHandler = function() {
+    codeRunner.runButtonClicked(false);
+}
+
+CodeRunner.prototype.runOnRobotButtonHandler = function() {
+    codeRunner.runButtonClicked(true);
+}
+
+CodeRunner.prototype.runButtonClicked = function(runOnRobot){
     if(!connected){
         $('#runButton').attr("disabled", "disabled");
+        $('#runOnRobotButton').attr("disabled", "disabled");
         webSocketManager.connect().then(function(){
-            codeRunner.runCode(false);
+            if(runOnRobot) codeRunner.runCodeOnRobot();
+            else codeRunner.runCodeInBrowser();
         }).catch(function(exc){
             piwarsRobot.displayMessage(exc, "error");
         }).finally(function(){
             $('#runButton').removeAttr("disabled");
+            $('#runOnRobotButton').removeAttr("disabled");
         });
     }
     else {
-        codeRunner.runCode(false);
+        if(runOnRobot) codeRunner.runCodeOnRobot();
+        else codeRunner.runCodeInBrowser();
     }
 }
 
-CodeRunner.prototype.runSimulationButtonHandler = function() {
-    codeRunner.runCode(true);
+CodeRunner.prototype.runCodeOnRobot = function() {
+    if(!codeRunner.checkCodeIsValid()){
+        return;
+    }
+    var prefix = Blockly.Python.STATEMENT_PREFIX;
+    Blockly.Python.STATEMENT_PREFIX = 'if is_thread_stopped(): exit(0)\n';
+    var reserved  = Blockly.Python.RESERVED_WORDS_;
+    Blockly.Python.addReservedWords('runBlocklyCode');
+    Blockly.Python.addReservedWords('alert');
+    Blockly.Python.addReservedWords('sleep');
+    Blockly.Python.addReservedWords('robot_drive');
+    Blockly.Python.addReservedWords('robot_stop');
+    Blockly.Python.addReservedWords('robot_set_camera_mode');
+    Blockly.Python.addReservedWords('robot_get_list_of_alien_ids');
+    Blockly.Python.addReservedWords('robot_get_distance_to_alien');
+    Blockly.Python.addReservedWords('robot_get_x_angle_to_alien');
+    Blockly.Python.addReservedWords('robot_get_y_angle_to_alien');
+    Blockly.Python.addReservedWords('robot_get_list_of_coloured_sheets');
+    Blockly.Python.addReservedWords('robot_get_distance_to_a_coloured_sheet');
+    Blockly.Python.addReservedWords('robot_get_x_angle_to_a_coloured_sheet');
+    latestCode = Blockly.Python.workspaceToCode(workspace);
+    Blockly.Python.STATEMENT_PREFIX = prefix;
+    Blockly.Python.RESERVED_WORDS_=reserved;
+    isRunning=true;
+    codeRunner.setRunningUI();
+    webSocketManager.sendMessage(JSON.stringify({"command": 'startRunOnRobot', 'code':latestCode}));
 }
 
-
-CodeRunner.prototype.runCode = function(setSimulation) {
+CodeRunner.prototype.runCodeInBrowser = function() {
     if(!codeRunner.checkCodeIsValid()){
         return;
     }
@@ -80,12 +114,8 @@ CodeRunner.prototype.runCode = function(setSimulation) {
         piwarsRobot.displayMessage(event.message, 'error');
     });
     isRunning=true;
-    isSimulation=setSimulation;
     codeRunner.setRunningUI();
-    webSocketManager.sendMessage(JSON.stringify({"command": 'startRun', 'isSimulation': isSimulation}));
-    if(showMap){
-        mapVisualiser.showVisualisation(isSimulation);
-    }
+    webSocketManager.sendMessage(JSON.stringify({"command": 'startRunInBrowser'}));
     worker.postMessage('start');
 
     // Won't be needing this anymore
@@ -121,20 +151,36 @@ CodeRunner.prototype.handleConnectionStateChanged = function(isConnected){
 }
 
 CodeRunner.prototype.handleWebsocketMessages = function(msg) {
+    if(msg.server_timestamp!=null){
+        webSocketManager.sendMessage(JSON.stringify({"client_timestamp": (new Date()).getTime()}));
+        return
+    }
+    if(msg.robot_run_finished!=null && msg.robot_run_finished){
+        codeRunner.stopCode();
+        if(msg.error_occured) {
+            piwarsRobot.displayMessage('Server Error occured on the robot.', 'error');
+        }
+        return
+    }
     if(worker==null || !isRunning) return;
     switch(msg.message) {
         case 'updateAlienReadings':
             worker.postMessage(msg);
+            report = ""
             if(msg.aliens==null||msg.aliens.length==0){
-                $('#sensorsReport')[0].innerHTML='No aliens';
+                report='No aliens';
             }
             else{
                 var aliens="";
                 for(i=0;i<msg.aliens.length;i++){
                     aliens=aliens+'ID:'+msg.aliens[i]['id']+' D:'+msg.aliens[i]['distance']+' A:'+msg.aliens[i]['xAngle'];
                 }
-                $('#sensorsReport')[0].innerHTML=aliens;
+                report=aliens;
             }
+            now = new Date();
+            frame_timestamp = new Date(msg.frame_timestamp*1000)
+            report = report+' Lag:'+(now.getTime()-frame_timestamp.getTime())
+            $('#sensorsReport')[0].innerHTML = report
             break;
         case 'updateColouredSheetsReadings':
             worker.postMessage(msg);
@@ -165,7 +211,6 @@ CodeRunner.prototype.stopCode = function () {
     webSocketManager.sendMessage(JSON.stringify({"command": 'stopRun'}));
     codeRunner.resetUi();
     isRunning = false;
-    isSimulation = false;
 }
 
 
@@ -175,20 +220,15 @@ CodeRunner.prototype.highlightBlock = function (id) {
 
 CodeRunner.prototype.setRunningUI = function() {
     $('#runButton').hide();
-    //$('#simulateButton').hide();
-    //$('#driveButton').hide();
-    //$('#mapButton').hide();
+    $('#runOnRobotButton').hide();
     $('#stopButton').show();
 }
 
 CodeRunner.prototype.resetUi = function() {
     workspace.highlightBlock(null);
     $('#runButton').show();
-    //$('#simulateButton').show();
-    //$('#driveButton').show();
-    //$('#mapButton').show();
+    $('#runOnRobotButton').show();
     $('#stopButton').hide();
-    mapVisualiser.stopVisualisation();
 }
 
 CodeRunner.prototype.checkCodeIsValid = function() {

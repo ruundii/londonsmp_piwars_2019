@@ -32,6 +32,7 @@ class CameraProcessor:
         self.on_alien_update_handler = None
         self.on_coloured_sheet_update_handler = None
         print("CameraProcessor init finished")
+        self.client_server_time_difference = 0
 
 
     def set_camera_mode(self, new_camera_mode):
@@ -106,8 +107,8 @@ class CameraProcessor:
                     display.image_display.add_image_to_queue("Region Of Interest", self.camera.image)
 
                 if(self.camera_mode == CAMERA_MODE_DETECT_ALIENS):
-                    payload = {'message': 'updateAlienReadings', 'aliens': []}
-                    alien_objects = self.camera.detect_aliens()
+                    alien_objects, frame_timestamp = self.camera.detect_aliens()
+                    payload = {'message': 'updateAlienReadings', 'frame_timestamp':frame_timestamp, 'aliens': []}
                     if alien_objects is not None:
                         for (alien_id, alien_object) in alien_objects.items():
                             payload['aliens'].append(
@@ -116,8 +117,8 @@ class CameraProcessor:
                         self.on_alien_update_handler(payload)
                     time.sleep(0.1)
                 elif (self.camera_mode == CAMERA_MODE_DETECT_COLOURED_SHEETS):
-                    payload = {'message': 'updateColouredSheetsReadings', 'sheets': []}
-                    sheets = self.camera.detect_coloured_sheets()
+                    sheets, frame_timestamp = self.camera.detect_coloured_sheets()
+                    payload = {'message': 'updateColouredSheetsReadings', 'frame_timestamp':frame_timestamp-self.client_server_time_difference, 'sheets': []}
                     if(sheets is not None and len(sheets)>0):
                         for colour, distance, x_angle in sheets:
                             payload['sheets'].append({'colour': colour, 'distance':int(distance * 100), 'xAngle': int(x_angle)})
@@ -130,3 +131,5 @@ class CameraProcessor:
         print("cv2.destroyAllWindows")
         display.image_display.destroy_windows()
 
+    def set_client_server_time_difference(self, time_diff):
+        self.client_server_time_difference = time_diff

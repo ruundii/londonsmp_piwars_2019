@@ -14,6 +14,7 @@ class RobotProcessor:
         self.motor = motor_class()
         self.camera_processor = CameraProcessor()
         self.sensors_processor = SensorsProcessor()
+        self.client_server_time_difference = 0
 
     def initialise(self):
         print('Processor initialised')
@@ -44,3 +45,7 @@ class RobotProcessor:
 
     def set_camera_mode(self, mode):
         self.camera_processor.set_camera_mode(mode)
+
+    def set_client_server_time_difference(self, time_diff):
+        self.client_server_time_difference = time_diff
+        self.camera_processor.set_client_server_time_difference(time_diff)

@@ -4,19 +4,21 @@ from picamera import PiCamera
 from threading import Thread, Lock
 import cv2
 from videoutils.fps import FPS
-
+import time
 
 class PiStreamOutput(picamera.array.PiAnalysisOutput):
     def __init__(self, camera):
         super(PiStreamOutput, self).__init__(camera)
         self.FPS = FPS()
         self.bytes = None
+        self.frame_time_stamp = None
 
     def analyse(self, array):
         pass
 
     def write(self, b):
         result = super(PiStreamOutput, self).write(b)
+        self.frame_time_stamp = time.time()
         self.bytes = b
         _, fps, frame_num = self.FPS.update()
         return result
@@ -43,6 +45,7 @@ class VideoStream:
         # initialize the frame and the variable used to indicate
         # if the thread should be stopped
         self.frame = None
+        self.frame_time_stamp = None
 
         self.stopped = False
 
@@ -56,9 +59,10 @@ class VideoStream:
     def read(self):
         if self.output.bytes is not None and self.last_read_frame_num!=self.output.FPS.frameidx:
             self.last_read_frame_num = self.output.FPS.frameidx
+            self.frame_time_stamp = self.output.frame_time_stamp
             self.frame = picamera.array.bytes_to_rgb(self.output.bytes, self.camera.resolution)
 
-        return self.frame
+        return self.frame, self.frame_time_stamp
 
     def stop(self):
         with self.camera_lock:

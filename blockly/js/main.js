@@ -105,7 +105,7 @@ PiWarsRobot.prototype.initialisePageComponents = function () {
     $('#openSaveProjectDialogButton').on('click', piwarsRobot.initSaveProjectDialog);
     $('#newProjectButton').on('click', piwarsRobot.startNewProject);
     $('#runButton').on('click', codeRunner.runCodeButtonHandler);
-    $('#simulateButton').on('click', codeRunner.runSimulationButtonHandler);
+    $('#runOnRobotButton').on('click', codeRunner.runOnRobotButtonHandler);
     $('#driveButton').on('click', piwarsRobot.driveRobot);
     $('#stopButton').on('click', codeRunner.stopCodeButtonHandler);
 

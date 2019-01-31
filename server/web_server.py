@@ -12,10 +12,13 @@ import asyncio
 from tornado.platform.asyncio import AnyThreadEventLoopPolicy
 from file_server import FileRequestHandler, StaticFileRequestHandler
 from concurrent.futures import ThreadPoolExecutor
+import time
+from processors.blockly_code_processor import BlocklyCodeProcessor
 
 is_debug_updates = False
 is_debug_commands = False
 processor = None
+blockly_code_processor = None
 joystick_processor = None
 
 mainloop = None
@@ -36,14 +39,26 @@ for argument in sys.argv:
 class RobotWebsocketServer(WebSocketHandler):
     connected = False
     processor = None
+    blockly_code_processor = None
+    timestamp_request_time = None
     clients = []
+    is_running_on_robot = False
 
     def set_default_headers(self):
         self.set_header("Access-Control-Allow-Origin", "*")
 
     def on_message(self, message):
         try:
+            global joystick_processor
             payload = json.loads(message)
+            if('client_timestamp' in payload):
+                now = time.time()
+                roundtrip = now-self.timestamp_request_time
+                client_server_time_difference = now - payload['client_timestamp']/1000.00-roundtrip/2.0
+                print('roundtrip:',roundtrip,' time difference:', client_server_time_difference)
+                mainloop.run_in_executor(executor, self.processor.set_client_server_time_difference, client_server_time_difference)
+                return
+
             if is_debug_commands:
                 print(payload)
             client_cmd = payload['command']
@@ -61,19 +76,27 @@ class RobotWebsocketServer(WebSocketHandler):
             elif client_cmd == 'ready':
                 pass
 
-            elif client_cmd == 'startRun':
-                global joystick_processor
+            elif client_cmd == 'startRunInBrowser':
                 joystick_processor.set_state(False)
-                pass
+                self.init_handlers(True)
+                self.is_running_on_robot = False
                 #mainloop.run_in_executor(executor, self.processor.robotController.initialiseRun, bool(payload['is_simulation']))
 
+            elif client_cmd == 'startRunOnRobot':
+                joystick_processor.set_state(False)
+                self.is_running_on_robot = True
+                mainloop.run_in_executor(executor, self.blockly_code_processor.start_run, payload['code'])
+
             elif client_cmd == 'stopRun':
-                mainloop.run_in_executor(executor, self.processor.stop_run)
+                if(self.is_running_on_robot):
+                    mainloop.run_in_executor(executor, self.blockly_code_processor.stop_run)
+                else:
+                    mainloop.run_in_executor(executor, self.processor.stop_run)
                 joystick_processor.set_state(True)
+                self.init_handlers(False)
 
             elif client_cmd == 'shutdown':
                 self.processor.close()
-                pass
             else:
                 print("Unknown command received", client_cmd)
         except Exception as exc:
@@ -96,22 +119,36 @@ class RobotWebsocketServer(WebSocketHandler):
         if len(self.clients) == 0:
             return
         try:
-            global processor
+            global processor, blockly_code_processor
             self.processor = processor
+            self.blockly_code_processor = blockly_code_processor
+            self.blockly_code_processor.init_handlers(self.robot_run_stopped)
             self.set_nodelay(True)
             mainloop.run_in_executor(executor, self.init_processor)
             print('ws connect success')
             self.connected = True
+            self.timestamp_request_time = time.time()
+            self.write_message(json.dumps({'server_timestamp':self.timestamp_request_time}))
         except Exception as exc:
             print(exc)
             raise exc
 
+    def robot_run_stopped(self, error):
+        self.is_running_on_robot = False
+        joystick_processor.set_state(True)
+        if self.connected and self.stream is not None and not self.stream._closed:
+            self.write_message(json.dumps({'robot_run_finished':True, 'error_occured': error}))
+
+
+    def init_handlers(self, on):
+        self.processor.set_alien_update_handler(self.handle_update_from_robot if on else None)
+        self.processor.set_coloured_sheet_update_handler(self.handle_update_from_robot if on else None)
+        self.processor.set_distance_update_handler(self.handle_update_from_robot if on else None)
+        self.processor.set_line_sensors_update_handler(self.handle_update_from_robot if on else None)
+
+
     def init_processor(self):
         self.processor.initialise()
-        self.processor.set_alien_update_handler(self.handle_update_from_robot)
-        self.processor.set_coloured_sheet_update_handler(self.handle_update_from_robot)
-        self.processor.set_distance_update_handler(self.handle_update_from_robot)
-        self.processor.set_line_sensors_update_handler(self.handle_update_from_robot)
 
     def close_processor(self):
         if len(self.clients)>0:
@@ -139,9 +176,11 @@ def run_server():
     global processor
     global executor
     global joystick_processor
+    global blockly_code_processor
     executor = ThreadPoolExecutor(max_workers=1)
     processor = RobotProcessor()
     joystick_processor = JoystickProcessor(processor)
+    blockly_code_processor = BlocklyCodeProcessor(processor)
     app = Application([(r"/ws", RobotWebsocketServer),
                        (r"/blockly/(.*)", StaticFileRequestHandler,  {"path": "../blockly/"}),
                        (r"/svg-editor/(.*)", StaticFileRequestHandler, {"path": "../svg-editor/"}),

@@ -1,6 +1,7 @@
 # import the necessary packages
 from threading import Thread, Lock
 import cv2
+import time
 
 
 class VideoStream:
@@ -14,6 +15,7 @@ class VideoStream:
         self.camera_lock = Lock()
         (self.grabbed, self.frame) = self.stream.read()
         self.last_read_frame_num = 0
+        self.frame_time_stamp = None
 
         # initialize the variable used to indicate if the thread should
         # be stopped
@@ -36,11 +38,12 @@ class VideoStream:
 
                 # otherwise, read the next frame from the stream
                 (self.grabbed, self.frame) = self.stream.read()
+                self.frame_time_stamp = time.time()
                 self.last_read_frame_num += 1
 
     def read(self):
         # return the frame most recently read
-        return self.frame
+        return self.frame, self.frame_time_stamp
 
     def stop(self):
         with self.camera_lock:

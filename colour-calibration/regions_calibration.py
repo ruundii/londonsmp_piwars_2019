@@ -115,7 +115,7 @@ def main():
     while True:
         image=None
         if use_webcam:
-            image = camera.read()
+            image, _ = camera.read()
             isBgr = True
             #image = adjust_gamma(image)
             #image = normalise_colours(image, False)

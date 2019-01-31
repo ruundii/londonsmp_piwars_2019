@@ -29,6 +29,7 @@ class RobotCamera:
         self.image = None
         self.image_gray = None
         self.image_hsv = None
+        self.frame_timestamp = None
         self.prepare_gray = prepare_gray
         self.prepare_hsv=prepare_hsv
         self.region_of_interest = region_of_interest
@@ -69,10 +70,10 @@ class RobotCamera:
 
     def start(self):
         self.vs.start()
-        self.original_frame = self.vs.read()
+        self.original_frame, self.frame_timestamp = self.vs.read()
         while self.original_frame is None:
             time.sleep(0.005)
-            self.original_frame = self.vs.read()
+            self.original_frame, self.frame_timestamp = self.vs.read()
         #cv2.resize(self.original_frame, (320,240))
         if self.actual_resolution is None:
             if(self.region_of_interest is not None):
@@ -119,7 +120,7 @@ class RobotCamera:
     def process_frames(self):
         last_frame_num = -1
         while self.running:
-            self.original_frame = self.vs.read()
+            self.original_frame, timestamp = self.vs.read()
             if(last_frame_num==self.vs.last_read_frame_num or self.original_frame is None):
                 time.sleep(0.005)
                 continue
@@ -142,21 +143,24 @@ class RobotCamera:
                 self.image = umat_im
                 self.image_hsv = umat_im_hsv
                 self.image_gray = umat_im_gray
+                self.frame_timestamp = timestamp
             if constants.performance_tracing_robot_camera_image_preparation: print('robot_camera.process_frames:',time.time()-t)
 
 
     def detect_aliens(self):
         t = time.time()
         if self.image is None or self.image_hsv is None:
-            return None
+            return None, None
+        frame_timestamp = self.frame_timestamp
         aliens = self.alien_detector.detect_aliens(self.image, self.image_hsv)
         if constants.performance_tracing_robot_camera_detect_aliens: print('robot_camera.detect_aliens:',time.time()-t)
-        return aliens
+        return aliens, frame_timestamp
 
     def detect_coloured_sheets(self):
         t = time.time()
         if self.image is None or self.image_hsv is None:
-            return None
+            return None, None
+        frame_timestamp = self.frame_timestamp
         coloured_sheets = self.coloured_sheet_detector.detect_coloured_sheets(self.image, self.image_hsv)
         if constants.performance_tracing_robot_camera_detect_coloured_sheets: print('robot_camera.detect_coloured_sheets:',time.time()-t)
-        return coloured_sheets
+        return coloured_sheets, frame_timestamp
