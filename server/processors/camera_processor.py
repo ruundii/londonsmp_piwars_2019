@@ -115,7 +115,7 @@ class CameraProcessor:
                                 {'id': int(alien_id), 'distance': int(alien_object[3] * 100), 'xAngle': int(alien_object[4]), 'yAngle': int(alien_object[5])})
                     if self.on_alien_update_handler is not None:
                         self.on_alien_update_handler(payload)
-                    time.sleep(0.1)
+                    #time.sleep(0.1)
                 elif (self.camera_mode == CAMERA_MODE_DETECT_COLOURED_SHEETS):
                     sheets, frame_timestamp = self.camera.detect_coloured_sheets()
                     payload = {'message': 'updateColouredSheetsReadings', 'frame_timestamp':frame_timestamp-self.client_server_time_difference, 'sheets': []}
@@ -124,7 +124,7 @@ class CameraProcessor:
                             payload['sheets'].append({'colour': colour, 'distance':int(distance * 100), 'xAngle': int(x_angle)})
                     if self.on_coloured_sheet_update_handler is not None:
                         self.on_coloured_sheet_update_handler(payload)
-                    time.sleep(0.05)
+                    #time.sleep(0.05)
 
             except Exception as exc:
                 print(exc)
