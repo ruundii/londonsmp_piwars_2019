@@ -19,18 +19,20 @@ class WhiteLineDetector:
         self.resolution = actual_resolution
         self.fov = fov
 
-    def detect_white_line(self, image_gray):
+    def detect_white_line(self, image, image_gray):
         # cv2.imwrite("white_line.png",image)
         # cv2.imwrite("white_line_gray.png",image_gray)
+        if (constants.image_processing_tracing_show_detected_objects):
+            image = image.get()
 
         white_line_x_angles = [-1000] * NUMBER_OF_CROSS_LINES
         ret, threshold = cv2.threshold(image_gray, 127, 255, cv2.THRESH_BINARY)
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (4, 4))
         threshold = cv2.morphologyEx(threshold, cv2.MORPH_CLOSE, kernel)
-        threshold = cv2.morphologyEx(threshold, cv2.MORPH_OPEN, kernel)
+        threshold = cv2.morphologyEx(threshold, cv2.MORPH_OPEN, kernel).get()
         if(constants.image_processing_tracing_show_colour_mask):
-            display.image_display.add_image_to_queue("threshold", threshold.get())
-        threshold_image = threshold.get()[:, :] > 127
+            display.image_display.add_image_to_queue("threshold", threshold)
+        threshold_image = threshold[:, :] > 127
         for cross_line_index in range(0, NUMBER_OF_CROSS_LINES):
             cross_line_from_bottom =  int(self.regions_config["cross_line_"+str(cross_line_index+1)])
             expected_line_width = int(self.regions_config["line_width_"+str(cross_line_index+1)])
@@ -76,5 +78,10 @@ class WhiteLineDetector:
                 middle_pixel = int(round((white_lines[best_line_index][1] + white_lines[best_line_index][0]) / 2.0))
                 x_angle = int(round((middle_pixel - int(self.resolution[0] / 2)) * self.fov[0] / self.resolution[0]))
                 white_line_x_angles[cross_line_index] = x_angle
+                if(constants.image_processing_tracing_show_detected_objects):
+                    image = cv2.line(image,(white_lines[best_line_index][0],len(image) - cross_line_from_bottom - 1),
+                                               (white_lines[best_line_index][1],len(image) - cross_line_from_bottom - 1),(0,255,0), 2)
+        if(constants.image_processing_tracing_show_detected_objects):
+            display.image_display.add_image_to_queue("detected", image)
 
         return white_line_x_angles

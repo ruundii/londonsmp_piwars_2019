@@ -173,6 +173,6 @@ class RobotCamera:
         if self.image is None or self.image_gray is None:
             return None, None
         frame_timestamp = self.frame_timestamp
-        x_angles = self.white_line_detector.detect_white_line(self.image_gray)
+        x_angles = self.white_line_detector.detect_white_line(self.image, self.image_gray)
         if constants.performance_tracing_robot_camera_detect_white_line: print('robot_camera.detect_white_line:', time.time() - t)
         return x_angles, frame_timestamp

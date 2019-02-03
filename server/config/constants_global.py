@@ -5,7 +5,7 @@ image_processing_tracing_show_original = True
 image_processing_tracing_show_region_of_interest = True
 image_processing_tracing_show_colour_mask = False
 image_processing_tracing_show_background_colour_mask = False
-image_processing_tracing_show_detected_objects = False
+image_processing_tracing_show_detected_objects = True
 
 performance_tracing_robot_camera_image_preparation = False
 performance_tracing_robot_camera_detect_aliens = True
