@@ -31,16 +31,17 @@ class VideoStream:
         self.camera_lock = Lock()
         self.camera.resolution = resolution
         self.camera.framerate = framerate
-        self.camera.awb_mode='off'
-        self.camera.awb_gains = (1.0, 2.8)
-        self.camera.iso = 0
-        self.camera.video_denoise = False
+        self.camera.awb_mode = 'horizon'
+        #self.camera.awb_mode='off'
+        #self.camera.awb_gains = (1.0, 2.2)
+        self.camera.iso = 800
         self.camera.vflip=True
         self.camera.hflip = True
         self.last_read_frame_num =-1
         self.camera.brightness = 55
         self.camera.saturation = 40
-        self.camera.image_effect = "colorbalance"
+        self.camera.video_stabilization = True
+        #self.camera.image_effect = "colorbalance"
 
         # initialize the frame and the variable used to indicate
         # if the thread should be stopped

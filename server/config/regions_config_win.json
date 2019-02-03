@@ -1,12 +1,15 @@
 {
   "speed_line": {
-    "top": 0,
-    "bottom": 0,
+    "top": 139,
+    "bottom": 9,
     "left": 0,
     "right": 0,
-    "cross_line_1": 82,
-    "cross_line_2": 160,
-    "cross_line_3": 261
+    "cross_line_1": 5,
+    "line_width_1": 30,
+    "cross_line_2": 60,
+    "line_width_2": 20,
+    "cross_line_3": 90,
+    "line_width_3": 10
   },
   "labyrinth": {
     "top": 50,

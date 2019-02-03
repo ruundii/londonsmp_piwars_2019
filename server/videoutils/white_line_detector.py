@@ -30,7 +30,7 @@ class WhiteLineDetector:
         threshold = cv2.morphologyEx(threshold, cv2.MORPH_OPEN, kernel)
         if(constants.image_processing_tracing_show_colour_mask):
             display.image_display.add_image_to_queue("threshold", threshold.get())
-        threshold_image = threshold.get()[:, :, 0] > 127
+        threshold_image = threshold.get()[:, :] > 127
         for cross_line_index in range(0, NUMBER_OF_CROSS_LINES):
             cross_line_from_bottom =  int(self.regions_config["cross_line_"+str(cross_line_index+1)])
             expected_line_width = int(self.regions_config["line_width_"+str(cross_line_index+1)])
