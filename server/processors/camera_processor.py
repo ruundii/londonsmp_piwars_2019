@@ -146,10 +146,9 @@ class CameraProcessor:
                     if(x_angles is not None and len(x_angles)>0):
                         for x_angle in x_angles:
                             payload['crossings'].append({'xAngle': int(x_angle)})
-                    if self.on_coloured_sheet_update_handler is not None:
-                        self.on_coloured_sheet_update_handler(payload)
-                    time.sleep(0.05)
-
+                    if self.on_white_line_update_handler is not None:
+                        self.on_white_line_update_handler(payload)
+                   
             except Exception as exc:
                 print("Exception in camera_processor.__camera_processing_loop:", exc)
         print("cv2.destroyAllWindows")

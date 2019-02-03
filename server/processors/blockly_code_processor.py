@@ -53,6 +53,7 @@ class BlocklyCodeProcessor:
     def __init_processor_handlers(self, on):
         self.robot_processor.set_alien_update_handler(alien_update_handler if on else None)
         self.robot_processor.set_coloured_sheet_update_handler(coloured_sheet_update_handler if on else None)
+        self.robot_processor.set_white_line_update_handler(white_line_crossings_update_handler if on else None)
 
     def run_finished(self):
         global thread_stop
