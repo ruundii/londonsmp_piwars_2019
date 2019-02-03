@@ -63,6 +63,12 @@ Blockly.Python['robot_get_x_angle_to_a_coloured_sheet'] = function(block) {
     return [code, Blockly.Python.ORDER_FUNCTION_CALL];
 };
 
+Blockly.Python['robot_get_x_angle_to_a_white_line'] = function(block) {
+    var cross_line_number = block.getFieldValue('cross_line_number');
+    var code = "robot_get_x_angle_to_a_white_line('"+cross_line_number+"')";
+    return [code, Blockly.Python.ORDER_FUNCTION_CALL];
+};
+
 function escape (val) {
     return val
         .replace(/[\\]/g, '\\\\')

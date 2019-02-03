@@ -72,6 +72,7 @@ CodeRunner.prototype.runCodeOnRobot = function() {
     Blockly.Python.addReservedWords('robot_get_list_of_coloured_sheets');
     Blockly.Python.addReservedWords('robot_get_distance_to_a_coloured_sheet');
     Blockly.Python.addReservedWords('robot_get_x_angle_to_a_coloured_sheet');
+    Blockly.Python.addReservedWords('robot_get_x_angle_to_a_white_line');
     latestCode = Blockly.Python.workspaceToCode(workspace);
     Blockly.Python.STATEMENT_PREFIX = prefix;
     Blockly.Python.RESERVED_WORDS_=reserved;
@@ -101,6 +102,7 @@ CodeRunner.prototype.runCodeInBrowser = function() {
     Blockly.JavaScript.addReservedWords('robot_get_list_of_coloured_sheets');
     Blockly.JavaScript.addReservedWords('robot_get_distance_to_a_coloured_sheet');
     Blockly.JavaScript.addReservedWords('robot_get_x_angle_to_a_coloured_sheet');
+    Blockly.JavaScript.addReservedWords('robot_get_x_angle_to_a_white_line');
     latestCode = Blockly.JavaScript.workspaceToCode(workspace);
     Blockly.JavaScript.STATEMENT_PREFIX = prefix;
     Blockly.JavaScript.RESERVED_WORDS_=reserved;
@@ -193,6 +195,15 @@ CodeRunner.prototype.handleWebsocketMessages = function(msg) {
                     sheets=sheets+' '+msg.sheets[i]['colour']+':'+msg.sheets[i]['distance'];
                 }
                 $('#sensorsReport')[0].innerHTML=sheets;
+            }
+            break;
+        case 'updateWhiteLineReadings':
+            worker.postMessage(msg);
+            if(msg.crossings==null||msg.crossings.length==0){
+                $('#sensorsReport')[0].innerHTML='No white line data';
+            }
+            else{
+                $('#sensorsReport')[0].innerHTML='Line1:'+msg.crossings[0]['xAngle']+' Line2:'+msg.crossings[1]['xAngle']+' Line3:'+msg.crossings[2]['xAngle'];
             }
             break;
     }

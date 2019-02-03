@@ -23,7 +23,7 @@ class WhiteLineDetector:
         # cv2.imwrite("white_line.png",image)
         # cv2.imwrite("white_line_gray.png",image_gray)
 
-        white_line_x_angles = [-1] * NUMBER_OF_CROSS_LINES
+        white_line_x_angles = [-1000] * NUMBER_OF_CROSS_LINES
         ret, threshold = cv2.threshold(image_gray, 127, 255, cv2.THRESH_BINARY)
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (4, 4))
         threshold = cv2.morphologyEx(threshold, cv2.MORPH_CLOSE, kernel)

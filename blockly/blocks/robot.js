@@ -203,3 +203,23 @@ Blockly.Blocks['robot_get_x_angle_to_a_coloured_sheet'] = {
             });
     }
 };
+
+Blockly.Blocks['robot_get_x_angle_to_a_white_line'] = {
+    init: function () {
+        this.jsonInit(
+            {
+                "type": "robot_get_x_angle_to_a_white_line",
+                "message0": "Get x angle to a white line crossing line %1",
+                "args0": [
+                    {"type":"field_dropdown",
+                        "name":"cross_line_number",
+                         "options":[["1","1"],["2","2"],["3","3"]]},
+                ],
+                "output": "String",
+                "inputsInline": true,
+                "colour": Blockly.Blocks.Robot.HUE,
+                "tooltip": "Get x angle to a white line intersection with a cross line",
+                "helpUrl": ""
+            });
+    }
+};

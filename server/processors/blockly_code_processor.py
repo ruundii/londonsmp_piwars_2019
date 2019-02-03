@@ -36,7 +36,8 @@ class BlocklyCodeProcessor:
                           'robot_get_y_angle_to_alien': robot_get_y_angle_to_alien,
                           'robot_get_list_of_coloured_sheets': robot_get_list_of_coloured_sheets,
                           'robot_get_distance_to_a_coloured_sheet': robot_get_distance_to_a_coloured_sheet,
-                          'robot_get_x_angle_to_a_coloured_sheet': robot_get_x_angle_to_a_coloured_sheet})
+                          'robot_get_x_angle_to_a_coloured_sheet': robot_get_x_angle_to_a_coloured_sheet,
+                          'robot_get_x_angle_to_a_white_line': robot_get_x_angle_to_a_white_line})
         except Exception as exc:
             print("Exception in blockly_code_processor.__start_code:", exc)
             global thread_stop
@@ -64,6 +65,7 @@ class BlocklyCodeProcessor:
 thread_stop = False
 last_aliens = None
 last_coloured_sheets = None
+last_white_line_crossings = None
 last_drive_params = None
 
 def sleep_in_ms(ms):
@@ -84,6 +86,10 @@ def alien_update_handler(data):
 def coloured_sheet_update_handler(data):
     global last_coloured_sheets
     last_coloured_sheets = data['sheets']
+
+def white_line_crossings_update_handler(data):
+    global last_white_line_crossings
+    last_white_line_crossings = data['crossings']
 
 def robot_drive(speed_left, speed_right):
     #print('robot_drive',speed_left, speed_right)
@@ -155,4 +161,9 @@ def robot_get_x_angle_to_a_coloured_sheet(colour):
         if sheet['colour']==colour:
             return sheet['xAngle']
     return 0
+
+def robot_get_x_angle_to_a_white_line(line_number):
+    global last_white_line_crossings
+    if(last_white_line_crossings is None): return -1000
+    return last_white_line_crossings[int(line_number)-1]['xAngle']
 
