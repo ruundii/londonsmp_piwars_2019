@@ -21,5 +21,6 @@ camera_id = "surface"
 is_rgb_not_bgr=False
 resolution_aliens = (640, 480)
 resolution_coloured_sheet = (640, 480)
+resolution_speed_track = (320, 240)
 camera_fov = (120, 100)
 framerate = 20

@@ -9,8 +9,8 @@
     "cross_line_3": 261
   },
   "labyrinth": {
-    "top": 0,
-    "bottom": 0,
+    "top": 240,
+    "bottom": 70,
     "left": 0,
     "right": 0
   },

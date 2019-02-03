@@ -38,7 +38,7 @@ class BlocklyCodeProcessor:
                           'robot_get_distance_to_a_coloured_sheet': robot_get_distance_to_a_coloured_sheet,
                           'robot_get_x_angle_to_a_coloured_sheet': robot_get_x_angle_to_a_coloured_sheet})
         except Exception as exc:
-            print("Exception is __start_code:", exc)
+            print("Exception in blockly_code_processor.__start_code:", exc)
             global thread_stop
             thread_stop = True
             self.stop_run()

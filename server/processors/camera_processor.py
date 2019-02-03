@@ -47,6 +47,8 @@ class CameraProcessor:
                 self.__start_camera(constants.resolution_aliens, constants.framerate, region_of_interest=self.__get_region_of_interest(self.regions_config["labyrinth"]), prepare_hsv=True)
             elif(new_camera_mode == CAMERA_MODE_DETECT_COLOURED_SHEETS):
                 self.__start_camera(constants.resolution_coloured_sheet, constants.framerate, region_of_interest=self.__get_region_of_interest(self.regions_config["colour_sheets"]), prepare_hsv=True)
+            elif(new_camera_mode == CAMERA_MODE_DETECT_WHITE_LINE_TRACK):
+                self.__start_camera(constants.resolution_speed_track, constants.framerate, region_of_interest=self.__get_region_of_interest(self.regions_config["speed_line"]), prepare_hsv=False, prepare_gray=True)
 
             self.camera_mode=new_camera_mode
 
@@ -76,7 +78,7 @@ class CameraProcessor:
                 time.sleep(0.3)
                 self.is_camera_live = True
             except Exception as exc:
-                print('Failed to initialise camera ' + str(exc))
+                print('Exception in camera_processor.__start_camera: Failed to initialise camera ' + str(exc))
             if self.is_camera_live:
                 self.keep_camera_processing = True
                 if self.camera_thread is None or not self.camera_thread.isAlive():
@@ -125,9 +127,18 @@ class CameraProcessor:
                     if self.on_coloured_sheet_update_handler is not None:
                         self.on_coloured_sheet_update_handler(payload)
                     #time.sleep(0.05)
+                elif (self.camera_mode == CAMERA_MODE_DETECT_WHITE_LINE_TRACK):
+                    crossings, frame_timestamp = self.camera.detect_white_line()
+                    #payload = {'message': 'updateWhiteLineReadings', 'frame_timestamp':frame_timestamp-self.client_server_time_difference, 'crossings': []}
+                    # if(crossings is not None and len(crossings)>0):
+                    #     for colour, distance, x_angle in sheets:
+                    #         payload['sheets'].append({'colour': colour, 'distance':int(distance * 100), 'xAngle': int(x_angle)})
+                    # if self.on_coloured_sheet_update_handler is not None:
+                    #     self.on_coloured_sheet_update_handler(payload)
+                    #time.sleep(0.05)
 
             except Exception as exc:
-                print(exc)
+                print("Exception in camera_processor.__camera_processing_loop:", exc)
         print("cv2.destroyAllWindows")
         display.image_display.destroy_windows()
 

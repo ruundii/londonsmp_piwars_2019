@@ -2,7 +2,7 @@ import cv2
 import time
 from videoutils import util as u
 import importlib
-from videoutils import alien_detector, coloured_sheet_detector
+from videoutils import alien_detector, coloured_sheet_detector, white_line_detector
 from _thread import start_new_thread
 from threading import Lock
 
@@ -41,6 +41,7 @@ class RobotCamera:
 
         self.alien_detector = alien_detector.AlienDetector()
         self.coloured_sheet_detector = coloured_sheet_detector.ColouredSheetDetector()
+        self.white_line_detector = white_line_detector.WhiteLineDetector()
         print("RobotCamera init finished")
 
 
@@ -80,9 +81,11 @@ class RobotCamera:
                 self.actual_resolution = (len(self.original_frame[0])-self.region_of_interest[2]-self.region_of_interest[3], len(self.original_frame)-self.region_of_interest[0]-self.region_of_interest[1])
             else:
                 self.actual_resolution = (len(self.original_frame[0]), len(self.original_frame))
+        print('actual_resolution',self.actual_resolution)
 
         self.alien_detector.set_image_params(self.actual_resolution, self.fov)
         self.coloured_sheet_detector.set_image_params(self.actual_resolution, self.fov)
+        self.white_line_detector.set_image_params(self.actual_resolution, self.fov)
 
         self.running = True
         start_new_thread(self.process_frames,())
@@ -164,3 +167,14 @@ class RobotCamera:
         coloured_sheets = self.coloured_sheet_detector.detect_coloured_sheets(self.image, self.image_hsv)
         if constants.performance_tracing_robot_camera_detect_coloured_sheets: print('robot_camera.detect_coloured_sheets:',time.time()-t)
         return coloured_sheets, frame_timestamp
+
+    def detect_white_line(self):
+        t = time.time()
+        if self.image is None or self.image_gray is None:
+            return None, None
+        frame_timestamp = self.frame_timestamp
+        self.white_line_detector.detect_white_line(self.image, self.image_gray)
+        return None, None
+        # coloured_sheets = self.coloured_sheet_detector.detect_coloured_sheets(self.image, self.image_hsv)
+        # if constants.performance_tracing_robot_camera_detect_coloured_sheets: print('robot_camera.detect_coloured_sheets:',time.time()-t)
+        # return coloured_sheets, frame_timestamp

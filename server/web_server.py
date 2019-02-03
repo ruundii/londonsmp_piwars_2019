@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+#import yappi
 import json
 import sys
 from processors.robot_processor import RobotProcessor
@@ -77,12 +77,14 @@ class RobotWebsocketServer(WebSocketHandler):
                 pass
 
             elif client_cmd == 'startRunInBrowser':
+                #yappi.start(builtins=True)
                 joystick_processor.set_state(False)
                 self.init_handlers(True)
                 self.is_running_on_robot = False
                 #mainloop.run_in_executor(executor, self.processor.robotController.initialiseRun, bool(payload['is_simulation']))
 
             elif client_cmd == 'startRunOnRobot':
+                #yappi.start(builtins=True)
                 joystick_processor.set_state(False)
                 self.is_running_on_robot = True
                 mainloop.run_in_executor(executor, self.blockly_code_processor.start_run, payload['code'])
@@ -94,13 +96,16 @@ class RobotWebsocketServer(WebSocketHandler):
                     mainloop.run_in_executor(executor, self.processor.stop_run)
                 joystick_processor.set_state(True)
                 self.init_handlers(False)
+                # yappi.get_func_stats().save('callgrind.out', type='callgrind')
+                # yappi.stop()
+                # yappi.clear_stats()
 
             elif client_cmd == 'shutdown':
                 self.processor.close()
             else:
                 print("Unknown command received", client_cmd)
         except Exception as exc:
-            print(exc)
+            print("Exception in web_server.on_message:",exc)
 
     def handle_update_from_robot(self, data):
         if self.connected:
@@ -130,7 +135,7 @@ class RobotWebsocketServer(WebSocketHandler):
             self.timestamp_request_time = time.time()
             self.write_message(json.dumps({'server_timestamp':self.timestamp_request_time}))
         except Exception as exc:
-            print(exc)
+            print("Exception in web_server.open:",exc)
             raise exc
 
     def robot_run_stopped(self, error):
@@ -158,7 +163,7 @@ class RobotWebsocketServer(WebSocketHandler):
             self.processor.close()
             print('ws close success')
         except Exception as exc:
-            print(exc)
+            print("Exception in web_server.close_processor:",exc)
             raise exc
 
     def on_close(self):
