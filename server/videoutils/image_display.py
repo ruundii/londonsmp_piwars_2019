@@ -34,7 +34,7 @@ class ImageDisplay:
             if(self.destroy_trigger):
                 if (not self.show_images): return
                 while(not self.image_display_queue.empty()):
-                    _,_ = self.image_display_queue.get()
+                    _,_,_ = self.image_display_queue.get()
                 cv2.destroyAllWindows()
                 self.destroy_trigger = False
 

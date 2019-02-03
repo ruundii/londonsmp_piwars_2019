@@ -31,6 +31,7 @@ class CameraProcessor:
 
         self.on_alien_update_handler = None
         self.on_coloured_sheet_update_handler = None
+        self.on_white_line_update_handler = None
         print("CameraProcessor init finished")
         self.client_server_time_difference = 0
 
@@ -66,6 +67,9 @@ class CameraProcessor:
 
     def set_coloured_sheet_update_handler(self, handler):
         self.on_coloured_sheet_update_handler=handler
+
+    def set_white_line_update_handler(self, handler):
+        self.on_white_line_update_handler=handler
 
 
     def __start_camera(self, resolution, framerate, region_of_interest = None, prepare_gray = False, prepare_hsv=False):
@@ -110,32 +114,41 @@ class CameraProcessor:
 
                 if(self.camera_mode == CAMERA_MODE_DETECT_ALIENS):
                     alien_objects, frame_timestamp = self.camera.detect_aliens()
+                    if frame_timestamp is None:
+                        time.sleep(0.05)
+                        continue
                     payload = {'message': 'updateAlienReadings', 'frame_timestamp':frame_timestamp-self.client_server_time_difference, 'aliens': []}
                     if alien_objects is not None:
                         for (alien_id, alien_object) in alien_objects.items():
                             payload['aliens'].append(
-                                {'id': int(alien_id), 'distance': int(alien_object[3] * 100), 'xAngle': int(alien_object[4]), 'yAngle': int(alien_object[5])})
+                                {'id': int(alien_id), 'distance': int(round(alien_object[3] * 100)), 'xAngle': int(round(alien_object[4])), 'yAngle': int(round(alien_object[5]))})
                     if self.on_alien_update_handler is not None:
                         self.on_alien_update_handler(payload)
                     #time.sleep(0.1)
                 elif (self.camera_mode == CAMERA_MODE_DETECT_COLOURED_SHEETS):
                     sheets, frame_timestamp = self.camera.detect_coloured_sheets()
+                    if frame_timestamp is None:
+                        time.sleep(0.05)
+                        continue
                     payload = {'message': 'updateColouredSheetsReadings', 'frame_timestamp':frame_timestamp-self.client_server_time_difference, 'sheets': []}
                     if(sheets is not None and len(sheets)>0):
                         for colour, distance, x_angle in sheets:
-                            payload['sheets'].append({'colour': colour, 'distance':int(distance * 100), 'xAngle': int(x_angle)})
+                            payload['sheets'].append({'colour': colour, 'distance':int(round(distance * 100)), 'xAngle': int(round(x_angle))})
                     if self.on_coloured_sheet_update_handler is not None:
                         self.on_coloured_sheet_update_handler(payload)
                     #time.sleep(0.05)
                 elif (self.camera_mode == CAMERA_MODE_DETECT_WHITE_LINE_TRACK):
-                    crossings, frame_timestamp = self.camera.detect_white_line()
-                    #payload = {'message': 'updateWhiteLineReadings', 'frame_timestamp':frame_timestamp-self.client_server_time_difference, 'crossings': []}
-                    # if(crossings is not None and len(crossings)>0):
-                    #     for colour, distance, x_angle in sheets:
-                    #         payload['sheets'].append({'colour': colour, 'distance':int(distance * 100), 'xAngle': int(x_angle)})
-                    # if self.on_coloured_sheet_update_handler is not None:
-                    #     self.on_coloured_sheet_update_handler(payload)
-                    #time.sleep(0.05)
+                    x_angles, frame_timestamp = self.camera.detect_white_line()
+                    if frame_timestamp is None:
+                        time.sleep(0.05)
+                        continue
+                    payload = {'message': 'updateWhiteLineReadings', 'frame_timestamp':frame_timestamp-self.client_server_time_difference, 'crossings': []}
+                    if(x_angles is not None and len(x_angles)>0):
+                        for x_angle in x_angles:
+                            payload['crossings'].append({'xAngle': int(x_angle)})
+                    if self.on_coloured_sheet_update_handler is not None:
+                        self.on_coloured_sheet_update_handler(payload)
+                    time.sleep(0.05)
 
             except Exception as exc:
                 print("Exception in camera_processor.__camera_processing_loop:", exc)

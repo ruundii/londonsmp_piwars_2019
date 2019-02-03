@@ -31,8 +31,8 @@ class VideoStream:
         self.camera_lock = Lock()
         self.camera.resolution = resolution
         self.camera.framerate = framerate
-        #self.camera.awb_mode='off'
-        #self.camera.awb_gains = (1.0, 2.8)
+        self.camera.awb_mode='off'
+        self.camera.awb_gains = (1.0, 2.8)
         self.camera.iso = 0
         self.camera.video_denoise = False
         self.camera.vflip=True

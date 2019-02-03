@@ -58,10 +58,10 @@ class ColouredSheetDetector:
             if high_zone_row_end_index is None:
                 continue
 
-            mid_column_index = int((high_zone_column_start_index + high_zone_column_end_index) / 2)
+            mid_column_index = int(round((high_zone_column_start_index + high_zone_column_end_index) / 2))
             pixel_height = high_zone_row_end_index - high_zone_row_start_index
             distance = constants.coloured_sheet_height_mm / pixel_height * constants.coloured_sheet_distance_multiplier + constants.coloured_sheet_distance_offset
-            x_angle = int((mid_column_index - int(self.resolution[0] / 2)) * self.fov[0] / self.resolution[0])
+            x_angle = int(round((mid_column_index - int(self.resolution[0] / 2)) * self.fov[0] / self.resolution[0]))
             #print('top', colour_index + 1, 'colour:', colour, 'columns:', high_zone_start_index, ':', high_zone_end_index,'x angle:',x_angle)
             if(constants.image_processing_tracing_show_detected_objects):
                 im = image.get().copy()

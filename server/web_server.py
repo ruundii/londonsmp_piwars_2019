@@ -148,6 +148,7 @@ class RobotWebsocketServer(WebSocketHandler):
     def init_handlers(self, on):
         self.processor.set_alien_update_handler(self.handle_update_from_robot if on else None)
         self.processor.set_coloured_sheet_update_handler(self.handle_update_from_robot if on else None)
+        self.processor.set_white_line_update_handler(self.handle_update_from_robot if on else None)
         self.processor.set_distance_update_handler(self.handle_update_from_robot if on else None)
         self.processor.set_line_sensors_update_handler(self.handle_update_from_robot if on else None)
 

@@ -6,7 +6,7 @@ import numpy as np
 resolution = (640,480)
 framerate = 20
 use_webcam = True
-is_raspberry = True
+is_raspberry = False
 current_window_name = ""
 
 CHALLENGE_SPEED_LINE = 0
@@ -36,18 +36,21 @@ def callback(value):
 
 def setup_trackbars():
     global current_window_name
-    challenge_name, top, bottom, left, right, cross_line_1, cross_line_2, cross_line_3 = get_trackbars_config(current_challenge_id)
+    challenge_name, top, bottom, left, right, cross_line_1, line_width_1, cross_line_2, line_width_2, cross_line_3, line_width_3 = get_trackbars_config(current_challenge_id)
     current_window_name = challenge_name
     cv2.namedWindow(current_window_name)
-    cv2.resizeWindow(current_window_name,640,400)
+    cv2.resizeWindow(current_window_name,700,660)
     cv2.createTrackbar("Top", current_window_name, top, resolution[0], callback)
     cv2.createTrackbar("Bottom", current_window_name, bottom, resolution[0], callback)
     cv2.createTrackbar("Left", current_window_name, left, resolution[1], callback)
     cv2.createTrackbar("Right", current_window_name, right, resolution[1], callback)
     if(current_challenge_id==CHALLENGE_SPEED_LINE):
         cv2.createTrackbar("CrossLine1", current_window_name, cross_line_1, resolution[1], callback)
+        cv2.createTrackbar("LineWidth1", current_window_name, line_width_1, resolution[1], callback)
         cv2.createTrackbar("CrossLine2", current_window_name, cross_line_2, resolution[1], callback)
+        cv2.createTrackbar("LineWidth2", current_window_name, line_width_2, resolution[1], callback)
         cv2.createTrackbar("CrossLine3", current_window_name, cross_line_3, resolution[1], callback)
+        cv2.createTrackbar("LineWidth3", current_window_name, line_width_3, resolution[1], callback)
 
 def get_trackbars_config(challenge_id):
     with open('regions_config.json') as json_config_file:
@@ -62,9 +65,9 @@ def get_trackbars_config(challenge_id):
         name = "Colour Corners"
         config = config["colour_sheets"]
     if(challenge_id!=CHALLENGE_SPEED_LINE):
-        return name, config["top"],config["bottom"],config["left"],config["right"], None, None, None
+        return name, config["top"],config["bottom"],config["left"],config["right"], None, None, None, None, None, None
     else:
-        return name, config["top"], config["bottom"], config["left"], config["right"], config["cross_line_1"], config["cross_line_2"], config["cross_line_3"]
+        return name, config["top"], config["bottom"], config["left"], config["right"], config["cross_line_1"], config["line_width_1"], config["cross_line_2"], config["line_width_2"], config["cross_line_3"], config["line_width_3"]
 
 
 
@@ -77,8 +80,11 @@ def get_trackbar_values():
     values.append(cv2.getTrackbarPos("Right", current_window_name))
     if(current_challenge_id==CHALLENGE_SPEED_LINE):
         values.append(cv2.getTrackbarPos("CrossLine1", current_window_name))
+        values.append(cv2.getTrackbarPos("LineWidth1", current_window_name))
         values.append(cv2.getTrackbarPos("CrossLine2", current_window_name))
+        values.append(cv2.getTrackbarPos("LineWidth2", current_window_name))
         values.append(cv2.getTrackbarPos("CrossLine3", current_window_name))
+        values.append(cv2.getTrackbarPos("LineWidth3", current_window_name))
     return values
 
 def save_trackbar_values():
@@ -98,8 +104,11 @@ def save_trackbar_values():
     config_challenge_section["right"] = trackbar_values[3]
     if current_challenge_id==CHALLENGE_SPEED_LINE:
         config_challenge_section["cross_line_1"] = trackbar_values[4]
-        config_challenge_section["cross_line_2"] = trackbar_values[5]
-        config_challenge_section["cross_line_3"] = trackbar_values[6]
+        config_challenge_section["line_width_1"] = trackbar_values[5]
+        config_challenge_section["cross_line_2"] = trackbar_values[6]
+        config_challenge_section["line_width_2"] = trackbar_values[7]
+        config_challenge_section["cross_line_3"] = trackbar_values[8]
+        config_challenge_section["line_width_3"] = trackbar_values[9]
     with open('regions_config.json', 'w') as json_config_file:
         json.dump(config, json_config_file, indent=2)
 
@@ -116,6 +125,8 @@ def main():
         image=None
         if use_webcam:
             image, _ = camera.read()
+            if(current_challenge_id != CHALLENGE_LABYRINTH):
+                image = cv2.resize(image,(320,240))
             isBgr = True
             #image = adjust_gamma(image)
             #image = normalise_colours(image, False)
@@ -135,13 +146,17 @@ def main():
             time.sleep(0.1)
             continue
 
-        challenge_name, top, bottom, left, right, cross_line_1, cross_line_2, cross_line_3 = get_trackbars_config(
+        challenge_name, top, bottom, left, right, cross_line_1, line_width_1, cross_line_2, line_width_2, cross_line_3, line_width_3 = get_trackbars_config(
             current_challenge_id)
         cv2.rectangle(image, (left, top),(len(image[0])-right, len(image)-bottom), (0,255,0), 2)
         if cross_line_1 is not None and cross_line_2 is not None and cross_line_3 is not None:
             cv2.line(image, (0, len(image) - cross_line_1-bottom), (len(image[0]), len(image) - cross_line_1-bottom), (255,0,0), 1)
+            cv2.line(image, (max(int(len(image[0])/2)-line_width_1,0), len(image) - cross_line_1-bottom), (min(int(len(image[0])/2)+line_width_1,len(image[0])), len(image) - cross_line_1-bottom), (0,0,255), 3)
             cv2.line(image, (0, len(image) - cross_line_2-bottom), (len(image[0]), len(image) - cross_line_2-bottom), (255,0,0), 1)
+            cv2.line(image, (max(int(len(image[0])/2)-line_width_2,0), len(image) - cross_line_2-bottom), (min(int(len(image[0])/2)+line_width_2,len(image[0])), len(image) - cross_line_2-bottom), (0,0,255), 3)
             cv2.line(image, (0, len(image) - cross_line_3-bottom), (len(image[0]), len(image) - cross_line_3-bottom), (255,0,0), 1)
+            cv2.line(image, (max(int(len(image[0])/2)-line_width_3,0), len(image) - cross_line_3-bottom), (min(int(len(image[0])/2)+line_width_3,len(image[0])), len(image) - cross_line_3-bottom), (0,0,255), 3)
+
         cv2.imshow("Preview", image)
 
         if cv2.waitKey(1) & 0xFF is ord('q'):

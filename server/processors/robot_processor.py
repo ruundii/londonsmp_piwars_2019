@@ -34,6 +34,9 @@ class RobotProcessor:
     def set_coloured_sheet_update_handler(self, handler):
         self.camera_processor.set_coloured_sheet_update_handler(handler)
 
+    def set_white_line_update_handler(self, handler):
+        self.camera_processor.set_white_line_update_handler(handler)
+
     def set_distance_update_handler(self, handler):
         self.sensors_processor.set_distance_update_handler(handler)
 
