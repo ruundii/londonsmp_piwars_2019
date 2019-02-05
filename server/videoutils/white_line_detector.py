@@ -14,7 +14,7 @@ class WhiteLineDetector:
             self.regions_config = json.load(json_config_file)["speed_line"]
         self.cross_lines = []
         for i in range(0,self.regions_config["cross_line_top"]):
-            self.cross_lines.append((self.regions_config["cross_line_bottom"]+5*i,
+            self.cross_lines.append((self.regions_config["line_width_bottom"]+5*i,
                                      self.regions_config["cross_line_bottom"] -
                                       int(i/self.regions_config["cross_line_top"]*(self.regions_config["line_width_bottom"]
                                                                                    -self.regions_config["line_width_top"]))))
@@ -66,7 +66,7 @@ class WhiteLineDetector:
                 if(constants.image_processing_tracing_show_detected_objects):
                     image = cv2.line(image,(white_lines[best_line_index][0],len(image) - cross_line_from_bottom - 1),
                                                (white_lines[best_line_index][1],len(image) - cross_line_from_bottom - 1),(0,255,0), 2)
-            elif cross_line_index>last_white_line_found_row_index+3:
+            elif last_white_line_found_row_index>=0 and cross_line_index>last_white_line_found_row_index+3:
                 #end of the road
                 break
 
@@ -134,7 +134,7 @@ class WhiteLineDetector:
             if current_white_line[1]-current_white_line[0] > 1.3*(last_white_line_found[1]-last_white_line_found[0]):
                 #if this line is much wider than last line - discard
                 return -1, False
-            if(abs(current_white_line[0]-last_white_line_found[0])>20 or abs(current_white_line[1]-last_white_line_found[1])>20):
+            if(abs(current_white_line[0]-last_white_line_found[0])>30 or abs(current_white_line[1]-last_white_line_found[1])>30):
                 #if the position is too far away
                 return -1, False
         return best_line_index, False
