@@ -4,8 +4,7 @@ import json
 import config.constants_global as constants
 import videoutils.image_display as display
 from videoutils.util import get_in_range_mask
-
-NUMBER_OF_CROSS_LINES = 3
+import math
 
 class WhiteLineDetector:
     def __init__(self):
@@ -13,6 +12,13 @@ class WhiteLineDetector:
         self.fov = None
         with open(constants.regions_config_name) as json_config_file:
             self.regions_config = json.load(json_config_file)["speed_line"]
+        self.cross_lines = []
+        for i in range(0,self.regions_config["cross_line_top"]):
+            self.cross_lines.append((self.regions_config["cross_line_bottom"]+5*i,
+                                     self.regions_config["cross_line_bottom"] -
+                                      int(i/self.regions_config["cross_line_top"]*(self.regions_config["line_width_bottom"]
+                                                                                   -self.regions_config["line_width_top"]))))
+        self.number_of_cross_lines = self.regions_config["cross_line_top"]
         print("WhiteLineDetector initialised")
 
     def set_image_params(self, actual_resolution, fov):
@@ -20,68 +26,148 @@ class WhiteLineDetector:
         self.fov = fov
 
     def detect_white_line(self, image, image_gray):
-        # cv2.imwrite("white_line.png",image)
-        # cv2.imwrite("white_line_gray.png",image_gray)
         if (constants.image_processing_tracing_show_detected_objects):
             image = image.get()
 
-        white_line_x_angles = [-1000] * NUMBER_OF_CROSS_LINES
-        ret, threshold = cv2.threshold(image_gray, 127, 255, cv2.THRESH_BINARY)
+        white_line_x_angles = [-1000] * self.number_of_cross_lines
+
+        #prepare image
+        ret, threshold = cv2.threshold(image_gray, 127, 1, cv2.THRESH_OTSU)
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (4, 4))
         threshold = cv2.morphologyEx(threshold, cv2.MORPH_CLOSE, kernel)
-        threshold = cv2.morphologyEx(threshold, cv2.MORPH_OPEN, kernel).get()
+        threshold = cv2.morphologyEx(threshold, cv2.MORPH_OPEN, kernel)
+        threshold_mat = threshold.get()
+
         if(constants.image_processing_tracing_show_colour_mask):
-            display.image_display.add_image_to_queue("threshold", threshold)
-        threshold_image = threshold[:, :] > 127
-        for cross_line_index in range(0, NUMBER_OF_CROSS_LINES):
-            cross_line_from_bottom =  int(self.regions_config["cross_line_"+str(cross_line_index+1)])
-            expected_line_width = int(self.regions_config["line_width_"+str(cross_line_index+1)])
-            line = threshold_image[len(threshold_image) - cross_line_from_bottom - 1, :]
+            display.image_display.add_image_to_queue("threshold", threshold_mat*255)
+
+        last_white_line_found = None
+        last_white_line_found_row_index = -1
+
+        for cross_line_index in range(0, self.number_of_cross_lines):
+            cross_line_from_bottom =  self.cross_lines[cross_line_index][0]
+            expected_line_width = self.cross_lines[cross_line_index][1]
+            line = threshold_mat[len(threshold_mat) - cross_line_from_bottom - 1, :] > 0
             black_to_white_indices, = np.where((line[:-1] ^ line[1:]) & line[1:])  # last black index
             white_to_black_indices, = np.where((line[:-1] ^ line[1:]) & line[:-1])  # last white index
             if (len(white_to_black_indices) == 0 or len(black_to_white_indices) == 0):
                 continue
-            # todo: check that the road is not over
-            current_black_to_white_index = 0
-            current_white_to_black_index = 0
-            white_lines = []
-            if (line[0]):  # if we start with white
-                white_lines.append((0, white_to_black_indices[current_white_to_black_index]))
-                current_white_to_black_index += 1
-            while current_black_to_white_index < len(black_to_white_indices):
-                if current_white_to_black_index < len(white_to_black_indices):
-                    # white will change to black
-                    white_lines.append((black_to_white_indices[current_black_to_white_index] + 1,
-                                        white_to_black_indices[current_white_to_black_index]))
-                    current_white_to_black_index += 1
-                else:
-                    # line ands with white
-                    white_lines.append((black_to_white_indices[current_black_to_white_index] + 1, len(line) - 1))
-                current_black_to_white_index += 1
-            best_line_index = -1
-            closest_width_difference = 10000
-            for i in range(0, len(white_lines)):
-                actual_line_width = white_lines[i][1] - white_lines[i][0]
-                width_diff = actual_line_width - expected_line_width
-                if (width_diff > 4 and max(actual_line_width, expected_line_width) / float(
-                        min(actual_line_width, expected_line_width)) > 2.0):
-                    # line is not what we expect at all
-                    continue
-                if (closest_width_difference > width_diff):
-                    closest_width_difference = width_diff
-                    best_line_index = i
-            # print("black_to_white_indices", black_to_white_indices)
-            # print("white_to_black_indices", white_to_black_indices)
-            # print("white_lines", white_lines)
+
+            white_lines = self.find_white_line_candidates(black_to_white_indices, line, white_to_black_indices)
+            best_line_index, end_of_the_road_found = self.find_best_white_line_match(expected_line_width, last_white_line_found, white_lines)
+            if end_of_the_road_found:
+                break
             if best_line_index >= 0:
-                # print("winning line", white_lines[best_line_index])
+                last_white_line_found_row_index = cross_line_index
+                last_white_line_found = (white_lines[best_line_index][0], white_lines[best_line_index][1])
                 middle_pixel = int(round((white_lines[best_line_index][1] + white_lines[best_line_index][0]) / 2.0))
                 x_angle = int(round((middle_pixel - int(self.resolution[0] / 2)) * self.fov[0] / self.resolution[0]))
                 white_line_x_angles[cross_line_index] = x_angle
                 if(constants.image_processing_tracing_show_detected_objects):
                     image = cv2.line(image,(white_lines[best_line_index][0],len(image) - cross_line_from_bottom - 1),
                                                (white_lines[best_line_index][1],len(image) - cross_line_from_bottom - 1),(0,255,0), 2)
+            elif cross_line_index>last_white_line_found_row_index+3:
+                #end of the road
+                break
+
         if(constants.image_processing_tracing_show_detected_objects):
             display.image_display.add_image_to_queue("detected", image)
 
-        return white_line_x_angles
+        crossings = self.convert_to_three_crossings(white_line_x_angles)
+
+        return crossings
+
+    def convert_to_three_crossings(self, white_line_x_angles):
+        crossings = [-1000] * 3
+        # convert to 3 crossings
+        for i in range(0, 5):
+            if (white_line_x_angles[i] >= -100):
+                crossings[0] = white_line_x_angles[i]
+                break
+        mid_index = int(self.number_of_cross_lines / 2)
+        for i in range(0, 3):
+            if (white_line_x_angles[mid_index + i] >= -100):
+                crossings[1] = white_line_x_angles[mid_index + i]
+                break
+            if (white_line_x_angles[mid_index - i] >= -100):
+                crossings[1] = white_line_x_angles[mid_index - i]
+                break
+        for i in range(1, 6):
+            if (white_line_x_angles[self.number_of_cross_lines - i] >= -100):
+                crossings[2] = white_line_x_angles[self.number_of_cross_lines - i]
+                break
+        return crossings
+
+    def find_best_white_line_match(self, expected_line_width, last_white_line_found, white_lines):
+        best_line_index = -1
+        min_difference = 10000000
+        for i in range(0, len(white_lines)):
+            white_line_start_index, white_line_end_index, preceding_black_line_width, following_black_line_width = white_lines[i]
+            actual_line_width = white_line_end_index - white_line_start_index
+
+            if (last_white_line_found is not None
+                and white_line_start_index<last_white_line_found[0] #current white line starts earlier than last found white line
+                and white_line_end_index>last_white_line_found[1] #current white line ends later than last found white line
+                and last_white_line_found[1]-last_white_line_found[0]<0.4*actual_line_width): #and current line is much wider than previous one
+                # treat it as the end of the road
+                return -1, True
+
+            width_diff = abs(actual_line_width - expected_line_width)
+            if (actual_line_width > 4 and expected_line_width > 4 and max(actual_line_width,
+                                                                          expected_line_width) / float(
+                    min(actual_line_width, expected_line_width)) > 2.0):
+                # line is not what we expect at all
+                continue
+            if (
+                    preceding_black_line_width < expected_line_width * 0.5 or following_black_line_width < expected_line_width * 0.5):
+                # surrounding black lines are too small
+                continue
+            current_difference = math.log(width_diff + 3) / (
+                        math.log(following_black_line_width + 3) * math.log(preceding_black_line_width + 3))
+            if (min_difference > current_difference):
+                min_difference = current_difference
+                best_line_index = i
+
+        if(last_white_line_found is not None and best_line_index>=0):
+            #check that this white line is plausible given the previous white line
+            current_white_line = white_lines[best_line_index]
+            if current_white_line[1]-current_white_line[0] > 1.3*(last_white_line_found[1]-last_white_line_found[0]):
+                #if this line is much wider than last line - discard
+                return -1, False
+            if(abs(current_white_line[0]-last_white_line_found[0])>20 or abs(current_white_line[1]-last_white_line_found[1])>20):
+                #if the position is too far away
+                return -1, False
+        return best_line_index, False
+
+    def find_white_line_candidates(self, black_to_white_indices, line, white_to_black_indices):
+        current_black_to_white_index = 0
+        current_white_to_black_index = 0
+        white_lines = []
+        last_black_line = None
+        if (line[0]):  # if we start with white - skip first white block as we must start from black
+            current_white_to_black_index += 1
+        while current_black_to_white_index < len(black_to_white_indices):  # get next start of white line
+            if current_white_to_black_index < len(white_to_black_indices):  # get next end of white line
+                # white will change to black
+                # calculate preceding black width
+                if (current_white_to_black_index - 1 >= 0):
+                    preceding_black_width = black_to_white_indices[current_black_to_white_index] - \
+                                            white_to_black_indices[current_white_to_black_index - 1]
+                else:
+                    preceding_black_width = black_to_white_indices[current_black_to_white_index]
+                # calculate following black width
+                if (current_black_to_white_index + 1 < len(black_to_white_indices)):
+                    following_black_width = black_to_white_indices[current_black_to_white_index + 1] - \
+                                            white_to_black_indices[current_white_to_black_index]
+                else:
+                    following_black_width = self.resolution[0] - white_to_black_indices[current_white_to_black_index]
+
+                white_lines.append((black_to_white_indices[current_black_to_white_index] + 1,
+                                    white_to_black_indices[current_white_to_black_index], preceding_black_width,
+                                    following_black_width))
+                current_white_to_black_index += 1
+            else:
+                # image line ends with white - skip. (was white_lines.append((black_to_white_indices[current_black_to_white_index] + 1, len(line) - 1))
+                pass
+            current_black_to_white_index += 1
+        return white_lines

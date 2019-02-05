@@ -36,7 +36,7 @@ def callback(value):
 
 def setup_trackbars():
     global current_window_name
-    challenge_name, top, bottom, left, right, cross_line_1, line_width_1, cross_line_2, line_width_2, cross_line_3, line_width_3 = get_trackbars_config(current_challenge_id)
+    challenge_name, top, bottom, left, right, cross_line_bottom, line_width_bottom, cross_line_top, line_width_top = get_trackbars_config(current_challenge_id)
     current_window_name = challenge_name
     cv2.namedWindow(current_window_name)
     cv2.resizeWindow(current_window_name,700,660)
@@ -45,12 +45,10 @@ def setup_trackbars():
     cv2.createTrackbar("Left", current_window_name, left, resolution[1], callback)
     cv2.createTrackbar("Right", current_window_name, right, resolution[1], callback)
     if(current_challenge_id==CHALLENGE_SPEED_LINE):
-        cv2.createTrackbar("CrossLine1", current_window_name, cross_line_1, resolution[1], callback)
-        cv2.createTrackbar("LineWidth1", current_window_name, line_width_1, resolution[1], callback)
-        cv2.createTrackbar("CrossLine2", current_window_name, cross_line_2, resolution[1], callback)
-        cv2.createTrackbar("LineWidth2", current_window_name, line_width_2, resolution[1], callback)
-        cv2.createTrackbar("CrossLine3", current_window_name, cross_line_3, resolution[1], callback)
-        cv2.createTrackbar("LineWidth3", current_window_name, line_width_3, resolution[1], callback)
+        cv2.createTrackbar("CrossLineBottom", current_window_name, cross_line_bottom, resolution[1], callback)
+        cv2.createTrackbar("LineWidthBottom", current_window_name, line_width_bottom, int(resolution[0]/2), callback)
+        cv2.createTrackbar("CrossLineTop", current_window_name, cross_line_top, int(resolution[1]/5), callback)
+        cv2.createTrackbar("LineWidthTop", current_window_name, line_width_top, int(resolution[0]/2), callback)
 
 def get_trackbars_config(challenge_id):
     with open('regions_config.json') as json_config_file:
@@ -67,7 +65,7 @@ def get_trackbars_config(challenge_id):
     if(challenge_id!=CHALLENGE_SPEED_LINE):
         return name, config["top"],config["bottom"],config["left"],config["right"], None, None, None, None, None, None
     else:
-        return name, config["top"], config["bottom"], config["left"], config["right"], config["cross_line_1"], config["line_width_1"], config["cross_line_2"], config["line_width_2"], config["cross_line_3"], config["line_width_3"]
+        return name, config["top"], config["bottom"], config["left"], config["right"], config["cross_line_bottom"], config["line_width_bottom"], config["cross_line_top"], config["line_width_top"]
 
 
 
@@ -79,12 +77,10 @@ def get_trackbar_values():
     values.append(cv2.getTrackbarPos("Left", current_window_name))
     values.append(cv2.getTrackbarPos("Right", current_window_name))
     if(current_challenge_id==CHALLENGE_SPEED_LINE):
-        values.append(cv2.getTrackbarPos("CrossLine1", current_window_name))
-        values.append(cv2.getTrackbarPos("LineWidth1", current_window_name))
-        values.append(cv2.getTrackbarPos("CrossLine2", current_window_name))
-        values.append(cv2.getTrackbarPos("LineWidth2", current_window_name))
-        values.append(cv2.getTrackbarPos("CrossLine3", current_window_name))
-        values.append(cv2.getTrackbarPos("LineWidth3", current_window_name))
+        values.append(cv2.getTrackbarPos("CrossLineBottom", current_window_name))
+        values.append(cv2.getTrackbarPos("LineWidthBottom", current_window_name))
+        values.append(cv2.getTrackbarPos("CrossLineTop", current_window_name))
+        values.append(cv2.getTrackbarPos("LineWidthTop", current_window_name))
     return values
 
 def save_trackbar_values():
@@ -103,12 +99,10 @@ def save_trackbar_values():
     config_challenge_section["left"] = trackbar_values[2]
     config_challenge_section["right"] = trackbar_values[3]
     if current_challenge_id==CHALLENGE_SPEED_LINE:
-        config_challenge_section["cross_line_1"] = trackbar_values[4]
-        config_challenge_section["line_width_1"] = trackbar_values[5]
-        config_challenge_section["cross_line_2"] = trackbar_values[6]
-        config_challenge_section["line_width_2"] = trackbar_values[7]
-        config_challenge_section["cross_line_3"] = trackbar_values[8]
-        config_challenge_section["line_width_3"] = trackbar_values[9]
+        config_challenge_section["cross_line_bottom"] = trackbar_values[4]
+        config_challenge_section["line_width_bottom"] = trackbar_values[5]
+        config_challenge_section["cross_line_top"] = trackbar_values[6]
+        config_challenge_section["line_width_top"] = trackbar_values[7]
     with open('regions_config.json', 'w') as json_config_file:
         json.dump(config, json_config_file, indent=2)
 
@@ -146,16 +140,15 @@ def main():
             time.sleep(0.1)
             continue
 
-        challenge_name, top, bottom, left, right, cross_line_1, line_width_1, cross_line_2, line_width_2, cross_line_3, line_width_3 = get_trackbars_config(
+        challenge_name, top, bottom, left, right, cross_line_bottom, line_width_bottom, cross_line_top, line_width_top = get_trackbars_config(
             current_challenge_id)
         cv2.rectangle(image, (left, top),(len(image[0])-right, len(image)-bottom), (0,255,0), 2)
-        if cross_line_1 is not None and cross_line_2 is not None and cross_line_3 is not None:
-            cv2.line(image, (0, len(image) - cross_line_1-bottom), (len(image[0]), len(image) - cross_line_1-bottom), (255,0,0), 1)
-            cv2.line(image, (max(int(len(image[0])/2)-line_width_1,0), len(image) - cross_line_1-bottom), (min(int(len(image[0])/2)+line_width_1,len(image[0])), len(image) - cross_line_1-bottom), (0,0,255), 3)
-            cv2.line(image, (0, len(image) - cross_line_2-bottom), (len(image[0]), len(image) - cross_line_2-bottom), (255,0,0), 1)
-            cv2.line(image, (max(int(len(image[0])/2)-line_width_2,0), len(image) - cross_line_2-bottom), (min(int(len(image[0])/2)+line_width_2,len(image[0])), len(image) - cross_line_2-bottom), (0,0,255), 3)
-            cv2.line(image, (0, len(image) - cross_line_3-bottom), (len(image[0]), len(image) - cross_line_3-bottom), (255,0,0), 1)
-            cv2.line(image, (max(int(len(image[0])/2)-line_width_3,0), len(image) - cross_line_3-bottom), (min(int(len(image[0])/2)+line_width_3,len(image[0])), len(image) - cross_line_3-bottom), (0,0,255), 3)
+        if cross_line_bottom is not None and cross_line_top is not None:
+            for line_index in range(0,cross_line_top+1):
+                row_number = len(image) - cross_line_bottom - bottom - 5*line_index
+                line_width = line_width_bottom - (line_width_bottom - line_width_top)*line_index/cross_line_top
+                cv2.line(image, (0, row_number), (len(image[0]), row_number), (255, 0, 0), 1)
+                cv2.line(image, (max(int(len(image[0]) / 2 - line_width/2), 0), row_number), (min(int(len(image[0]) / 2 + line_width-line_width/2), len(image[0])), row_number),(0, 0, 255), 3)
 
         cv2.imshow("Preview", image)
 
