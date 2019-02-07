@@ -53,7 +53,7 @@ class BlocklyCodeProcessor:
     def __init_processor_handlers(self, on):
         self.robot_processor.set_alien_update_handler(alien_update_handler if on else None)
         self.robot_processor.set_coloured_sheet_update_handler(coloured_sheet_update_handler if on else None)
-        self.robot_processor.set_white_line_update_handler(white_line_crossings_update_handler if on else None)
+        self.robot_processor.set_white_line_update_handler(white_line_vector_update_handler if on else None)
 
     def run_finished(self):
         global thread_stop
@@ -66,7 +66,7 @@ class BlocklyCodeProcessor:
 thread_stop = False
 last_aliens = None
 last_coloured_sheets = None
-last_white_line_crossings = None
+last_white_line_vector = None
 last_drive_params = None
 
 def sleep_in_ms(ms):
@@ -88,9 +88,9 @@ def coloured_sheet_update_handler(data):
     global last_coloured_sheets
     last_coloured_sheets = data['sheets']
 
-def white_line_crossings_update_handler(data):
-    global last_white_line_crossings
-    last_white_line_crossings = data['crossings']
+def white_line_vector_update_handler(data):
+    global last_white_line_vector
+    last_white_line_vector = data['vector']
 
 def robot_drive(speed_left, speed_right):
     #print('robot_drive',speed_left, speed_right)
@@ -164,7 +164,7 @@ def robot_get_x_angle_to_a_coloured_sheet(colour):
     return 0
 
 def robot_get_x_angle_to_a_white_line(line_number):
-    global last_white_line_crossings
-    if(last_white_line_crossings is None): return -1000
-    return last_white_line_crossings[int(line_number)-1]['xAngle']
+    global last_white_line_vector
+    if(last_white_line_vector is None): return -1000
+    return last_white_line_vector[int(line_number)-1]
 

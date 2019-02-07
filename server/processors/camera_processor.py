@@ -138,14 +138,13 @@ class CameraProcessor:
                         self.on_coloured_sheet_update_handler(payload)
                     #time.sleep(0.05)
                 elif (self.camera_mode == CAMERA_MODE_DETECT_WHITE_LINE_TRACK):
-                    x_angles, frame_timestamp = self.camera.detect_white_line()
+                    vector, frame_timestamp = self.camera.detect_white_line()
                     if frame_timestamp is None:
                         time.sleep(0.05)
                         continue
-                    payload = {'message': 'updateWhiteLineReadings', 'frame_timestamp':frame_timestamp-self.client_server_time_difference, 'crossings': []}
-                    if(x_angles is not None and len(x_angles)>0):
-                        for x_angle in x_angles:
-                            payload['crossings'].append({'xAngle': int(x_angle)})
+                    payload = {'message': 'updateWhiteLineReadings', 'frame_timestamp':frame_timestamp-self.client_server_time_difference}
+                    if(vector is not None and len(vector)>0):
+                        payload['vector']=vector
                     if self.on_white_line_update_handler is not None:
                         self.on_white_line_update_handler(payload)
 

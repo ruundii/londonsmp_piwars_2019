@@ -2,7 +2,7 @@ var window = new WindowStub();
 var running = false;
 var lastAliens = null;
 var lastColouredSheets = null;
-var lastWhiteLineCrossings = null;
+var lastWhiteLineVector = null;
 
 var lastDriveParams = null;
 
@@ -25,7 +25,7 @@ self.onmessage = function(e) {
        lastColouredSheets = e.data['sheets'];
    }
    else if(e.data.message=='updateWhiteLineReadings'){
-       lastWhiteLineCrossings = e.data['crossings'];
+       lastWhiteLineVector = e.data['vector'];
    }
 }
 
@@ -152,6 +152,6 @@ function robot_get_x_angle_to_a_coloured_sheet(colour) {
 }
 
 function robot_get_x_angle_to_a_white_line(line_number) {
-    if(lastWhiteLineCrossings==null) return -1000;
-    return lastWhiteLineCrossings[parseInt(line_number)-1]['xAngle'];
+    if(lastWhiteLineVector==null) return -1000;
+    return lastWhiteLineVector[parseInt(line_number)-1];
 }

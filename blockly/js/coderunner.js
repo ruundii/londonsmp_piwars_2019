@@ -199,11 +199,11 @@ CodeRunner.prototype.handleWebsocketMessages = function(msg) {
             break;
         case 'updateWhiteLineReadings':
             worker.postMessage(msg);
-            if(msg.crossings==null||msg.crossings.length==0){
-                $('#sensorsReport')[0].innerHTML='No white line data';
+            if(msg.vector==null||msg.vector.length==0){
+                $('#sensorsReport')[0].innerHTML='No white line vector';
             }
             else{
-                $('#sensorsReport')[0].innerHTML='Line1:'+msg.crossings[0]['xAngle']+' Line2:'+msg.crossings[1]['xAngle']+' Line3:'+msg.crossings[2]['xAngle'];
+                $('#sensorsReport')[0].innerHTML='Vector:'+msg.vector[0]+','+msg.vector[1];
             }
             break;
     }

@@ -21,6 +21,7 @@ class WhiteLineDetector:
         self.number_of_cross_lines = self.regions_config["cross_line_top"]
         print("WhiteLineDetector initialised")
 
+
     def set_image_params(self, actual_resolution, fov):
         self.resolution = actual_resolution
         self.fov = fov
@@ -70,33 +71,46 @@ class WhiteLineDetector:
                 #end of the road
                 break
 
+        vector = self.convert_to_line_direction_vector(white_line_x_angles)
+
         if(constants.image_processing_tracing_show_detected_objects):
+            image = cv2.line(image,
+                (int(vector[1] * self.resolution[0]/self.fov[0] + self.resolution[0]/2), len(threshold_mat)-self.cross_lines[self.number_of_cross_lines-1][0]),
+                (int(vector[0] * self.resolution[0]/self.fov[0] + self.resolution[0] / 2), len(threshold_mat) - self.cross_lines[0][0]),(255,0,0),2)
             display.image_display.add_image_to_queue("detected", image)
 
-        crossings = self.convert_to_three_crossings(white_line_x_angles)
+        return vector
 
-        return crossings
+    def convert_to_line_direction_vector(self, white_line_x_angles):
+        if white_line_x_angles.count(-1000) > 12:
+            return (0,0) #treat as end of line and return straight vector
 
-    def convert_to_three_crossings(self, white_line_x_angles):
-        crossings = [-1000] * 3
-        # convert to 3 crossings
-        for i in range(0, 5):
-            if (white_line_x_angles[i] >= -100):
-                crossings[0] = white_line_x_angles[i]
-                break
-        mid_index = int(self.number_of_cross_lines / 2)
-        for i in range(0, 3):
-            if (white_line_x_angles[mid_index + i] >= -100):
-                crossings[1] = white_line_x_angles[mid_index + i]
-                break
-            if (white_line_x_angles[mid_index - i] >= -100):
-                crossings[1] = white_line_x_angles[mid_index - i]
-                break
-        for i in range(1, 6):
-            if (white_line_x_angles[self.number_of_cross_lines - i] >= -100):
-                crossings[2] = white_line_x_angles[self.number_of_cross_lines - i]
-                break
-        return crossings
+        first_line_index = None
+        last_line_index = None
+        current_gap_size = 0
+        for i in range(0, len(white_line_x_angles)):
+            if(white_line_x_angles[i]==-1000):
+                current_gap_size += 1
+                if current_gap_size >= 10: return (0,0) #seems like end of the road
+                continue
+            if(first_line_index is None): first_line_index = i
+            last_line_index = i
+            current_gap_size = 0
+
+        vector_start = white_line_x_angles[first_line_index]
+        vector_end = white_line_x_angles[last_line_index]
+
+        if first_line_index ==0 and last_line_index==self.number_of_cross_lines-1:
+            return (vector_start, vector_end)
+
+        slope = (white_line_x_angles[last_line_index]-white_line_x_angles[first_line_index])/(last_line_index-first_line_index)
+        if(first_line_index>0):
+            vector_start -= slope*first_line_index
+        if (last_line_index <  self.number_of_cross_lines-1):
+            vector_end += slope * (self.number_of_cross_lines-1-last_line_index)
+        vector_start = max(min(vector_start,int(self.fov[0]/2)), -int(self.fov[0]/2))
+        vector_end = max(min(vector_end, int(self.fov[0] / 2)), -int(self.fov[0] / 2))
+        return (vector_start, vector_end)
 
     def find_best_white_line_match(self, expected_line_width, last_white_line_found, white_lines):
         best_line_index = -1
@@ -143,7 +157,6 @@ class WhiteLineDetector:
         current_black_to_white_index = 0
         current_white_to_black_index = 0
         white_lines = []
-        last_black_line = None
         if (line[0]):  # if we start with white - skip first white block as we must start from black
             current_white_to_black_index += 1
         while current_black_to_white_index < len(black_to_white_indices):  # get next start of white line

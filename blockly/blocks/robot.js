@@ -209,11 +209,11 @@ Blockly.Blocks['robot_get_x_angle_to_a_white_line'] = {
         this.jsonInit(
             {
                 "type": "robot_get_x_angle_to_a_white_line",
-                "message0": "Get x angle to a white line crossing line %1",
+                "message0": "Get x angle to a white line %1 crossing line",
                 "args0": [
                     {"type":"field_dropdown",
                         "name":"cross_line_number",
-                         "options":[["1","1"],["2","2"],["3","3"]]},
+                         "options":[["near","1"],["far","2"]]},
                 ],
                 "output": "Number",
                 "inputsInline": true,
