@@ -67,9 +67,9 @@ class Motor:
         if speed == 0:
             return 0
         elif speed <0:
-            return max(-30 + speed*0.7, -100)
+            return max(-10 + speed*0.9, -100)
         else:
-            return min(30 + speed*0.7, 100)
+            return min(10 + speed*0.9, 100)
 
 
     def cleanup(self):

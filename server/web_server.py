@@ -91,7 +91,7 @@ class RobotWebsocketServer(WebSocketHandler):
 
             elif client_cmd == 'stopRun':
                 if(self.is_running_on_robot):
-                    mainloop.run_in_executor(executor, self.blockly_code_processor.stop_run)
+                    mainloop.run_in_executor(executor, self.blockly_code_processor.stop_run, True)
                 else:
                     mainloop.run_in_executor(executor, self.processor.stop_run)
                 joystick_processor.set_state(True)

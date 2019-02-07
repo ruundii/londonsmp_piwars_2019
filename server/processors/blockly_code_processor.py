@@ -14,15 +14,14 @@ class BlocklyCodeProcessor:
         self.stop_handler = stop_handler
 
     def start_run(self, code):
-        global thread_stop
-        thread_stop = False
+        global thread_stop, thread_stop_triggered
+        init_globals()
         self.__init_processor_handlers(True)
         code += '\r\nrun_finished()'
         start_new_thread(self.__start_code, (code,))
 
     def __start_code(self, code):
         code = code.replace('time.sleep(','sleep_in_ms(')
-
         try:
             exec(code, {'is_thread_stopped': is_thread_stopped,
                           'sleep_in_ms': sleep_in_ms,
@@ -40,15 +39,20 @@ class BlocklyCodeProcessor:
                           'robot_get_x_angle_to_a_white_line': robot_get_x_angle_to_a_white_line})
         except Exception as exc:
             print("Exception in blockly_code_processor.__start_code:", exc)
-            global thread_stop
-            thread_stop = True
-            self.stop_run()
+            self.stop_run(False)
             if (self.stop_handler is not None):
                 self.stop_handler(True)
 
-    def stop_run(self):
+    def stop_run(self, interrupt):
+        global thread_stop,thread_stop_triggered
+        thread_stop = True
         self.__init_processor_handlers(False)
         self.robot_processor.stop_run()
+        if interrupt:
+            while not thread_stop_triggered:
+                time.sleep(0.01)
+            self.__init_processor_handlers(False)
+            self.robot_processor.stop_run()
 
     def __init_processor_handlers(self, on):
         self.robot_processor.set_alien_update_handler(alien_update_handler if on else None)
@@ -56,24 +60,34 @@ class BlocklyCodeProcessor:
         self.robot_processor.set_white_line_update_handler(white_line_vector_update_handler if on else None)
 
     def run_finished(self):
-        global thread_stop
-        thread_stop=True
-        self.stop_run()
+        self.stop_run(False)
         if(self.stop_handler is not None):
             self.stop_handler(False)
 
 
 thread_stop = False
+thread_stop_triggered = False
 last_aliens = None
 last_coloured_sheets = None
 last_white_line_vector = None
 last_drive_params = None
 
+def init_globals():
+    global thread_stop, thread_stop_triggered, last_aliens, last_coloured_sheets, last_white_line_vector,last_drive_params
+    thread_stop = False
+    thread_stop_triggered = False
+    last_aliens = None
+    last_coloured_sheets = None
+    last_white_line_vector = None
+    last_drive_params = None
+
 def sleep_in_ms(ms):
     time.sleep(ms/1000.0)
 
 def is_thread_stopped():
-    global thread_stop
+    global thread_stop, thread_stop_triggered
+    if thread_stop:
+        thread_stop_triggered = True
     return thread_stop
 
 def run_finished():
@@ -93,7 +107,6 @@ def white_line_vector_update_handler(data):
     last_white_line_vector = data['vector']
 
 def robot_drive(speed_left, speed_right):
-    #print('robot_drive',speed_left, speed_right)
     global last_drive_params
     if(last_drive_params is not None and last_drive_params['speed_left'] == speed_left and last_drive_params['speed_right'] == speed_right):
         return
