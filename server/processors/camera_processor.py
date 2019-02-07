@@ -169,8 +169,8 @@ class CameraProcessor:
 
     def write_trace_video_frame(self, image, frame_timestamp):
         if not constants.image_processing_tracing_record_video: return
-        cv2.putText(image, 'frame time:'+str(round(frame_timestamp-self.start_time,3)) +' lag:'+str(round(time.time()-frame_timestamp,3)), (10,25), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 2)
-        cv2.putText(image, 'drive:'+str(self.last_drive_params[0])+':'+str(self.last_drive_params[1]), (10,55), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 2)
+        cv2.putText(image, 'frame time:'+str(round(frame_timestamp-self.start_time,3)) +' lag:'+str(round(time.time()-frame_timestamp,3)), (10,25), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 1)
+        cv2.putText(image, 'drive:'+str(round(self.last_drive_params[0],1))+':'+str(round(self.last_drive_params[1],1)), (10,55), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 1)
         self.video_writer.write(image)
 
 
