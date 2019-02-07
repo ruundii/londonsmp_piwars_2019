@@ -27,7 +27,7 @@ class WhiteLineDetector:
         self.fov = fov
 
     def detect_white_line(self, image, image_gray):
-        if (constants.image_processing_tracing_show_detected_objects):
+        if (constants.image_processing_tracing_show_detected_objects or constants.image_processing_tracing_record_video):
             image = image.get()
 
         white_line_x_angles = [-1000] * self.number_of_cross_lines
@@ -65,22 +65,22 @@ class WhiteLineDetector:
                 middle_pixel = int(round((white_lines[best_line_index][1] + white_lines[best_line_index][0]) / 2.0))
                 x_angle = int(round((middle_pixel - int(self.resolution[0] / 2)) * self.fov[0] / self.resolution[0]))
                 white_line_x_angles[cross_line_index] = x_angle
-                if(constants.image_processing_tracing_show_detected_objects):
-                    image = cv2.line(image,(white_lines[best_line_index][0],len(image) - cross_line_from_bottom - 1),
-                                               (white_lines[best_line_index][1],len(image) - cross_line_from_bottom - 1),(0,255,0), 2)
+                # if(constants.image_processing_tracing_show_detected_objects or constants.image_processing_tracing_record_video):
+                #     image = cv2.line(image,(white_lines[best_line_index][0],len(image) - cross_line_from_bottom - 1),
+                #                                (white_lines[best_line_index][1],len(image) - cross_line_from_bottom - 1),(0,255,0), 2)
             elif last_white_line_found_row_index>=0 and cross_line_index>last_white_line_found_row_index+3:
                 #end of the road
                 break
 
         vector = self.convert_to_line_direction_vector(white_line_x_angles)
 
-        if(constants.image_processing_tracing_show_detected_objects):
+        if(constants.image_processing_tracing_show_detected_objects or constants.image_processing_tracing_record_video):
             image = cv2.line(image,
                 (int(vector[1] * self.resolution[0]/self.fov[0] + self.resolution[0]/2), len(threshold_mat)-self.cross_lines[self.number_of_cross_lines-1][0]),
                 (int(vector[0] * self.resolution[0]/self.fov[0] + self.resolution[0] / 2), len(threshold_mat) - self.cross_lines[0][0]),(255,0,0),2)
-            display.image_display.add_image_to_queue("detected", image)
+            if constants.image_processing_tracing_show_detected_objects: display.image_display.add_image_to_queue("detected", image)
 
-        return vector
+        return vector, image
 
     def convert_to_line_direction_vector(self, white_line_x_angles):
         #if white_line_x_angles.count(-1000) > 12:

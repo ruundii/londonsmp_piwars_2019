@@ -155,24 +155,24 @@ class RobotCamera:
         if self.image is None or self.image_hsv is None:
             return None, None
         frame_timestamp = self.frame_timestamp
-        aliens = self.alien_detector.detect_aliens(self.image, self.image_hsv)
+        aliens, detected_image = self.alien_detector.detect_aliens(self.image, self.image_hsv)
         if constants.performance_tracing_robot_camera_detect_aliens: print('robot_camera.detect_aliens:',time.time()-t)
-        return aliens, frame_timestamp
+        return aliens, frame_timestamp, detected_image
 
     def detect_coloured_sheets(self):
         t = time.time()
         if self.image is None or self.image_hsv is None:
             return None, None
         frame_timestamp = self.frame_timestamp
-        coloured_sheets = self.coloured_sheet_detector.detect_coloured_sheets(self.image, self.image_hsv)
+        coloured_sheets, detected_image = self.coloured_sheet_detector.detect_coloured_sheets(self.image, self.image_hsv)
         if constants.performance_tracing_robot_camera_detect_coloured_sheets: print('robot_camera.detect_coloured_sheets:',time.time()-t)
-        return coloured_sheets, frame_timestamp
+        return coloured_sheets, frame_timestamp, detected_image
 
     def detect_white_line(self):
         t = time.time()
         if self.image is None or self.image_gray is None:
             return None, None
         frame_timestamp = self.frame_timestamp
-        vector = self.white_line_detector.detect_white_line(self.image, self.image_gray)
+        vector, detected_image = self.white_line_detector.detect_white_line(self.image, self.image_gray)
         if constants.performance_tracing_robot_camera_detect_white_line: print('robot_camera.detect_white_line:', time.time() - t)
-        return vector, frame_timestamp
+        return vector, frame_timestamp, detected_image

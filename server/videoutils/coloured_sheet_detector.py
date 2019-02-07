@@ -16,6 +16,7 @@ class ColouredSheetDetector:
         with open(constants.colour_config_name) as json_config_file:
             config = json.load(json_config_file)
         self.colour_config = config["colour_sheets_hsv_ranges"]
+        self.rect_colours = {'green':(0,255,0),'blue':(255,0,0), 'red':(0,0,255), 'yellow':(0,255,255)}
         self.resolution = None
         self.fov = None
         print("ColouredSheetDetector initialised")
@@ -34,6 +35,7 @@ class ColouredSheetDetector:
         colour_sets.sort(key=lambda tup: tup[1], reverse=True)
 
         found_sheets = []
+        detected_image = image.get().copy() if constants.image_processing_tracing_record_video or constants.image_processing_tracing_show_detected_objects else None
         for colour_index in range(max_number_of_coloured_sheets_per_image):
             colour, sum, mask_column_aggr, mask = colour_sets[colour_index]
             peak = np.max(mask_column_aggr)
@@ -63,13 +65,13 @@ class ColouredSheetDetector:
             distance = constants.coloured_sheet_height_mm / pixel_height * constants.coloured_sheet_distance_multiplier + constants.coloured_sheet_distance_offset
             x_angle = int(round((mid_column_index - int(self.resolution[0] / 2)) * self.fov[0] / self.resolution[0]))
             #print('top', colour_index + 1, 'colour:', colour, 'columns:', high_zone_start_index, ':', high_zone_end_index,'x angle:',x_angle)
+            if constants.image_processing_tracing_show_detected_objects or constants.image_processing_tracing_record_video:
+                cv2.rectangle(detected_image,(high_zone_column_start_index, high_zone_row_start_index),
+                              (high_zone_column_end_index, high_zone_row_end_index), self.rect_colours[colour])
             if(constants.image_processing_tracing_show_detected_objects):
-                im = image.get().copy()
-                cv2.rectangle(im,(high_zone_column_start_index, high_zone_row_start_index),
-                              (high_zone_column_end_index, high_zone_row_end_index), (0,255,0))
-                display.image_display.add_image_to_queue("DetectedObject_"+colour, im)
+                display.image_display.add_image_to_queue("detected", detected_image)
             found_sheets.append((colour, distance, x_angle))
-        return found_sheets
+        return found_sheets, detected_image
 
     def __get_high_zone_start_index(self, aggrerates, min_size_for_high_zone, peak = None, is_reverse=False):
         if(peak is None):

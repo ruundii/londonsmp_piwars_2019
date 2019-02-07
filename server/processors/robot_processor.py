@@ -45,6 +45,7 @@ class RobotProcessor:
 
     def drive(self, speed_left, speed_right):
         self.motor.drive(speed_left, speed_right)
+        self.camera_processor.set_last_drive_params(speed_left, speed_right)
 
     def set_camera_mode(self, mode):
         self.camera_processor.set_camera_mode(mode)
