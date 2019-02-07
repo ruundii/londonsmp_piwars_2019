@@ -82,20 +82,24 @@ class WhiteLineDetector:
         return vector
 
     def convert_to_line_direction_vector(self, white_line_x_angles):
-        if white_line_x_angles.count(-1000) > 12:
-            return (0,0) #treat as end of line and return straight vector
+        #if white_line_x_angles.count(-1000) > 12:
+        #    return (0,0) #treat as end of line and return straight vector
 
         first_line_index = None
         last_line_index = None
-        current_gap_size = 0
+        current_sequence_size = 0
+        max_sequence_size = 0
         for i in range(0, len(white_line_x_angles)):
             if(white_line_x_angles[i]==-1000):
-                current_gap_size += 1
-                if current_gap_size >= 10: return (0,0) #seems like end of the road
+                current_sequence_size = 0
                 continue
+            current_sequence_size += 1
+            max_sequence_size = max(max_sequence_size, current_sequence_size)
             if(first_line_index is None): first_line_index = i
             last_line_index = i
-            current_gap_size = 0
+
+        if max_sequence_size<4:
+            return (0, 0)  # treat as end of line and return straight vector
 
         vector_start = white_line_x_angles[first_line_index]
         vector_end = white_line_x_angles[last_line_index]
