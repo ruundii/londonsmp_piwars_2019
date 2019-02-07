@@ -5,6 +5,7 @@ from threading import Thread, Lock
 import cv2
 from videoutils.fps import FPS
 import time
+from fractions import Fraction
 
 class PiStreamOutput(picamera.array.PiAnalysisOutput):
     def __init__(self, camera):
@@ -31,7 +32,7 @@ class VideoStream:
         self.camera_lock = Lock()
         self.camera.resolution = resolution
         self.camera.framerate = framerate
-        self.camera.awb_mode = 'horizon'
+        #self.camera.awb_mode = 'horizon'
         #self.camera.awb_mode='off'
         #self.camera.awb_gains = (1.0, 2.2)
         self.camera.iso = 800
@@ -40,8 +41,12 @@ class VideoStream:
         self.last_read_frame_num =-1
         self.camera.brightness = 55
         self.camera.saturation = 40
-        self.camera.video_stabilization = True
+        #self.camera.video_stabilization = True
         #self.camera.image_effect = "colorbalance"
+        # self.camera.exposure_mode = 'off'
+        # self.camera.digital_gain = Fraction(535,256)
+        # self.camera.analog_gain = Fraction(2521,256)
+        #self.camera.exposure_compensation = 25
 
         # initialize the frame and the variable used to indicate
         # if the thread should be stopped
@@ -62,6 +67,9 @@ class VideoStream:
             self.last_read_frame_num = self.output.FPS.frameidx
             self.frame_time_stamp = self.output.frame_time_stamp
             self.frame = picamera.array.bytes_to_rgb(self.output.bytes, self.camera.resolution)
+            # print("digital_gain",self.camera.digital_gain)
+            # print("analog_gain",self.camera.analog_gain)
+            #print("exposure_speed", self.camera.exposure_speed)
 
         return self.frame, self.frame_time_stamp
 

@@ -23,4 +23,4 @@ resolution_aliens = (640,480)
 resolution_coloured_sheet = (320, 240)
 resolution_speed_track = (320, 240)
 camera_fov = (60, 50)
-framerate = 20
+framerate = 50
