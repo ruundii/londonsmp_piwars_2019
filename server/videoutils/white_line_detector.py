@@ -14,8 +14,8 @@ class WhiteLineDetector:
             self.regions_config = json.load(json_config_file)["speed_line"]
         self.cross_lines = []
         for i in range(0,self.regions_config["cross_line_top"]):
-            self.cross_lines.append((self.regions_config["line_width_bottom"]+5*i,
-                                     self.regions_config["cross_line_bottom"] -
+            self.cross_lines.append((self.regions_config["cross_line_bottom"]+10*i,
+                                     self.regions_config["line_width_bottom"] -
                                       int(i/self.regions_config["cross_line_top"]*(self.regions_config["line_width_bottom"]
                                                                                    -self.regions_config["line_width_top"]))))
         self.number_of_cross_lines = self.regions_config["cross_line_top"]
@@ -55,6 +55,7 @@ class WhiteLineDetector:
                 continue
 
             white_lines = self.find_white_line_candidates(black_to_white_indices, line, white_to_black_indices)
+            #print("detecting line ", cross_line_index," cross_line_from_bottom",cross_line_from_bottom, " candidates:",len(white_lines))
             best_line_index, end_of_the_road_found = self.find_best_white_line_match(expected_line_width, last_white_line_found, white_lines)
             if end_of_the_road_found:
                 break
@@ -128,17 +129,20 @@ class WhiteLineDetector:
                 and white_line_end_index>last_white_line_found[1] #current white line ends later than last found white line
                 and last_white_line_found[1]-last_white_line_found[0]<0.4*actual_line_width): #and current line is much wider than previous one
                 # treat it as the end of the road
+                #print("# treat it as the end of the road")
                 return -1, True
 
             width_diff = abs(actual_line_width - expected_line_width)
             if (actual_line_width > 4 and expected_line_width > 4 and max(actual_line_width,
                                                                           expected_line_width) / float(
                     min(actual_line_width, expected_line_width)) > 2.0):
+                #print("# line is not what we expect at all")
                 # line is not what we expect at all
                 continue
             if (
                     preceding_black_line_width < expected_line_width * 0.5 or following_black_line_width < expected_line_width * 0.5):
                 # surrounding black lines are too small
+                #print("# surrounding black lines are too small")
                 continue
             current_difference = math.log(width_diff + 3) / (
                         math.log(following_black_line_width + 3) * math.log(preceding_black_line_width + 3))
@@ -150,9 +154,11 @@ class WhiteLineDetector:
             #check that this white line is plausible given the previous white line
             current_white_line = white_lines[best_line_index]
             if current_white_line[1]-current_white_line[0] > 1.3*(last_white_line_found[1]-last_white_line_found[0]):
+                #print("#if this line is much wider than last line - discard")
                 #if this line is much wider than last line - discard
                 return -1, False
             if(abs(current_white_line[0]-last_white_line_found[0])>30 or abs(current_white_line[1]-last_white_line_found[1])>30):
+                #print("#if the position is too far away")
                 #if the position is too far away
                 return -1, False
         return best_line_index, False
