@@ -35,14 +35,14 @@ class VideoStream:
         self.camera.vflip=True
         self.camera.hflip = True
         self.last_read_frame_num =-1
-        if 'awb_mode' in camera_settings.keys(): self.camera.iso = camera_settings['awb_mode']
-        if 'awb_gains' in camera_settings.keys(): self.camera.iso = camera_settings['awb_gains']
+        if 'awb_mode' in camera_settings.keys(): self.camera.awb_mode = camera_settings['awb_mode']
+        if 'awb_gains' in camera_settings.keys(): self.camera.awb_gains = camera_settings['awb_gains']
         if 'iso' in camera_settings.keys(): self.camera.iso = camera_settings['iso']
-        if 'brightness' in camera_settings.keys(): self.camera.iso = camera_settings['brightness']
-        if 'contrast' in camera_settings.keys(): self.camera.iso = camera_settings['contrast']
-        if 'saturation' in camera_settings.keys(): self.camera.iso = camera_settings['saturation']
-        if 'video_denoise' in camera_settings.keys(): self.camera.iso = camera_settings['video_denoise']
-        if 'shutter_speed' in camera_settings.keys(): self.camera.iso = camera_settings['shutter_speed']
+        if 'brightness' in camera_settings.keys(): self.camera.brightness = camera_settings['brightness']
+        if 'contrast' in camera_settings.keys(): self.camera.contrast = camera_settings['contrast']
+        if 'saturation' in camera_settings.keys(): self.camera.saturation = camera_settings['saturation']
+        if 'video_denoise' in camera_settings.keys(): self.camera.video_denoise = camera_settings['video_denoise']
+        if 'shutter_speed' in camera_settings.keys(): self.camera.shutter_speed = camera_settings['shutter_speed']
 
         # initialize the frame and the variable used to indicate
         # if the thread should be stopped
