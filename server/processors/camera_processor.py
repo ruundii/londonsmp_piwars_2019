@@ -53,11 +53,11 @@ class CameraProcessor:
                 if constants.image_processing_tracing_record_video: self.video_writer.release()
             else:
                 if(new_camera_mode == CAMERA_MODE_DETECT_ALIENS):
-                    self.__start_camera(constants.resolution_aliens, constants.framerate, region_of_interest=self.__get_region_of_interest(self.regions_config["labyrinth"]), prepare_hsv=True)
+                    self.__start_camera(constants.camera_settings_aliens, region_of_interest=self.__get_region_of_interest(self.regions_config["labyrinth"]), prepare_hsv=True)
                 elif(new_camera_mode == CAMERA_MODE_DETECT_COLOURED_SHEETS):
-                    self.__start_camera(constants.resolution_coloured_sheet, constants.framerate, region_of_interest=self.__get_region_of_interest(self.regions_config["colour_sheets"]), prepare_hsv=True)
+                    self.__start_camera(constants.camera_settings_coloured_sheet, region_of_interest=self.__get_region_of_interest(self.regions_config["colour_sheets"]), prepare_hsv=True)
                 elif(new_camera_mode == CAMERA_MODE_DETECT_WHITE_LINE_TRACK):
-                    self.__start_camera(constants.resolution_speed_track, constants.framerate, region_of_interest=self.__get_region_of_interest(self.regions_config["speed_line"]), prepare_hsv=False, prepare_gray=True)
+                    self.__start_camera(constants.camera_settings_speed_track, region_of_interest=self.__get_region_of_interest(self.regions_config["speed_line"]), prepare_hsv=False, prepare_gray=True)
                 if constants.image_processing_tracing_record_video:
                     self.start_time = time.time()
                     video_path = 'video_trace'+time.strftime("%Y-%m-%d_%H-%M-%S")+'.avi'
@@ -83,11 +83,11 @@ class CameraProcessor:
         self.on_white_line_update_handler=handler
 
 
-    def __start_camera(self, resolution, framerate, region_of_interest = None, prepare_gray = False, prepare_hsv=False):
+    def __start_camera(self, camera_settings, region_of_interest = None, prepare_gray = False, prepare_hsv=False):
         with self.camera_lock:
             # Camera initialisation
             try:
-                self.camera = RobotCamera(resolution, framerate, region_of_interest, prepare_gray, prepare_hsv)
+                self.camera = RobotCamera(camera_settings, region_of_interest, prepare_gray, prepare_hsv)
                 self.camera.load()
                 self.camera.start()
                 time.sleep(0.3)

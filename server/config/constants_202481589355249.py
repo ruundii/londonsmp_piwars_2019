@@ -19,8 +19,34 @@ video_stream_module = "videoutils.video_stream_pi"
 
 camera_id = "pi640"
 is_rgb_not_bgr=True
-resolution_aliens = (640, 480)
-resolution_coloured_sheet = (320, 240)
-resolution_speed_track = (320, 240)
+camera_settings_aliens = {
+    'resolution' : (640,480),
+    'iso':800,
+    #'awb_mode':'off',
+    #'awb_gains':(1.0, 2.2),
+    'brightness': 55,
+    'saturation':40,
+    'framerate' : 30
+}
+camera_settings_coloured_sheet = {
+    'resolution' : (320,240),
+    'iso':800,
+    #'awb_mode':'off',
+    #'awb_gains':(1.0, 2.2),
+    'brightness': 55,
+    'saturation':40,
+    'framerate': 30
+}
+camera_settings_speed_track = {
+    'resolution' : (320,240),
+    'iso':800,
+    #'awb_mode':'off',
+    #'awb_gains':(1.0, 2.2),
+    'brightness': 75,
+    'contrast': 50,
+    'saturation':40,
+    'framerate': 50,
+    'video_denoise':False,
+    'shutter_speed':15000
+}
 camera_fov = (60, 50)
-framerate = 25

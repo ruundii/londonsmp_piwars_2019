@@ -19,8 +19,16 @@ video_stream_module = "videoutils.video_stream_webcam"
 
 camera_id = "surface"
 is_rgb_not_bgr=False
-resolution_aliens = (640, 480)
-resolution_coloured_sheet = (640, 480)
-resolution_speed_track = (320, 240)
-camera_fov = (120, 100)
-framerate = 20
+camera_settings_aliens = {
+    'resolution' : (640,480),
+    'framerate' : 30
+}
+camera_settings_coloured_sheet = {
+    'resolution': (640, 480),
+    'framerate': 30
+}
+camera_settings_speed_track = {
+    'resolution': (640, 480),
+    'framerate': 50
+}
+camera_fov = (60, 50)

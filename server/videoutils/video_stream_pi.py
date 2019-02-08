@@ -26,27 +26,23 @@ class PiStreamOutput(picamera.array.PiAnalysisOutput):
 
 
 class VideoStream:
-    def __init__(self, resolution, framerate):
+    def __init__(self, camera_settings):
         # initialize the camera and stream
         self.camera = PiCamera()
         self.camera_lock = Lock()
-        self.camera.resolution = resolution
-        self.camera.framerate = framerate
-        #self.camera.awb_mode = 'horizon'
-        #self.camera.awb_mode='off'
-        #self.camera.awb_gains = (1.0, 2.2)
-        self.camera.iso = 800
+        self.camera.resolution = camera_settings['resolution']
+        self.camera.framerate = camera_settings['framerate']
         self.camera.vflip=True
         self.camera.hflip = True
         self.last_read_frame_num =-1
-        self.camera.brightness = 55
-        self.camera.saturation = 40
-        #self.camera.video_stabilization = True
-        #self.camera.image_effect = "colorbalance"
-        # self.camera.exposure_mode = 'off'
-        # self.camera.digital_gain = Fraction(535,256)
-        # self.camera.analog_gain = Fraction(2521,256)
-        #self.camera.exposure_compensation = 25
+        if 'awb_mode' in camera_settings.keys(): self.camera.iso = camera_settings['awb_mode']
+        if 'awb_gains' in camera_settings.keys(): self.camera.iso = camera_settings['awb_gains']
+        if 'iso' in camera_settings.keys(): self.camera.iso = camera_settings['iso']
+        if 'brightness' in camera_settings.keys(): self.camera.iso = camera_settings['brightness']
+        if 'contrast' in camera_settings.keys(): self.camera.iso = camera_settings['contrast']
+        if 'saturation' in camera_settings.keys(): self.camera.iso = camera_settings['saturation']
+        if 'video_denoise' in camera_settings.keys(): self.camera.iso = camera_settings['video_denoise']
+        if 'shutter_speed' in camera_settings.keys(): self.camera.iso = camera_settings['shutter_speed']
 
         # initialize the frame and the variable used to indicate
         # if the thread should be stopped

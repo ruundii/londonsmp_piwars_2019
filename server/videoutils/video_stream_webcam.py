@@ -5,13 +5,13 @@ import time
 
 
 class VideoStream:
-    def __init__(self, resolution, framerate):
+    def __init__(self, camera_settings):
         # initialize the video camera stream and read the first frame
         # from the stream
         self.stream = cv2.VideoCapture(0)
-        self.stream.set(cv2.CAP_PROP_FRAME_WIDTH , resolution[0])
-        self.stream.set(cv2.CAP_PROP_FRAME_HEIGHT, resolution[1])
-        self.stream.set(cv2.CAP_PROP_FPS, framerate)
+        self.stream.set(cv2.CAP_PROP_FRAME_WIDTH , camera_settings['resolution'][0])
+        self.stream.set(cv2.CAP_PROP_FRAME_HEIGHT, camera_settings['resolution'][1])
+        self.stream.set(cv2.CAP_PROP_FPS, camera_settings['framerate'])
         self.camera_lock = Lock()
         (self.grabbed, self.frame) = self.stream.read()
         self.last_read_frame_num = 0
