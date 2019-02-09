@@ -22,17 +22,18 @@ is_rgb_not_bgr=True
 camera_settings_aliens = {
     'resolution' : (640,480),
     'iso':800,
-    #'awb_mode':'off',
-    #'awb_gains':(1.0, 2.2),
+    'awb_mode':'off',
+    'awb_gains':(1.47, 1.84),
     'brightness': 55,
     'saturation':40,
-    'framerate' : 30
+    'framerate' : 30,
+    'shutter_speed':2000
 }
 camera_settings_coloured_sheet = {
     'resolution' : (320,240),
     'iso':800,
-    #'awb_mode':'off',
-    #'awb_gains':(1.0, 2.2),
+    'awb_mode':'off',
+    'awb_gains':(1.47, 1.84),
     'brightness': 55,
     'saturation':40,
     'framerate': 30
@@ -40,12 +41,10 @@ camera_settings_coloured_sheet = {
 camera_settings_speed_track = {
     'resolution' : (320,240),
     'iso':800,
-    #'awb_mode':'off',
-    #'awb_gains':(1.0, 2.2),
     'brightness': 75,
     'contrast': 50,
     'saturation':40,
-    'framerate': 50,
+    'framerate': 40,
     'video_denoise':False,
     'shutter_speed':15000
 }

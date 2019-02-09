@@ -1,11 +1,21 @@
 import cv2
 import time
 import json
+import os
 
-resolution = (640,480)
-framerate = 20
+camera_settings = {
+    'resolution' : (640,480),
+    'iso':800,
+    'awb_mode':'off',
+    'awb_gains':(1.47, 1.84),
+    'brightness': 55,
+    'saturation':40,
+    'framerate' : 30,
+    'shutter_speed':2000
+}
+
 use_webcam = True
-is_raspberry = False
+is_raspberry = os.name != 'nt'
 current_filter_id = 0
 current_window_name = ""
 
@@ -121,7 +131,7 @@ def save_trackbar_values():
 def main():
     global use_webcam, resolution, framerate
     if use_webcam:
-        camera = VideoStream(resolution=resolution, framerate=framerate)
+        camera = VideoStream(camera_settings=camera_settings)
         camera.start()
 
     setup_trackbars()

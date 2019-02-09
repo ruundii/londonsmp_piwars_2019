@@ -29,6 +29,6 @@ camera_settings_coloured_sheet = {
 }
 camera_settings_speed_track = {
     'resolution': (640, 480),
-    'framerate': 50
+    'framerate': 40
 }
 camera_fov = (60, 50)

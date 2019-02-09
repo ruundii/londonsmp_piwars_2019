@@ -45,7 +45,7 @@ camera_settings_speed_track = {
     'brightness': 75,
     'contrast': 50,
     'saturation':40,
-    'framerate': 50,
+    'framerate': 40,
     'video_denoise':False,
     'shutter_speed':15000
 }

@@ -2,11 +2,11 @@ import cv2
 import time
 import json
 import numpy as np
+import os
 
-resolution = (640,480)
-framerate = 20
+camera_settings={'resolution':(640,480), 'framerate':20}
 use_webcam = True
-is_raspberry = False
+is_raspberry = os.name != 'nt'
 current_window_name = ""
 
 CHALLENGE_SPEED_LINE = 0
@@ -108,9 +108,9 @@ def save_trackbar_values():
 
 
 def main():
-    global use_webcam, resolution, framerate
+    global use_webcam, camera_settings
     if use_webcam:
-        camera = VideoStream(resolution=resolution, framerate=framerate)
+        camera = VideoStream(camera_settings=camera_settings)
         camera.start()
 
     setup_trackbars()

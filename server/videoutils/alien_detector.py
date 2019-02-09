@@ -81,6 +81,7 @@ class AlienDetector:
         return (True, x, y, w, h, w*h)
 
     def detect_aliens(self, image, image_hsv):
+        detected_image = image.get().copy() if constants.image_processing_tracing_record_video or constants.image_processing_tracing_show_detected_objects else None
         t = time.time()
         contours, mask = self.__get_alien_contours(image_hsv)
         if constants.performance_tracing_alien_detector_details: print('alien_detector.detect_aliens.__get_alien_contours:',time.time()-t)
@@ -105,13 +106,13 @@ class AlienDetector:
             y_angle = ((h / 2.0 - y) / h) * self.fov[1]
             aliens.append((x, y, alien_area, distance, x_angle, y_angle))
             if constants.image_processing_tracing_show_detected_objects or constants.image_processing_tracing_record_video:
-                image = cv2.rectangle(image, (alien_x, alien_y),(alien_x+alien_w, alien_y+alien_h), (0,125,255), 2)
+                cv2.rectangle(detected_image, (alien_x, alien_y),(alien_x+alien_w, alien_y+alien_h), (0,125,255), 2)
             real_contours_num = real_contours_num + 1
         if constants.image_processing_tracing_show_detected_objects:
-            display.image_display.add_image_to_queue("detected", image.copy())
+            display.image_display.add_image_to_queue("detected", detected_image)
         self.counter += 1
         #print(real_contours_num, ":", len(contours))
-        return self.alien_tracker.update(aliens), image
+        return self.alien_tracker.update(aliens), detected_image
 
     def __get_alien_contours(self, image_hsv):
         #frame = imutils.resize(frame, width=600)
