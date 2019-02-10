@@ -649,8 +649,7 @@ Blockly.utils.genUid = function() {
  * to properly escape in your own environment.  Issues #251, #625, #682, #1304.
  * @private
  */
-Blockly.utils.genUid.soup_ = '!#$%()*+,-./:;=?@[]^_`{|}~' +
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+Blockly.utils.genUid.soup_ = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
 /**
  * Wrap text to the specified width.

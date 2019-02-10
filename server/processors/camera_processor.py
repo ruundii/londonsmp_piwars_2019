@@ -60,7 +60,7 @@ class CameraProcessor:
                     self.__start_camera(constants.camera_settings_speed_track, region_of_interest=self.__get_region_of_interest(self.regions_config["speed_line"]), prepare_hsv=False, prepare_gray=True)
                 if constants.image_processing_tracing_record_video:
                     self.start_time = time.time()
-                    video_path = 'video_trace'+time.strftime("%Y-%m-%d_%H-%M-%S")+'.avi'
+                    video_path = constants.video_log_folder_path + 'video_trace'+time.strftime("%Y-%m-%d_%H-%M-%S")+'.avi'
                     self.video_writer = cv2.VideoWriter(video_path, cv2.VideoWriter_fourcc(*'MJPG'), 4, self.camera.actual_resolution)
             self.camera_mode=new_camera_mode
 

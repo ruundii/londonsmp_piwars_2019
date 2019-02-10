@@ -6,6 +6,9 @@ import cv2
 from videoutils.fps import FPS
 import time
 from fractions import Fraction
+import config.constants_global as constants
+import json
+import os
 
 class PiStreamOutput(picamera.array.PiAnalysisOutput):
     def __init__(self, camera):
@@ -24,7 +27,6 @@ class PiStreamOutput(picamera.array.PiAnalysisOutput):
         _, fps, frame_num = self.FPS.update()
         return result
 
-
 class VideoStream:
     def __init__(self, camera_settings):
         # initialize the camera and stream
@@ -35,14 +37,34 @@ class VideoStream:
         self.camera.vflip=True
         self.camera.hflip = True
         self.last_read_frame_num =-1
-        if 'awb_mode' in camera_settings.keys(): self.camera.awb_mode = camera_settings['awb_mode']
-        if 'awb_gains' in camera_settings.keys(): self.camera.awb_gains = camera_settings['awb_gains']
+        camera_config_file = os.path.join(os.path.normpath(os.path.join(os.path.join(os.path.realpath(__file__), os.pardir), os.pardir)), constants.camera_config_name)
+        with open(camera_config_file) as json_config_file:
+            camera_config = json.load(json_config_file)
+
+        if 'awb_mode' in camera_settings.keys():
+            self.camera.awb_mode = camera_settings['awb_mode']
+            if camera_settings['awb_mode']=='off':
+                print('applying awb gains from camera_config.json ',camera_config['red_gain'],camera_config['blue_gain'])
+                self.camera.awb_gains = (camera_config['red_gain'],camera_config['blue_gain'])
+        if 'awb_gains' in camera_settings.keys():
+            print('applying awb gains from config ', camera_settings['awb_gains'])
+            self.camera.awb_gains = camera_settings['awb_gains']
         if 'iso' in camera_settings.keys(): self.camera.iso = camera_settings['iso']
         if 'brightness' in camera_settings.keys(): self.camera.brightness = camera_settings['brightness']
         if 'contrast' in camera_settings.keys(): self.camera.contrast = camera_settings['contrast']
         if 'saturation' in camera_settings.keys(): self.camera.saturation = camera_settings['saturation']
         if 'video_denoise' in camera_settings.keys(): self.camera.video_denoise = camera_settings['video_denoise']
         if 'shutter_speed' in camera_settings.keys(): self.camera.shutter_speed = camera_settings['shutter_speed']
+        if 'shutter_speed_setting' in camera_settings.keys():
+            if camera_settings['shutter_speed_setting']=='shutter_speed_shortened':
+                print('applying shutter_speed_shortened from camera_config.json ',camera_config['shutter_speed_shortened'])
+                self.camera.shutter_speed = camera_config['shutter_speed_shortened']
+            else:
+                print('applying shutter_speed from camera_config.json ',camera_config['shutter_speed'])
+                self.camera.shutter_speed = camera_config['shutter_speed']
+        if 'shutter_speed' in camera_settings.keys():
+            print('applying shutter_speed from config ', camera_settings['shutter_speed'])
+            self.camera.shutter_speed = camera_settings['shutter_speed']
 
         # initialize the frame and the variable used to indicate
         # if the thread should be stopped

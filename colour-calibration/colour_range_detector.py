@@ -3,16 +3,13 @@ import time
 import json
 import os
 
-camera_settings = {
-    'resolution' : (640,480),
-    'iso':800,
-    'awb_mode':'off',
-    'awb_gains':(1.47, 1.84),
-    'brightness': 55,
-    'saturation':40,
-    'framerate' : 30,
-    'shutter_speed':2000
-}
+try:
+    import config.constants_global as constants
+except:
+    import sys, os
+
+    sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'server'))
+    import config.constants_global as constants
 
 use_webcam = True
 is_raspberry = os.name != 'nt'
@@ -131,7 +128,7 @@ def save_trackbar_values():
 def main():
     global use_webcam, resolution, framerate
     if use_webcam:
-        camera = VideoStream(camera_settings=camera_settings)
+        camera = VideoStream(camera_settings=constants.camera_settings_aliens)
         camera.start()
 
     setup_trackbars()

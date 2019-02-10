@@ -12,6 +12,9 @@ motor_module = "processors.motor_stub"
 
 colour_config_name = "config\\colour_config_win.json"
 regions_config_name = "config\\regions_config_win.json"
+camera_config_name = "config\\camera_config.json"
+
+video_log_folder_path = "video_files\\"
 
 alien_template = "videoutils\\alien_template.png"
 camera_calibrations_path = "videoutils\calibrations"
