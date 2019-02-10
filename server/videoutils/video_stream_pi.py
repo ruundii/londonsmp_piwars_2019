@@ -65,6 +65,7 @@ class VideoStream:
         if 'shutter_speed' in camera_settings.keys():
             print('applying shutter_speed from config ', camera_settings['shutter_speed'])
             self.camera.shutter_speed = camera_settings['shutter_speed']
+        print('camera real settings: awb_mode:',self.camera.awb_mode, ' awb_gains:',self.camera.awb_gains, ' shutter_speed:',self.camera.shutter_speed)
 
         # initialize the frame and the variable used to indicate
         # if the thread should be stopped
