@@ -44,8 +44,12 @@ class VideoStream:
         if 'awb_mode' in camera_settings.keys():
             self.camera.awb_mode = camera_settings['awb_mode']
             if camera_settings['awb_mode']=='off':
-                print('applying awb gains from camera_config.json ',camera_config['red_gain'],camera_config['blue_gain'])
-                self.camera.awb_gains = (camera_config['red_gain'],camera_config['blue_gain'])
+                if 'awb_gains' in camera_settings.keys():
+                    print('applying awb gains from camera_settings object', camera_settings['awb_gains'])
+                    self.camera.awb_gains = camera_settings['awb_gains']
+                else:
+                    print('applying awb gains from camera_config.json ',camera_config['red_gain'],camera_config['blue_gain'])
+                    self.camera.awb_gains = (camera_config['red_gain'],camera_config['blue_gain'])
         if 'awb_gains' in camera_settings.keys():
             print('applying awb gains from config ', camera_settings['awb_gains'])
             self.camera.awb_gains = camera_settings['awb_gains']

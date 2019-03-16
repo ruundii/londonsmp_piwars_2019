@@ -15,6 +15,16 @@ use_webcam = True
 is_raspberry = os.name != 'nt'
 current_filter_id = 0
 current_window_name = ""
+resize_resolution = (320,180)
+
+camera_settings = {'resolution' : (1280,720),
+    'iso':800,
+    'brightness': 55,
+    'saturation':40,
+    'framerate' : 30,
+    'awb_mode' : 'off',
+                   }
+
 
 if is_raspberry:
     try:
@@ -126,9 +136,14 @@ def save_trackbar_values():
 
 
 def main():
-    global use_webcam, resolution, framerate
+    with open('camera_config.json', 'r') as json_config_file:
+        config = json.load(json_config_file)
+    camera_settings['shutter_speed'] = config['shutter_speed']
+    camera_settings['awb_gains'] = (config['red_gain'], config['blue_gain'])
+
+    global use_webcam, resolution, framerate, resize_resolution
     if use_webcam:
-        camera = VideoStream(camera_settings=constants.camera_settings_aliens)
+        camera = VideoStream(camera_settings=camera_settings)
         camera.start()
 
     setup_trackbars()
@@ -137,6 +152,8 @@ def main():
         image=None
         if use_webcam:
             image, _ = camera.read()
+            if image is not None:
+                image = cv2.resize(image, resize_resolution)
             isBgr = True
             #image = adjust_gamma(image)
             #image = normalise_colours(image, False)

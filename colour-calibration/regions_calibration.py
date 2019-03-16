@@ -13,7 +13,7 @@ CHALLENGE_SPEED_LINE = 0
 CHALLENGE_LABYRINTH = 1
 CHALLENGE_COLOURED_SHEETS = 2
 
-current_challenge_id = CHALLENGE_SPEED_LINE
+current_challenge_id = CHALLENGE_LABYRINTH
 
 if is_raspberry:
     try:
@@ -40,15 +40,15 @@ def setup_trackbars():
     current_window_name = challenge_name
     cv2.namedWindow(current_window_name)
     cv2.resizeWindow(current_window_name,700,660)
-    cv2.createTrackbar("Top", current_window_name, top, resolution[0], callback)
-    cv2.createTrackbar("Bottom", current_window_name, bottom, resolution[0], callback)
-    cv2.createTrackbar("Left", current_window_name, left, resolution[1], callback)
-    cv2.createTrackbar("Right", current_window_name, right, resolution[1], callback)
+    cv2.createTrackbar("Top", current_window_name, top, camera_settings['resolution'][0], callback)
+    cv2.createTrackbar("Bottom", current_window_name, bottom, camera_settings['resolution'][0], callback)
+    cv2.createTrackbar("Left", current_window_name, left, camera_settings['resolution'][1], callback)
+    cv2.createTrackbar("Right", current_window_name, right, camera_settings['resolution'][1], callback)
     if(current_challenge_id==CHALLENGE_SPEED_LINE):
-        cv2.createTrackbar("CrossLineBottom", current_window_name, cross_line_bottom, resolution[1], callback)
-        cv2.createTrackbar("LineWidthBottom", current_window_name, line_width_bottom, int(resolution[0]/2), callback)
-        cv2.createTrackbar("CrossLineTop", current_window_name, cross_line_top, int(resolution[1]/5), callback)
-        cv2.createTrackbar("LineWidthTop", current_window_name, line_width_top, int(resolution[0]/2), callback)
+        cv2.createTrackbar("CrossLineBottom", current_window_name, cross_line_bottom, camera_settings['resolution'][1], callback)
+        cv2.createTrackbar("LineWidthBottom", current_window_name, line_width_bottom, int(camera_settings['resolution'][0]/2), callback)
+        cv2.createTrackbar("CrossLineTop", current_window_name, cross_line_top, int(camera_settings['resolution'][1]/5), callback)
+        cv2.createTrackbar("LineWidthTop", current_window_name, line_width_top, int(camera_settings['resolution'][0]/2), callback)
 
 def get_trackbars_config(challenge_id):
     with open('regions_config.json') as json_config_file:
@@ -63,7 +63,7 @@ def get_trackbars_config(challenge_id):
         name = "Colour Corners"
         config = config["colour_sheets"]
     if(challenge_id!=CHALLENGE_SPEED_LINE):
-        return name, config["top"],config["bottom"],config["left"],config["right"], None, None, None, None, None, None
+        return name, config["top"],config["bottom"],config["left"],config["right"], None, None, None, None
     else:
         return name, config["top"], config["bottom"], config["left"], config["right"], config["cross_line_bottom"], config["line_width_bottom"], config["cross_line_top"], config["line_width_top"]
 

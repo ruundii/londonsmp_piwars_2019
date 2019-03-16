@@ -71,17 +71,13 @@ class CentroidAreaTracker():
 				#populate list of possible correspondences and difference index (distance multiplied by area discrepancy)
 				registered_object_index = 0
 				differences = []
-				for registered_object_descriptor in registered_object_descriptors:
+				for (registered_object_start, registered_object_end, registered_object_width, registered_object_distance, registered_object_x_angle) in registered_object_descriptors:
 					frame_object_index = 0
-					for frame_object_descriptor in frame_object_descriptors:
-						area_ratio = max(registered_object_descriptor[2], frame_object_descriptor[2])/min(registered_object_descriptor[2], frame_object_descriptor[2])
-						# if (area_ratio >= 2):
-						# 	print('area ratio >2')
-						# if(area_ratio<2): #if area difference is more than 2x - do not even consider correspondence
+					for (frame_object_start, frame_object_end, frame_object_width, frame_object_distance, frame_object_x_angle) in frame_object_descriptors:
+						width_ratio = max(registered_object_width, frame_object_width)/min(registered_object_width, frame_object_width)
 						difference = math.sqrt(
-							(registered_object_descriptor[0]-frame_object_descriptor[0])**2 +
-							(registered_object_descriptor[1]-frame_object_descriptor[1])**2
-						) * area_ratio
+							((registered_object_start+registered_object_end)/2 - (frame_object_start+frame_object_end)/2)**2
+						) * width_ratio
 						differences.append((difference, registered_object_index, frame_object_index))
 						frame_object_index += 1
 					registered_object_index += 1

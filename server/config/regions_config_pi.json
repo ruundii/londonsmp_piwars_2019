@@ -10,8 +10,8 @@
     "line_width_top": 10
   },
   "labyrinth": {
-    "top": 100,
-    "bottom": 210,
+    "top": 0,
+    "bottom": 0,
     "left": 0,
     "right": 0
   },

@@ -1,13 +1,19 @@
 from videoutils import centroid_area_tracker
 import cv2
 import config.constants_global as constants
-import numpy as np
+import math
 import time
-alien_template_contour = None
 import json
 import videoutils.image_display as display
 from videoutils.util import get_in_range_mask
 
+min_background_pixels_in_high_area_col = 10
+min_background_pixels_in_zoom_area_col = 160
+min_background_pixels_in_high_area_row = 30
+column_stride = 40
+background_high_area_pixels_number = int(0.8*column_stride)
+min_alien_pixels_vertical = 6
+min_alien_pixels_horizontal = 4
 
 
 # https://www.pyimagesearch.com/2015/09/14/ball-tracking-with-opencv/
@@ -16,10 +22,8 @@ from videoutils.util import get_in_range_mask
 
 class AlienDetector:
     def __init__(self):
-        self.counter = 0
         self.resolution = (100,100)
         self.fov = None
-        self.kernel = np.ones((7, 7), np.uint8)
         with open(constants.colour_config_name) as json_config_file:
             config = json.load(json_config_file)
         self.colour_config = config["alien_hsv_ranges"]
@@ -30,120 +34,131 @@ class AlienDetector:
         self.resolution = actual_resolution
         self.fov = fov
 
-    def __is_alien_contour(self, contour, image_hsv, green_mask):
-        x, y, w, h = cv2.boundingRect(contour)
-        sideRatio = h / w
+    def __find_roi(self, image_hsv):
+        background_mask = get_in_range_mask(image_hsv, tuple(self.colour_config["background_min"]), tuple(self.colour_config["background_max"]))
+        background_mask_col_aggr = cv2.reduce(background_mask, 0, cv2.REDUCE_SUM, dtype=cv2.CV_32S).get()[0, :]/255
+        background_start_col_index = -1
+        background_end_col_index = -1
+        is_picture_zoomed_on_a_wall = max(background_mask_col_aggr)>min_background_pixels_in_zoom_area_col
+        if is_picture_zoomed_on_a_wall:
+            #picture is zoomed on wall, don't cut from the sides
+            background_start_col_index=0
+            background_end_col_index = len(background_mask_col_aggr)-1
+        else:
+            for i in range(len(background_mask_col_aggr)):
+                if background_mask_col_aggr[i] > min_background_pixels_in_high_area_col:
+                    background_start_col_index = i
+                    break
+            for i in range(len(background_mask_col_aggr)):
+                if background_mask_col_aggr[len(background_mask_col_aggr)-i-1] > min_background_pixels_in_high_area_col:
+                    background_end_col_index = len(background_mask_col_aggr)-i-1
+                    break
+            if background_start_col_index < 0 or background_end_col_index <0:
+                return None, None, 0, 0, 0, 0, 0  # return_no_alien
 
-        # check ellipse radius ratio and height
-        if sideRatio < 1.1 or sideRatio > 3 or h < 3:
-            #print('killing by weird rect', ellipse)
-            return (False, None, None, None, None, None)
+        background_mask = get_in_range_mask(image_hsv, tuple(self.colour_config["background_min"]), tuple(self.colour_config["background_max"]))
 
-        # check area
-        if w*h < 50:
-            #print('killing by area', ellipse)
-            return (False, None, None, None, None, None)
+        background_mask_row_aggr = cv2.reduce(background_mask, 1, cv2.REDUCE_SUM, dtype=cv2.CV_32S).get()[:, 0]/255
 
-        # check background
-        y_border = max(int(h / 2), 15)
-        x_border = max(int(w / 2), 15)
-        y1 = max(int(y) - y_border, 0)
-        y2 = min(int(y+h) + y_border, self.resolution[1])
-        x1 = max(int(x) - x_border, 0)
-        x2 = min(int(x+w) + x_border, self.resolution[0])
-        extended_rectange = image_hsv.get()[y1:y2, x1:x2].copy()
-        #extended_rectange_mask = green_mask.get()[y1:y2, x1:x2]
-        t = time.time()
-        #_, contours, _ = cv2.findContours(extended_rectange_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_TC89_L1)
-        # contour -= [x1,y1]
-        # if (constants.performance_tracing_alien_detector_details):
-        #     print('alien_detector.detect_aliens.__is_alien_contour.cv2.findContours:', time.time() - t)
-        # black_img = np.zeros([y2 - y1, x2 - x1, 1], dtype=np.uint8)
-        # #drawn_contour = cv2.drawContours(black_img, contour, -1, 255, thickness=-1)
-        # drawn_contour = cv2.fillPoly(black_img, contour, 255)
-        # display.image_display.add_image_to_queue("drawn_contour", drawn_contour)
-        # drawn_contour_dilated = cv2.dilate(drawn_contour, self.kernel, iterations=1)
-        # display.image_display.add_image_to_queue("drawn_contour_dilated", drawn_contour_dilated)
+        background_start_row_index = -1
+        background_end_row_index = -1
+        for i in range(len(background_mask_row_aggr)):
+            if background_mask_row_aggr[i] > min_background_pixels_in_high_area_row:
+                background_start_row_index = i
+                break
+        for i in range(len(background_mask_row_aggr)):
+            if background_mask_row_aggr[len(background_mask_row_aggr)-i-1] > min_background_pixels_in_high_area_row:
+                background_end_row_index = len(background_mask_row_aggr)-i-1
+                break
+        if background_start_row_index < 0 or background_end_row_index <0:
+            return None, None, 0, 0, 0, 0, 0 #return_no_alien
 
-        #background = cv2.bitwise_and(extended_rectange, extended_rectange, mask=cv2.bitwise_not(extended_rectange_mask))
-        #display.image_display.add_image_to_queue("background", background)
-        matching_background  = get_in_range_mask(extended_rectange,tuple(self.colour_config["background_min"]), tuple(self.colour_config["background_max"]))
-        #display.image_display.add_image_to_queue("matching_background", matching_background)
-        #matching_background_plus_mask = cv2.drawContours(matching_background, contours, -1, 255, -1)
-        #matching_background_plus_mask = cv2.bitwise_or(matching_background, drawn_contour_dilated)
-        #display.image_display.add_image_to_queue("Crop mask", matching_background_plus_mask)
-        mean = cv2.mean(matching_background)[0]+255*cv2.contourArea(contour)/((x2-x1)*(y2-y1))
-        if (mean < 220):
-            #print('killing by background', ellipse, mean)
-            return (False, None, None, None, None, None)
+        #cut the roi
+        image_hsv_cut = image_hsv.get()[background_start_row_index:background_end_row_index, background_start_col_index:background_end_col_index]
 
-        # print('likelihood: ', likelihood, ' area:', area, ' height:', ellipse[1][1], ' ellipse ratio:', ellipseRatio, ' mean:',mean[0])
-        return (True, x, y, w, h, w*h)
+        #fill surroundings of the red area
+        if not is_picture_zoomed_on_a_wall:
+            background_mask_cut = background_mask.get()[background_start_row_index:background_end_row_index, background_start_col_index:background_end_col_index]
+            w = background_end_col_index-background_start_col_index
+            for i in range(math.ceil(w/float(column_stride))):
+                if((i+1)*column_stride>w):
+                    if w > column_stride:
+                        stride_start_index = w-column_stride
+                        stride_end_index = w
+                    else:
+                        stride_start_index = 0
+                        stride_end_index = w
+                else:
+                    stride_start_index = i*column_stride
+                    stride_end_index = (i+1)*column_stride
+                stride_window = cv2.UMat(background_mask_cut[:,stride_start_index:stride_end_index])
+                stride_background_row_aggr = cv2.reduce(stride_window, 1, cv2.REDUCE_SUM, dtype=cv2.CV_32S).get()[:,0] / 255
+                for i in range(len(stride_background_row_aggr)):
+                    if stride_background_row_aggr[i] > background_high_area_pixels_number:
+                        #make all above black
+                        image_hsv_cut[0:i,stride_start_index:stride_end_index]=0
+                        break
+                for i in range(len(stride_background_row_aggr)):
+                    if stride_background_row_aggr[
+                        len(stride_background_row_aggr) - i - 1] > background_high_area_pixels_number:
+                        #make all below black
+                        image_hsv_cut[len(stride_background_row_aggr) - i - 1:len(stride_background_row_aggr)-1,stride_start_index:stride_end_index]=0
+                        break
+                #display.image_display.add_image_to_queue("stride"+str(i), stride_window)
+
+        return cv2.UMat(image_hsv_cut), background_mask, len(background_mask_row_aggr), background_start_row_index,background_end_row_index,background_start_col_index,background_end_col_index
+
+
 
     def detect_aliens(self, image, image_hsv):
-        detected_image = image.get().copy() if constants.image_processing_tracing_record_video or constants.image_processing_tracing_show_detected_objects else None
         t = time.time()
-        contours, mask = self.__get_alien_contours(image_hsv)
-        if constants.performance_tracing_alien_detector_details: print('alien_detector.detect_aliens.__get_alien_contours:',time.time()-t)
-        if constants.image_processing_tracing_show_colour_mask:
-            display.image_display.add_image_to_queue("ColourMask", mask)
-        if constants.image_processing_tracing_show_background_colour_mask:
-            back_mask = get_in_range_mask(image_hsv, tuple(self.colour_config["background_min"]), tuple(self.colour_config["background_max"]))
-            display.image_display.add_image_to_queue("BackColourMask", back_mask)
+        image_hsv, background_mask, h, row_start, row_end, col_start, col_end = self.__find_roi(image_hsv)
+        aliens_list = []
+        if image_hsv is not None:
+            green_mask = cv2.UMat(get_in_range_mask(image_hsv, tuple(self.colour_config["green_min"]),tuple(self.colour_config["green_max"])))
+            green_mask_col_aggr = cv2.reduce(green_mask, 0, cv2.REDUCE_SUM, dtype=cv2.CV_32S).get()[0, :] / 255
+            alien_found = False
+            alien_start_index = None
+            for i in range(len(green_mask_col_aggr)):
+                if not alien_found and green_mask_col_aggr[i]>=min_alien_pixels_vertical:
+                    alien_found = True
+                    alien_start_index = i
+                    alien_end_index = i
+                    prev_index = i - 1
+                    while prev_index>=0:
+                        if green_mask_col_aggr[prev_index]>=2:
+                            alien_start_index = prev_index
+                            prev_index -= 1
+                        else:
+                            break
+                if alien_found:
+                    if green_mask_col_aggr[i]>=2:
+                        alien_end_index = i
+                        if i == len(green_mask_col_aggr)-1:
+                            alien_found = False
+                    else:
+                        alien_found = False
+                    if not alien_found and alien_end_index>=alien_start_index-min_alien_pixels_horizontal:
+                        aliens_list.append((alien_start_index, alien_end_index))
 
-        real_contours_num = 0
         aliens = []
-        for contour in contours:
-            is_alien_contour, alien_x, alien_y, alien_w, alien_h, alien_area = self.__is_alien_contour(contour, image_hsv, mask)
-            if not is_alien_contour:
-                continue
-            w = self.resolution[0]
-            h = self.resolution[1]
-            distance = constants.alien_image_height_mm / alien_h * constants.alien_distance_multiplier + constants.alien_distance_offset
-            x = min(max(alien_x, 0), w)
-            y = min(max(alien_y, 0), h)
-            x_angle = ((x - w / 2.0) / w) * self.fov[0]
-            y_angle = ((h / 2.0 - y) / h) * self.fov[1]
-            aliens.append((x, y, alien_area, distance, x_angle, y_angle))
+        if constants.image_processing_tracing_show_detected_objects or constants.image_processing_tracing_record_video:
+            detected_image = image.get().copy()
+        for (start,end) in aliens_list:
+            w = end-start
             if constants.image_processing_tracing_show_detected_objects or constants.image_processing_tracing_record_video:
-                cv2.rectangle(detected_image, (alien_x, alien_y),(alien_x+alien_w, alien_y+alien_h), (0,125,255), 2)
-            real_contours_num = real_contours_num + 1
-        if constants.image_processing_tracing_show_detected_objects:
-            display.image_display.add_image_to_queue("detected", detected_image)
-        self.counter += 1
-        #print(real_contours_num, ":", len(contours))
+                cv2.rectangle(detected_image, (col_start+start, 0),(col_start+end, h), (0,125,255), 2)
+            distance = constants.alien_image_width_mm / w * constants.alien_distance_multiplier + constants.alien_distance_offset
+            x_angle = (((start+end) / 2.0) / w) * self.fov[0]
+            aliens.append((start, end, distance, x_angle))
+
+        if constants.performance_tracing_alien_detector_details: print('alien_detector.detect_aliens.inside:',time.time()-t)
+        if constants.image_processing_tracing_show_colour_mask:
+            display.image_display.add_image_to_queue("ColourMask", green_mask)
+        if constants.image_processing_tracing_show_background_colour_mask:
+            display.image_display.add_image_to_queue("BackColourMask", background_mask)
+
+        display.image_display.add_image_to_queue("detected", detected_image) if constants.image_processing_tracing_record_video or constants.image_processing_tracing_show_detected_objects else None
+
         return self.alien_tracker.update(aliens), detected_image
-
-    def __get_alien_contours(self, image_hsv):
-        #frame = imutils.resize(frame, width=600)
-        #image_hsv = cv2.medianBlur(image_hsv, 15)
-        #image_hsv = cv2.GaussianBlur(image_hsv, (11, 11), 0)
-        t = time.time()
-        mask = get_in_range_mask(image_hsv, tuple(self.colour_config["green_min"]), tuple(self.colour_config["green_max"]))
-        if constants.performance_tracing_alien_detector_details and self.resolution[0]>400:
-            print('alien_detector.__get_alien_contours.apply_green_mask:', time.time() - t)
-            t=time.time()
-
-        #mask = cv2.erode(mask, None, iterations=2)
-        #mask = cv2.dilate(mask, None, iterations=2)
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (4, 4))
-        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
-        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
-        if constants.performance_tracing_alien_detector_details and self.resolution[0]>400:
-            print('alien_detector.__get_alien_contours.morphology:', time.time() - t)
-            t=time.time()
-
-        contours = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        if(len(contours)==2):
-            contours = contours[0]
-        else: contours=contours[1]
-        if constants.performance_tracing_alien_detector_details and self.resolution[0]>400:
-            print('alien_detector.__get_alien_contours.find_contours:', time.time() - t)
-            t=time.time()
-
-        #im3 = cv2.drawContours(image_hsv, contours, -1, 255, -1)
-        #cv2.imshow("Contours", im3)
-        #preview = cv2.bitwise_and(image_hsv, image_hsv, mask=mask)
-        #cv2.imshow("Preview", preview)
-        return contours, mask
 

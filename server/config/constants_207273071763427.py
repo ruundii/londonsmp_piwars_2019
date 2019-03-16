@@ -23,15 +23,31 @@ video_stream_module = "videoutils.video_stream_webcam"
 camera_id = "surface"
 is_rgb_not_bgr=False
 camera_settings_aliens = {
-    'resolution' : (640,480),
-    'framerate' : 30
+    'resolution' : (1280,720),
+    'resolution_resized' : (320,180),
+    'iso':800,
+    'awb_mode':'off',
+    'brightness': 55,
+    'saturation':40,
+    'framerate' : 20
 }
 camera_settings_coloured_sheet = {
-    'resolution': (640, 480),
+    'resolution' : (320,240),
+    'iso':800,
+    'awb_mode':'off',
+    'brightness': 55,
+    'saturation':40,
     'framerate': 30
 }
 camera_settings_speed_track = {
-    'resolution': (640, 480),
-    'framerate': 40
+    'resolution' : (320,240),
+    'iso':800,
+    'awb_mode':'off',
+    'brightness': 75,
+    'contrast': 50,
+    'saturation':40,
+    'framerate': 40,
+    'video_denoise':False,
+    'shutter_speed_setting':'shutter_speed_shortened'
 }
 camera_fov = (60, 50)
