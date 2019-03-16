@@ -17,7 +17,7 @@ class RobotCamera:
         self.running = False
         self.resolution = camera_settings['resolution']
         self.framerate = camera_settings['framerate']
-        self.resize_resolution = None if 'resolution_resized' in camera_settings else camera_settings['resolution_resized']
+        self.resize_resolution = None if 'resolution_resized' not in camera_settings else camera_settings['resolution_resized']
         self.camera_matrix = None
         self.distortion_coeffs = None
         self.new_camera_matrix = None
@@ -135,7 +135,7 @@ class RobotCamera:
             if self.resize_resolution is not None:
                 self.original_frame = cv2.resize(self.original_frame, self.resize_resolution)
             im = self.original_frame# self.undistort(self.original_frame)
-            if(self.region_of_interest is not None):
+            if(self.region_of_interest is not None and (self.region_of_interest[0]>0 or self.region_of_interest[1]>0 or self.region_of_interest[2]>0 or self.region_of_interest[3]>0)):
                 im = im[self.region_of_interest[0]:len(im)-self.region_of_interest[1], self.region_of_interest[2]:len(im[0])-self.region_of_interest[3]]
             umat_im = cv2.UMat(im)
             umat_im_hsv = None
@@ -151,7 +151,7 @@ class RobotCamera:
                 self.image_hsv = umat_im_hsv
                 self.image_gray = umat_im_gray
                 self.frame_timestamp = timestamp
-            if constants.performance_tracing_robot_camera_image_preparation: print('robot_camera.process_frames:',time.time()-t)
+            if constants.performance_tracing_robot_camera_image_preparation: print('robot_camera.process_frames:',time.time()-t, 'lag:',time.time()-timestamp)
 
 
     def detect_aliens(self):

@@ -132,10 +132,9 @@ class CameraProcessor:
                     if alien_objects is not None:
                         for (alien_id, alien_object) in alien_objects.items():
                             payload['aliens'].append(
-                                {'id': int(alien_id), 'distance': int(round(alien_object[3] * 100)), 'xAngle': int(round(alien_object[4])), 'yAngle': int(round(alien_object[5]))})
+                                {'id': int(alien_id), 'distance': int(round(alien_object[3] * 100)), 'xAngle': int(round(alien_object[4])), 'yAngle': 0})
                     if self.on_alien_update_handler is not None:
                         self.on_alien_update_handler(payload)
-                    cv2.imwrite("image_files/"+str(frame_num)+".png",self.camera.original_frame)
                     self.write_trace_video_frame(detected_image, frame_timestamp)
                     #time.sleep(0.1)
                 elif (self.camera_mode == CAMERA_MODE_DETECT_COLOURED_SHEETS):
