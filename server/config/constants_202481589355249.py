@@ -2,8 +2,8 @@
 joystick_left_axis = 1
 joystick_right_axis = 4
 
-alien_distance_multiplier = 1.0/2.1
-alien_distance_offset = 0
+alien_distance_multiplier = 1.0/4.4
+alien_distance_offset = 0.05
 
 coloured_sheet_distance_multiplier = 1.0/2.2
 coloured_sheet_distance_offset = 0.1
@@ -21,14 +21,16 @@ camera_calibrations_path = "videoutils/calibrations"
 video_stream_module = "videoutils.video_stream_pi"
 
 camera_id = "pi640"
+camera_flip = False
 is_rgb_not_bgr=True
 camera_settings_aliens = {
-    'resolution' : (640,480),
+    'resolution' : (1280,720),
+    'resolution_resized' : (320,180),
     'iso':800,
     'awb_mode':'off',
     'brightness': 55,
     'saturation':40,
-    'framerate' : 30
+    'framerate' : 10,
 }
 camera_settings_coloured_sheet = {
     'resolution' : (320,240),

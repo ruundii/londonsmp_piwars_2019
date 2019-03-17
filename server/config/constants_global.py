@@ -1,7 +1,7 @@
 alien_image_width_mm = 75
 coloured_sheet_height_mm = 200#260
 
-image_processing_tracing_record_video = False
+image_processing_tracing_record_video = True
 
 image_processing_tracing_show_original = False
 image_processing_tracing_show_region_of_interest = False

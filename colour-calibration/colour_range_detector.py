@@ -21,7 +21,7 @@ camera_settings = {'resolution' : (1280,720),
     'iso':800,
     'brightness': 55,
     'saturation':40,
-    'framerate' : 30,
+    'framerate' : 10,
     'awb_mode' : 'off',
                    }
 

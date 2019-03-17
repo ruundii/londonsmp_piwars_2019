@@ -11,11 +11,11 @@ camera = None
 current_window_name = "Trackbars"
 config_file_lock = Lock()
 
-camera_settings = {'resolution' : (640,480),
+camera_settings = {'resolution' : (1280,720),
     'iso':800,
     'brightness': 55,
     'saturation':40,
-    'framerate' : 20#,
+    'framerate' : 10#,
     #'shutter_speed':15000
                    }
 

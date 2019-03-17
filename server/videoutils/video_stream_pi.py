@@ -34,8 +34,9 @@ class VideoStream:
         self.camera_lock = Lock()
         self.camera.resolution = camera_settings['resolution']
         self.camera.framerate = camera_settings['framerate']
-        self.camera.vflip=True
-        self.camera.hflip = True
+        if(constants.camera_flip):
+            self.camera.vflip=True
+            self.camera.hflip = True
         self.last_read_frame_num =-1
         camera_config_file = os.path.join(os.path.normpath(os.path.join(os.path.join(os.path.realpath(__file__), os.pardir), os.pardir)), constants.camera_config_name)
         with open(camera_config_file) as json_config_file:

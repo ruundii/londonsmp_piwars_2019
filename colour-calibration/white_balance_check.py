@@ -13,12 +13,13 @@ yellow_region = [100,300,40,40]
 gray_region = [300,220,40,40]
 camera = None
 
-camera_settings = {'resolution' : (640,480),
+camera_settings = {'resolution' : (1280,720),
     'iso':800,
     'brightness': 55,
     'saturation':40,
-    'framerate' : 30,
     'awb_mode' : 'off',
+    'framerate': 10  # ,
+
                    }
 
 if is_raspberry:
