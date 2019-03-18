@@ -21,7 +21,7 @@ camera_calibrations_path = "videoutils/calibrations"
 video_stream_module = "videoutils.video_stream_pi"
 
 camera_id = "pi640"
-camera_flip = False
+camera_flip = True
 is_rgb_not_bgr=True
 camera_settings_aliens = {
     'resolution' : (1280,720),

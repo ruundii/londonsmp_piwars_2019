@@ -1,6 +1,7 @@
 import pygame
 from threading import Thread
 import time
+import serial
 
 import config.constants_global as constants
 
@@ -13,7 +14,13 @@ class JoystickProcessor:
         self.JoystickThread = None
         self.is_active = True
         self.speed_gear = 0.3
-
+        try:
+            self.serial_connection = serial.Serial("/dev/ttyUSB0", 9600, timeout=1, parity=serial.PARITY_NONE,
+                                             stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS, )
+            self.serial_present = True
+        except:
+            self.serial_present = False
+            print("no serial found at /dev/ttyUSB0")
         #Joystick initialisation
         print('joystick init')
         try:
@@ -57,6 +64,11 @@ class JoystickProcessor:
                 if event.type == pygame.QUIT:
                     self.processJoystickCommands = False
 
+                if self.serial_present and self.joystick.get_button(1):
+                    print("B pressed")
+                    self.serial_connection.write("1".encode())
+                    self.serial_connection.flush()
+
                 if self.joystick.get_button(4):
                     self.speed_control(True)
                     print("Speed UP. Gear: {}.".format(self.speed_gear))
@@ -75,6 +87,8 @@ class JoystickProcessor:
     def set_state(self, is_active):
         self.is_active = is_active
 
+
     def close(self):
         self.processJoystickCommands = False
+        if self.serial_present: self.serial_connection.close()
         self.robot_processor.close()

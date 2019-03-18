@@ -3,5 +3,5 @@ class Motor:
         pass
 
     def drive(self, speed_left, speed_right):
-        print('Stub driving:',speed_left,':',speed_right)
+        pass#print('Stub driving:',speed_left,':',speed_right)
 

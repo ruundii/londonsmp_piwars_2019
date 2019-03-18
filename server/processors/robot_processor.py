@@ -17,10 +17,12 @@ class RobotProcessor:
         self.client_server_time_difference = 0
 
     def initialise(self):
+        self.sensors_processor.start_sensor()
         print('Processor initialised')
 
     def close(self):
         self.stop_run()
+        self.sensors_processor.stop_sensor()
         print('Processor closed')
 
     def stop_run(self):

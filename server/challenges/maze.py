@@ -9,11 +9,17 @@ except:
     from processors.robot_processor import RobotProcessor
 
 current_aliens = None
+current_distances = None
 
 def alien_update(aliens):
     global current_aliens
     if aliens is not None and 'aliens' in aliens:
         current_aliens = aliens['aliens']
+
+def distance_update(distances):
+    global current_distances
+    if distances is not None and 'readings' in distances:
+        current_distances = distances['readings']
 
 def find_first_alien_target():
     while current_aliens is None or len(current_aliens) == 0:
@@ -67,6 +73,7 @@ try:
     processor = RobotProcessor()
     processor.initialise()
     processor.set_alien_update_handler(alien_update)
+    processor.set_distance_update_handler(distance_update)
     processor.set_camera_mode(0)
     alien = find_first_alien_target()
     follow_alien(alien)
