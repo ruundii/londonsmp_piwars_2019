@@ -1,4 +1,5 @@
 import time, math
+import asyncio
 
 try:
     from processors.robot_processor import RobotProcessor
@@ -10,6 +11,7 @@ except:
 
 current_aliens = None
 current_distances = None
+processor = None
 
 def alien_update(aliens):
     global current_aliens
@@ -21,41 +23,54 @@ def distance_update(distances):
     if distances is not None and 'readings' in distances:
         current_distances = distances['readings']
 
-def find_first_alien_target():
+async def find_first_alien_target():
     while current_aliens is None or len(current_aliens) == 0:
-        time.sleep(0.05)
-    print(current_aliens)
+        await asyncio.sleep(0.05)
     central_alien = sorted(current_aliens,key=lambda r:math.fabs(r['xAngle']))[0]
-    print(central_alien)
+    print("first alien found:",central_alien)
     return central_alien
 
-def follow_alien(alien):
+async def follow_alien(alien):
     while True:
+        print("following alien", alien['id'])
         aliens_by_id = [a for a in current_aliens if a['id']==alien['id']]
         if aliens_by_id is None or len(aliens_by_id)<1:
+            print("missed alien. stopping", alien)
             processor.drive(0,0)
             return
-        if aliens_by_id[0]['distance'] < 20:
+        print("updated alien details",aliens_by_id[0])
+        if current_distances is not None and 'C' in current_distances:
+            print("sensor distance",current_distances['C'])
+        if aliens_by_id[0]['distance'] < 25:
+            print("distance is too close. stopping", aliens_by_id[0]['distance'])
+            processor.drive(0,0)
+            return
+        if current_distances is not None and 'C' in current_distances and current_distances['C'] < 25:
+            print("ultrasonic distance is too low. stopping")
             processor.drive(0,0)
             return
         if aliens_by_id[0]['xAngle']<8 and aliens_by_id[0]['xAngle']>-8:
-            processor.drive(10,10)
+            print("straight angle, driving straight", aliens_by_id[0]['xAngle'])
+            processor.drive(15,15)
         elif aliens_by_id[0]['xAngle']>=8:
-            processor.drive(10, 0)
+            print("alien to the right, driving right", aliens_by_id[0]['xAngle'])
+            processor.drive(25, 0)
         elif aliens_by_id[0]['xAngle']<=-8:
-            processor.drive(-10, 0)
+            print("alien to the left, driving right", aliens_by_id[0]['xAngle'])
+            processor.drive(0, 25)
+        await asyncio.sleep(0.01)
 
-def turn_to_next_alien(is_left_turn, last_alien):
+async def turn_to_next_alien(is_left_turn, last_alien):
     while True:
         if current_aliens is not None and len(current_aliens) > 0:
             aliens_by_id = [a for a in current_aliens if a['id'] == last_alien['id']]
             max_x_angle = 1000
             min_x_angle = -1000
-            if aliens_by_id is not None and len(aliens_by_id) < 1:
+            if aliens_by_id is not None and len(aliens_by_id) > 0:
                 if is_left_turn:
-                    max_x_angle = aliens_by_id['xAngle']-1
+                    max_x_angle = aliens_by_id[0]['xAngle']-1
                 else:
-                    min_x_angle = aliens_by_id['xAngle']+1
+                    min_x_angle = aliens_by_id[0]['xAngle']+1
             if is_left_turn:
                 alien_candidates = [a for a in current_aliens if a['xAngle'] <= max_x_angle]
             else:
@@ -68,19 +83,25 @@ def turn_to_next_alien(is_left_turn, last_alien):
             processor.drive(-10, 10)
         else:
             processor.drive(10, -10)
+        await asyncio.sleep(0.001)
 
-try:
-    processor = RobotProcessor()
-    processor.initialise()
-    processor.set_alien_update_handler(alien_update)
-    processor.set_distance_update_handler(distance_update)
-    processor.set_camera_mode(0)
-    alien = find_first_alien_target()
-    follow_alien(alien)
-    for turn in [True, True, False, False, True, True, True]:
-        turn_to_next_alien(turn, alien)
-        follow_alien(alien)
-    while True:
-        time.sleep(1)
-except KeyboardInterrupt:
-    processor.close()
+async def main():
+    try:
+        global processor
+        processor = RobotProcessor()
+        processor.initialise()
+        processor.set_alien_update_handler(alien_update)
+        processor.set_distance_update_handler(distance_update)
+        processor.set_camera_mode(0)
+        alien = await find_first_alien_target()
+        await follow_alien(alien)
+        # for turn in [True, True, False, False, True, True, True]:
+        #     alien = await turn_to_next_alien(turn, alien)
+        #     await follow_alien(alien)
+    except KeyboardInterrupt:
+        processor.close()
+
+if __name__ == '__main__':
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main())
+    loop.close()

@@ -24,9 +24,8 @@ camera_id = "pi640"
 camera_flip = False
 is_rgb_not_bgr=True
 camera_settings_aliens = {
-#    'resolution' : (1280,720),
-#    'resolution_resized' : (320,180),
-    'resolution' : (320,240),
+    'resolution' : (1280,720),
+    'resolution_resized' : (320,180),
     'iso':800,
     'awb_mode':'off',
     'brightness': 55,

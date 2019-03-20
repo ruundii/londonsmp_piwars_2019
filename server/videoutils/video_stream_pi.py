@@ -109,7 +109,7 @@ class VideoStream:
             with self.camera_lock:
                 if self.camera is None:
                     return
-                self.camera.wait_recording()
+                self.camera.wait_recording(timeout=1)
                 if self.stopped:
                     self.camera.stop_recording()
                     self.camera.close()

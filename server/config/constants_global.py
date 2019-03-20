@@ -1,7 +1,7 @@
 alien_image_width_mm = 75
 coloured_sheet_height_mm = 200#260
 
-image_processing_tracing_record_video = False
+image_processing_tracing_record_video = True
 
 image_processing_tracing_show_original = False
 image_processing_tracing_show_region_of_interest = False
@@ -10,7 +10,7 @@ image_processing_tracing_show_background_colour_mask = False
 image_processing_tracing_show_detected_objects = False
 
 performance_tracing_robot_camera_image_preparation = False
-performance_tracing_robot_camera_detect_aliens = True
+performance_tracing_robot_camera_detect_aliens = False
 performance_tracing_alien_detector_details = False
 performance_tracing_robot_camera_detect_coloured_sheets = False
 performance_tracing_robot_camera_detect_white_line = False

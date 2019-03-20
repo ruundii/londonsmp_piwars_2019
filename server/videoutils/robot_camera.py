@@ -155,11 +155,17 @@ class RobotCamera:
                 self.frame_timestamp = timestamp
             if constants.performance_tracing_robot_camera_image_preparation: print('robot_camera.process_frames:',time.time()-t, 'lag:',time.time()-timestamp)
 
+    def is_image_ready(self, expect_hsv, expect_gray):
+        if self.image is None:
+            return False
+        if expect_hsv and self.image_hsv is None:
+            return False
+        if expect_gray and self.image_gray is None:
+            return False
+        return True
 
     def detect_aliens(self):
         t = time.time()
-        if self.image is None or self.image_hsv is None:
-            return None, None, None
         frame_timestamp = self.frame_timestamp
         aliens, detected_image = self.alien_detector.detect_aliens(self.image, self.image_hsv)
         if constants.performance_tracing_robot_camera_detect_aliens: print('robot_camera.detect_aliens:',time.time()-t)
@@ -167,8 +173,6 @@ class RobotCamera:
 
     def detect_coloured_sheets(self):
         t = time.time()
-        if self.image is None or self.image_hsv is None:
-            return None, None, None
         frame_timestamp = self.frame_timestamp
         coloured_sheets, detected_image = self.coloured_sheet_detector.detect_coloured_sheets(self.image, self.image_hsv)
         if constants.performance_tracing_robot_camera_detect_coloured_sheets: print('robot_camera.detect_coloured_sheets:',time.time()-t)
@@ -176,8 +180,6 @@ class RobotCamera:
 
     def detect_white_line(self):
         t = time.time()
-        if self.image is None or self.image_gray is None:
-            return None, None, None
         frame_timestamp = self.frame_timestamp
         vector, detected_image = self.white_line_detector.detect_white_line(self.image, self.image_gray)
         if constants.performance_tracing_robot_camera_detect_white_line: print('robot_camera.detect_white_line:', time.time() - t)
