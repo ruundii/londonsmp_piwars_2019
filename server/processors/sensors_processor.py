@@ -1,8 +1,8 @@
-from asyncserial import Serial
-import asyncio
+import serial
 import time
 import os
 is_raspberry = os.name != 'nt'
+from _thread import start_new_thread
 
 
 class SensorsProcessor:
@@ -17,18 +17,19 @@ class SensorsProcessor:
         self.distance_thread = None
 
     def start_sensor(self):
-        loop = asyncio.get_event_loop()
         try:
             if is_raspberry:
-                self.serial_connection = Serial(loop, "/dev/ttyUSB0", baudrate=19200)
+                self.serial_connection = serial.Serial("/dev/ttyUSB0", 19200, timeout=1, parity=serial.PARITY_NONE,
+                                                       stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS, )
             else:
-                self.serial_connection = Serial(loop, "COM3", baudrate=19200)
+                self.serial_connection = serial.Serial("COM3", 19200, timeout=1, parity=serial.PARITY_NONE,
+                                                       stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS, )
             self.distance_controller_live = True
         except Exception as e:
             self.distance_controller_live = False
             print("Could not open serial at /dev/ttyUSB0",e)
             return
-        loop.create_task(self.__process_sensor_messages())
+        start_new_thread(self.__process_sensor_messages,())
 
     def stop_sensor(self):
         self.distance_controller_live = False
@@ -36,16 +37,19 @@ class SensorsProcessor:
             self.serial_connection.close()
             self.serial_connection = None
 
-    async def __process_sensor_messages(self):
-        await self.serial_connection.read()
+    def __process_sensor_messages(self):
+        self.serial_connection.reset_input_buffer()
         # i = 0
         # orig_time = time.time()
         # t = time.time()
-        while self.distance_controller_live:
+        while True:
             # i +=1
             try:
-                readings = await self.serial_connection.readline()
-                readings = readings.decode().rstrip().split(',')
+                while self.distance_controller_live and self.serial_connection.in_waiting==0:
+                    time.sleep(0.001)
+                if not self.distance_controller_live:
+                    break
+                readings = self.serial_connection.readline().decode().rstrip().split(',')
                 # if(i%20==0):
                 #     print("t",time.time()-t, "i", i, "diff", (time.time()-orig_time), "fps",float(i)/(time.time()-orig_time), "readings", readings)
                 # t = time.time()

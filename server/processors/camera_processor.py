@@ -6,7 +6,7 @@ import cv2
 import json
 import videoutils.image_display as display
 from multiprocessing import Process, Pipe
-import asyncio
+from _thread import start_new_thread
 
 CAMERA_MODE_OFF = -1
 CAMERA_MODE_DETECT_ALIENS = 0
@@ -183,22 +183,24 @@ class CameraProcessor:
             self.camera_sub_process_pipe, sub_process_pipe = Pipe()
             self.camera_sub_process = Process(target=init_camera_subprocess,args=(sub_process_pipe, new_camera_mode))
             self.camera_sub_process.start()
-            loop = asyncio.get_event_loop()
-            loop.create_task(self.__process_camera_messages())
+            start_new_thread(self.__process_camera_messages,())
 
         self.camera_mode = new_camera_mode
 
-    async def __process_camera_messages(self):
+    def __process_camera_messages(self):
         while self.camera_mode!=CAMERA_MODE_OFF:
-            while self.camera_sub_process_pipe.poll():
-                payload = self.camera_sub_process_pipe.recv()
-                if payload['message'] == 'updateAlienReadings' and self.on_alien_update_handler is not None:
-                    self.on_alien_update_handler(payload)
-                elif payload['message'] == 'updateColouredSheetsReadings' and self.set_coloured_sheet_update_handler is not None:
-                    self.set_coloured_sheet_update_handler(payload)
-                elif payload['message'] == 'updateWhiteLineReadings' and self.on_white_line_update_handler is not None:
-                    self.on_white_line_update_handler(payload)
-                await asyncio.sleep(0.0001)
+            while self.camera_sub_process_pipe is not None and self.camera_sub_process_pipe.poll():
+                try:
+                    payload = self.camera_sub_process_pipe.recv()
+                    if payload['message'] == 'updateAlienReadings' and self.on_alien_update_handler is not None:
+                        self.on_alien_update_handler(payload)
+                    elif payload['message'] == 'updateColouredSheetsReadings' and self.set_coloured_sheet_update_handler is not None:
+                        self.set_coloured_sheet_update_handler(payload)
+                    elif payload['message'] == 'updateWhiteLineReadings' and self.on_white_line_update_handler is not None:
+                        self.on_white_line_update_handler(payload)
+                    time.sleep(0.0001)
+                except Exception as e:
+                    print("Exception in __process_camera_messages", e)
 
     def set_alien_update_handler(self, handler):
         self.on_alien_update_handler=handler

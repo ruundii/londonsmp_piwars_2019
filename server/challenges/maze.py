@@ -31,6 +31,7 @@ async def find_first_alien_target():
     return central_alien
 
 async def follow_alien(alien):
+    ultrasonic_low_distance_counter = 0
     while True:
         print("following alien", alien['id'])
         aliens_by_id = [a for a in current_aliens if a['id']==alien['id']]
@@ -41,24 +42,31 @@ async def follow_alien(alien):
         print("updated alien details",aliens_by_id[0])
         if current_distances is not None and 'C' in current_distances:
             print("sensor distance",current_distances['C'])
-        if aliens_by_id[0]['distance'] < 25:
+        if aliens_by_id[0]['distance'] < 28:
             print("distance is too close. stopping", aliens_by_id[0]['distance'])
             processor.drive(0,0)
             return
-        if current_distances is not None and 'C' in current_distances and current_distances['C'] < 25:
+        if current_distances is not None and 'C' in current_distances and current_distances['C'] < 28:
             print("ultrasonic distance is too low. stopping")
             processor.drive(0,0)
-            return
-        if aliens_by_id[0]['xAngle']<8 and aliens_by_id[0]['xAngle']>-8:
+            ultrasonic_low_distance_counter+=1
+            if ultrasonic_low_distance_counter >=5:
+                return
+            await asyncio.sleep(0.15)
+            continue
+        else:
+            ultrasonic_low_distance_counter=0
+
+        if aliens_by_id[0]['xAngle']<7 and aliens_by_id[0]['xAngle']>-7:
             print("straight angle, driving straight", aliens_by_id[0]['xAngle'])
-            processor.drive(15,15)
-        elif aliens_by_id[0]['xAngle']>=8:
+            processor.drive(10,10)
+        elif aliens_by_id[0]['xAngle']>=7:
             print("alien to the right, driving right", aliens_by_id[0]['xAngle'])
-            processor.drive(25, 0)
-        elif aliens_by_id[0]['xAngle']<=-8:
+            processor.drive(20, 0)
+        elif aliens_by_id[0]['xAngle']<=-7:
             print("alien to the left, driving right", aliens_by_id[0]['xAngle'])
-            processor.drive(0, 25)
-        await asyncio.sleep(0.01)
+            processor.drive(0, 20)
+        await asyncio.sleep(0.001)
 
 async def turn_to_next_alien(is_left_turn, last_alien):
     while True:
@@ -80,9 +88,9 @@ async def turn_to_next_alien(is_left_turn, last_alien):
                 processor.drive(0,0)
                 return next_alien
         if is_left_turn:
-            processor.drive(-10, 10)
+            processor.drive(-35, 35)
         else:
-            processor.drive(10, -10)
+            processor.drive(35, -35)
         await asyncio.sleep(0.001)
 
 async def main():
@@ -95,9 +103,18 @@ async def main():
         processor.set_camera_mode(0)
         alien = await find_first_alien_target()
         await follow_alien(alien)
+        alien = await turn_to_next_alien(True, alien)
+        await follow_alien(alien)
+        alien = await turn_to_next_alien(True, alien)
+        await follow_alien(alien)
+        alien = await turn_to_next_alien(False, alien)
+        await follow_alien(alien)
+
         # for turn in [True, True, False, False, True, True, True]:
         #     alien = await turn_to_next_alien(turn, alien)
         #     await follow_alien(alien)
+        processor.close()
+        await asyncio.sleep(0.5)
     except KeyboardInterrupt:
         processor.close()
 

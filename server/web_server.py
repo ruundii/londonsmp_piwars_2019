@@ -212,11 +212,3 @@ if __name__ == "__main__":
         processor.close()
         executor.shutdown()
         sys.exit(0)
-else:
-    try:
-        run_server()
-    except KeyboardInterrupt:
-        processor.close()
-        executor.shutdown()
-
-
