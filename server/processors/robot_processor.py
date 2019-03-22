@@ -42,6 +42,9 @@ class RobotProcessor:
     def set_distance_update_handler(self, handler):
         self.sensors_processor.set_distance_update_handler(handler)
 
+    def set_orientation_update_handler(self, handler):
+        self.sensors_processor.set_orientation_update_handler(handler)
+
     def set_line_sensors_update_handler(self, handler):
         self.sensors_processor.set_line_sensors_update_handler(handler)
 

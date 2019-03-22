@@ -10,12 +10,16 @@ except:
 
 current_aliens = None
 current_distances = None
+current_orientation = None
 last_sensor_reading_timestamp = None
 last_drive_params = (0,0)
 processor = None
 LEFT = 0
 RIGHT = 1
 TARGET_WALL_FOLLOWING_DISTANCE = 20
+NUM_PREDICT_STEPS_AHEAD = 10
+MAX_DIFFERENCE_PER_CYCLE_TO_STEER = 0.3
+
 
 def alien_update(aliens):
     global current_aliens
@@ -28,6 +32,11 @@ def distance_update(distances):
         current_distances = distances['readings']
         last_sensor_reading_timestamp = time.time()
         print("t", last_sensor_reading_timestamp, "sensor distance", current_distances)
+
+def orientation_update(orientation):
+    global current_orientation
+    current_orientation = orientation['angle']
+    print("t", time.time(), "current_orientation", current_orientation)
 
 
 def find_first_alien_target():
@@ -100,9 +109,9 @@ def turn_to_next_alien(is_left_turn, last_alien):
             drive_robot(35, -35)
             time.sleep(0.03)
 
-def little_kick():
+def little_kick(period):
     drive_robot(55, 55)
-    time.sleep(0.4)
+    time.sleep(period)
 
 def wait_until_next_sensor_reading():
     current_sensor_timestamp = last_sensor_reading_timestamp
@@ -113,7 +122,7 @@ def keep_driving_n_sensor_cycles(n):
     actual_drive_cycles = 0
     ultrasonic_low_distance_counter = 0
     for i in range(n):
-        if current_distances is not None and 'C' in current_distances and current_distances['C'] < 28:
+        if current_distances is not None and 'C' in current_distances and current_distances['C'] < 26:
             print("ultrasonic distance is too low. stopping")
             prev_last_drive_params = last_drive_params
             drive_robot(0, 0)
@@ -132,52 +141,86 @@ def drive_robot(speed_left, speed_right):
     last_drive_params = (speed_left,speed_right)
     processor.drive(speed_left,speed_right)
 
-def drive_to_wall_ahead(follow_wall=RIGHT):
-    last_difference = None
+def drive_to_wall_ahead(follow_wall=None, forward_starting_distance = None):
+    if(follow_wall is None):
+        drive_robot(15, 15)
+        keep_driving_n_sensor_cycles(1000)
+        return
+    #initial measurement of direction
+    last_difference = current_distances['R' if follow_wall == RIGHT else 'L'] - TARGET_WALL_FOLLOWING_DISTANCE
+    drive_robot(15, 15)
+    wait_until_next_sensor_reading()
+    cycles_driven, _ = keep_driving_n_sensor_cycles(7)
+    low_forward_reading = False
     while True:
-        #use pd control to follow the wall
-        if current_distances is None or (follow_wall == RIGHT and 'R' not in current_distances) or (follow_wall == LEFT and 'L' not in current_distances):
-            drive_robot(0, 0)
-            wait_until_next_sensor_reading()
-            continue
-
+        if forward_starting_distance is not None:
+            if current_distances['C']<forward_starting_distance:
+                if low_forward_reading:
+                    keep_driving_n_sensor_cycles(1000)
+                    return
+                else:
+                    low_forward_reading = True
+                    continue
+            else:
+                low_forward_reading = False
         current_difference = current_distances['R' if follow_wall==RIGHT else 'L']-TARGET_WALL_FOLLOWING_DISTANCE
 
-        difference_derivative  = 0 if last_difference is None else current_difference-last_difference
-        print("current_difference", current_difference, "difference_derivative", difference_derivative)
-        if math.fabs(current_difference)>5 or difference_derivative>2:
-            few_steps_ahead_prediction = current_difference+10*difference_derivative
-            if math.fabs(few_steps_ahead_prediction)>3:
-                if current_difference/few_steps_ahead_prediction > 0: #same sign of current difference and prediction - not enough to recover in 4 steps, need to steer more
-                    steer_factor = 1
-                else: #different sign, overshoot, need to steer reverse
-                    steer_factor = -1
+        difference_derivative_per_cycle  = (current_difference-last_difference)/cycles_driven if cycles_driven>0 else 0
+        print("current_difference", current_difference, "difference_derivative_per_cycle ", difference_derivative_per_cycle )
+        few_steps_ahead_prediction = current_difference + NUM_PREDICT_STEPS_AHEAD * difference_derivative_per_cycle
+        if math.fabs(few_steps_ahead_prediction)>7:
             #correct the course
+            if current_difference/few_steps_ahead_prediction > 0: #same sign of current difference and prediction - not enough to recover in 4 steps, need to steer more
+                steer_factor = few_steps_ahead_prediction/math.fabs(few_steps_ahead_prediction)
+            else: #different sign, overshoot, need to steer reverse
+                steer_factor = -few_steps_ahead_prediction/math.fabs(few_steps_ahead_prediction)
             sign_factor = steer_factor if follow_wall == RIGHT else -steer_factor
-            drive_robot(sign_factor*20, sign_factor*-20)
-            print("t", time.time(), "steerting driving", sign_factor*20, sign_factor*-20)
-            time.sleep(math.fabs(few_steps_ahead_prediction)*0.01)
+            if math.fabs(difference_derivative_per_cycle) < MAX_DIFFERENCE_PER_CYCLE_TO_STEER or difference_derivative_per_cycle/few_steps_ahead_prediction>0:
+                #if difference_derivative_per_cycle is not that big or we are looking to reduce it with steer in opposite direction
+                drive_robot(sign_factor*30, sign_factor*-30)
+                print("t", time.time(), "steerting driving", sign_factor*30, sign_factor*-30, "for",math.fabs(few_steps_ahead_prediction)*0.007)
+                time.sleep(math.fabs(few_steps_ahead_prediction)*0.007)
         #go forward and calc next derivative from sensors
-        print("finished steerting driving")
-        drive_robot(20, 20)
+        print("t", time.time(), "finished steerting driving")
+        drive_robot(15, 15)
+        wait_until_next_sensor_reading()
+        current_difference = current_distances['R' if follow_wall==RIGHT else 'L']-TARGET_WALL_FOLLOWING_DISTANCE
         last_difference = current_difference
-        time.sleep(0.3)
-        # #wait until next sensor signal comes in
-        # while current_sensor_timestamp+0.0001>=last_sensor_reading_timestamp:
-        #     await asyncio.sleep(0.001)
-        # print("got next reading", time.time())
-        # current_sensor_timestamp=last_sensor_reading_timestamp
-        # if current_distances is None or (follow_wall == RIGHT and 'R' not in current_distances) or (follow_wall == LEFT and 'L' not in current_distances):
-        #     drive_robot(0, 0)
-        #     await asyncio.sleep(0.01)
-        #     continue
-        # else:
-        #     last_difference = current_distances['R' if follow_wall==RIGHT else 'L']-TARGET_WALL_FOLLOWING_DISTANCE
-        #     print("last_difference after steering", last_difference)
-        # while current_sensor_timestamp+0.0001>=last_sensor_reading_timestamp:
-        #     await asyncio.sleep(0.001)
-        # print("got further next reading", time.time())
+        cycles_driven, wall_ahead = keep_driving_n_sensor_cycles(NUM_PREDICT_STEPS_AHEAD)
+        if wall_ahead:
+            break
 
+
+
+def turn(direction):
+    start_orientation = current_orientation
+    if direction==RIGHT:
+        drive_robot(50, -50)
+    else:
+        drive_robot(-50, 50)
+
+    while True:
+        if direction==RIGHT and current_orientation - start_orientation < -89:
+            break
+        if direction==LEFT and current_orientation - start_orientation > 89:
+            break
+        time.sleep(0.01)
+
+    # cycles_turning = 0
+    # while True:
+    #     current_side_distance = current_distances['L' if direction==RIGHT else 'R']
+    #     current_front_distance = current_distances['C']
+    #     side_diff = current_side_distance-TARGET_WALL_FOLLOWING_DISTANCE
+    #     if(current_front_distance>50):
+    #         keep_driving_n_sensor_cycles(int(cycles_turning/2.0))
+    #         drive_robot(0, 0)
+    #         break
+    #     if direction==RIGHT:
+    #         drive_robot(50, -50)
+    #     else:
+    #         drive_robot(-50, 50)
+    #     wait_until_next_sensor_reading()
+    #     cycles_turning +=1
 
 def main():
     try:
@@ -185,10 +228,27 @@ def main():
         processor = RobotProcessor()
         processor.initialise()
         processor.set_distance_update_handler(distance_update)
-        while current_distances is None:
+        processor.set_orientation_update_handler(orientation_update)
+        while current_distances is None or current_orientation is None:
             time.sleep(0.005)
-        #little_kick()
+        little_kick(0.4)
         drive_to_wall_ahead(follow_wall=RIGHT)
+        turn(direction=LEFT)
+        drive_to_wall_ahead(follow_wall=RIGHT)
+        turn(direction=LEFT)
+        drive_to_wall_ahead()
+        turn(direction=RIGHT)
+        drive_to_wall_ahead(follow_wall=LEFT)
+        turn(direction=RIGHT)
+        drive_to_wall_ahead()
+        turn(direction=LEFT)
+        drive_to_wall_ahead(follow_wall=RIGHT)
+        turn(direction=LEFT)
+        drive_to_wall_ahead(follow_wall=RIGHT)
+        turn(direction=LEFT)
+        drive_to_wall_ahead(follow_wall=RIGHT, forward_starting_distance=70)
+        turn(direction=RIGHT)
+        little_kick(0.4)
         processor.close()
         time.sleep(0.5)
     except KeyboardInterrupt:
