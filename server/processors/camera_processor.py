@@ -17,20 +17,20 @@ import os
 havedisplay = "DISPLAY" in os.environ or os.name == 'nt'
 display.image_display.set_mode(havedisplay)
 
-def init_camera_subprocess(pipe, camera_mode):
-    camera_process_controller = CameraProcessController(pipe, camera_mode)
+def init_camera_subprocess(pipe, camera_mode, camera_mode_set_time):
+    camera_process_controller = CameraProcessController(pipe, camera_mode, camera_mode_set_time)
     camera_process_controller.run_camera_processing_loop()
     pipe.close()
 
 class CameraProcessController():
-    def __init__(self, pipe, camera_mode):
+    def __init__(self, pipe, camera_mode, camera_mode_set_time):
         self.camera = None
         self.is_camera_live = False
         self.keep_camera_processing = False
         self.fps = FPS()
         self.camera_mode = camera_mode
         self.last_drive_params = (0,0)
-        self.start_time = time.time()
+        self.start_time = camera_mode_set_time
         self.client_server_time_difference = 0
         self.video_writer = None
         self.parent_process_pipe = pipe
@@ -68,7 +68,6 @@ class CameraProcessController():
         if self.is_camera_live:
             self.keep_camera_processing = True
             if constants.image_processing_tracing_record_video:
-                self.start_time = time.time()
                 video_path = constants.video_log_folder_path + 'video_trace' + time.strftime(
                     "%Y-%m-%d_%H-%M-%S") + '.avi'
                 self.video_writer = cv2.VideoWriter(video_path, cv2.VideoWriter_fourcc(*'MJPG'), 4,
@@ -142,8 +141,8 @@ class CameraProcessController():
 
     def write_trace_video_frame(self, image, frame_timestamp):
         if not constants.image_processing_tracing_record_video: return
-        cv2.putText(image, 'frame time:'+str(round(frame_timestamp-self.start_time,3)) +' lag:'+str(round(time.time()-frame_timestamp,3)), (10,25), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 1)
-        cv2.putText(image, 'drive:'+str(round(self.last_drive_params[0],1))+':'+str(round(self.last_drive_params[1],1)), (10,55), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 1)
+        cv2.putText(image, 'ft:'+str(round(frame_timestamp-self.start_time,3)) + 't:'+str(round(time.time()-self.start_time,3)) +' l:'+str(round(time.time()-frame_timestamp,3)) + 'd:'+str(round(self.last_drive_params[0],1))+':'+str(round(self.last_drive_params[1],1)), (10,25), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 1)
+        #cv2.putText(image, 'drive:'+str(round(self.last_drive_params[0],1))+':'+str(round(self.last_drive_params[1],1)), (10,55), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 1)
         self.video_writer.write(image)
 
     def __get_region_of_interest(self, config_section):
@@ -163,6 +162,7 @@ class CameraProcessor:
         self.on_coloured_sheet_update_handler = None
         self.on_white_line_update_handler = None
         self.camera_mode = CAMERA_MODE_OFF
+        self.camera_mode_set_time = None
         print("CameraProcessor init finished")
 
     def set_camera_mode(self, new_camera_mode):
@@ -180,8 +180,9 @@ class CameraProcessor:
 
         if new_camera_mode != CAMERA_MODE_OFF:
             #start the camera
+            self.camera_mode_set_time = time.time()
             self.camera_sub_process_pipe, sub_process_pipe = Pipe()
-            self.camera_sub_process = Process(target=init_camera_subprocess,args=(sub_process_pipe, new_camera_mode))
+            self.camera_sub_process = Process(target=init_camera_subprocess,args=(sub_process_pipe, new_camera_mode, self.camera_mode_set_time))
             self.camera_sub_process.start()
             start_new_thread(self.__process_camera_messages,())
 
@@ -194,8 +195,8 @@ class CameraProcessor:
                     payload = self.camera_sub_process_pipe.recv()
                     if payload['message'] == 'updateAlienReadings' and self.on_alien_update_handler is not None:
                         self.on_alien_update_handler(payload)
-                    elif payload['message'] == 'updateColouredSheetsReadings' and self.set_coloured_sheet_update_handler is not None:
-                        self.set_coloured_sheet_update_handler(payload)
+                    elif payload['message'] == 'updateColouredSheetsReadings' and self.on_coloured_sheet_update_handler is not None:
+                        self.on_coloured_sheet_update_handler(payload)
                     elif payload['message'] == 'updateWhiteLineReadings' and self.on_white_line_update_handler is not None:
                         self.on_white_line_update_handler(payload)
                     time.sleep(0.001)

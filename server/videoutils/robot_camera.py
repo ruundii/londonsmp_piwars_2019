@@ -135,7 +135,7 @@ class RobotCamera:
             t = time.time()
             if self.resize_resolution is not None:
                 self.original_frame = cv2.resize(self.original_frame, self.resize_resolution)
-            cv2.imwrite("image_files/pic" + str(last_frame_num)+".png", self.original_frame)
+            #cv2.imwrite("image_files/pic" + str(last_frame_num)+".png", self.original_frame)
 
             im = self.original_frame# self.undistort(self.original_frame)
             if(self.region_of_interest is not None and (self.region_of_interest[0]>0 or self.region_of_interest[1]>0 or self.region_of_interest[2]>0 or self.region_of_interest[3]>0)):

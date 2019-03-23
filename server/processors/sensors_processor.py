@@ -74,11 +74,11 @@ class SensorsProcessor:
                 if(len(readings)>=3):
                     #print("readings",readings)
                     payload = \
-                        {'message': 'updateDistanceSensorsReadings', 'readings': {
+                        {'message': 'updateDistanceSensorsReadings', 'ts':time.time(), 'readings': {
                             'L': float(readings[2])/10.0,
                             'C': float(readings[1])/10.0,
                             'R': float(readings[0])/10.0
-                            }
+                            },
                         }
                     if self.on_distance_update_handler is not None:
                         self.on_distance_update_handler(payload)
@@ -97,17 +97,20 @@ class SensorsProcessor:
         time_went_sleep = time.time()
         time.sleep(0.01)
         while self.gyro_live:
-            gyro_data = self.gyro.get_gyro_data()
-            z_sum += (gyro_data['z'] - z_offset)*to_degrees_factor
-            if self.on_orientation_update_handler is not None:
-                #print("z_sum", z_sum)
-                self.on_orientation_update_handler({'message': 'updateOrientation', 'angle': z_sum})
-            lag += time.time()-time_went_sleep - 0.01
-            time_went_sleep = time.time()
-            if lag<0.01:
-                time.sleep(0.01-lag)
-            else:
-                continue
+            try:
+                gyro_data = self.gyro.get_gyro_data()
+                z_sum += (gyro_data['z'] - z_offset)*to_degrees_factor
+                if self.on_orientation_update_handler is not None:
+                    #print("z_sum", z_sum)
+                    self.on_orientation_update_handler({'message': 'updateOrientation', 'angle': z_sum})
+                lag += time.time()-time_went_sleep - 0.01
+                time_went_sleep = time.time()
+                if lag<0.01:
+                    time.sleep(0.01-lag)
+                else:
+                    continue
+            except Exception as e:
+                print("Exception in __process_gyro",e)
 
     def set_distance_update_handler(self, handler):
         self.on_distance_update_handler=handler

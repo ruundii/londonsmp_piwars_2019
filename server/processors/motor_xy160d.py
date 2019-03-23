@@ -53,7 +53,7 @@ class Motor:
                 and self.last_drive_params['speed_right'] == speed_right:
             return
         else:
-            print("t", time.time(), "setting drive",speed_left,speed_right)
+            #print("t", time.time(), "setting drive",speed_left,speed_right)
             self.__drive_single_motor(speed_left,
                                     0 if self.last_drive_params is None else self.last_drive_params['speed_left'], self.motor_left)
             self.__drive_single_motor(speed_right,
@@ -81,9 +81,9 @@ class Motor:
         if speed == 0:
             return 0
         elif speed <0:
-            return max(-10 + speed*0.9, -100)
+            return max(-2 + speed*0.98, -100)
         else:
-            return min(10 + speed*0.9, 100)
+            return min(2 + speed*0.98, 100)
 
 
     def cleanup(self):
