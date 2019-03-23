@@ -30,15 +30,16 @@ camera_settings_aliens = {
     'awb_mode':'off',
     'brightness': 55,
     'saturation':40,
-    'framerate' : 10,
+    'framerate' : 20,
 }
 camera_settings_coloured_sheet = {
-    'resolution' : (320,240),
+    'resolution' : (1280,720),
+    'resolution_resized' : (320,180),
     'iso':800,
     'awb_mode':'off',
     'brightness': 55,
     'saturation':40,
-    'framerate': 30
+    'framerate': 20
 }
 camera_settings_speed_track = {
     'resolution' : (320,240),

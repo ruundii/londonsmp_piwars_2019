@@ -3,7 +3,8 @@ import time
 import os
 is_raspberry = os.name != 'nt'
 from _thread import start_new_thread
-from processors.gyro import Gyro
+if is_raspberry:
+    from processors.gyro import Gyro
 
 class SensorsProcessor:
     def __init__(self):
@@ -90,15 +91,23 @@ class SensorsProcessor:
         x_offset = 4.936341463414674
         y_offset = -0.847804878048786
         z_offset = -2.32609756097562
-        to_degrees_factor =  360 / 26000
+        to_degrees_factor =  360 / 36000
         z_sum = 0.0
+        lag = 0
+        time_went_sleep = time.time()
+        time.sleep(0.01)
         while self.gyro_live:
             gyro_data = self.gyro.get_gyro_data()
             z_sum += (gyro_data['z'] - z_offset)*to_degrees_factor
             if self.on_orientation_update_handler is not None:
                 #print("z_sum", z_sum)
                 self.on_orientation_update_handler({'message': 'updateOrientation', 'angle': z_sum})
-            time.sleep(0.01)
+            lag += time.time()-time_went_sleep - 0.01
+            time_went_sleep = time.time()
+            if lag<0.01:
+                time.sleep(0.01-lag)
+            else:
+                continue
 
     def set_distance_update_handler(self, handler):
         self.on_distance_update_handler=handler

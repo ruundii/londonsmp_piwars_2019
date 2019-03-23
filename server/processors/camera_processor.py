@@ -198,7 +198,7 @@ class CameraProcessor:
                         self.set_coloured_sheet_update_handler(payload)
                     elif payload['message'] == 'updateWhiteLineReadings' and self.on_white_line_update_handler is not None:
                         self.on_white_line_update_handler(payload)
-                    time.sleep(0.0001)
+                    time.sleep(0.001)
                 except Exception as e:
                     print("Exception in __process_camera_messages", e)
 

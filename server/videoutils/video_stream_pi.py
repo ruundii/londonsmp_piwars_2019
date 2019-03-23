@@ -59,11 +59,16 @@ class VideoStream:
         if 'contrast' in camera_settings.keys(): self.camera.contrast = camera_settings['contrast']
         if 'saturation' in camera_settings.keys(): self.camera.saturation = camera_settings['saturation']
         if 'video_denoise' in camera_settings.keys(): self.camera.video_denoise = camera_settings['video_denoise']
-        if 'shutter_speed' in camera_settings.keys(): self.camera.shutter_speed = camera_settings['shutter_speed']
+        if 'shutter_speed' in camera_config.keys():
+            print("setting shutter_speed from camera_config['shutter_speed']",camera_config['shutter_speed'])
+            self.camera.shutter_speed = camera_config['shutter_speed']
         if 'shutter_speed_setting' in camera_settings.keys():
             if camera_settings['shutter_speed_setting']=='shutter_speed_shortened':
                 print('applying shutter_speed_shortened from camera_config.json ',camera_config['shutter_speed_shortened'])
                 self.camera.shutter_speed = camera_config['shutter_speed_shortened']
+            elif camera_settings['shutter_speed_setting']=='none':
+                print('shutter_speed_setting none. setting shutter to 0')
+                self.camera.shutter_speed = 0
             else:
                 print('applying shutter_speed from camera_config.json ',camera_config['shutter_speed'])
                 self.camera.shutter_speed = camera_config['shutter_speed']

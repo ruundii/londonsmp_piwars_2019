@@ -4,7 +4,6 @@ from videoutils import util as u
 import importlib
 from videoutils import alien_detector, coloured_sheet_detector, white_line_detector
 from _thread import start_new_thread
-from threading import Lock
 
 import config.constants_global as constants
 
@@ -24,17 +23,19 @@ class RobotCamera:
         self.valid_pix_ROI = None
         self.mapx = None
         self.mapy = None
-        self.image_lock = Lock()
 
         self.original_frame = None
         self.image = None
         self.image_gray = None
         self.image_hsv = None
+        self.image_num = None
         self.frame_timestamp = None
         self.prepare_gray = prepare_gray
         self.prepare_hsv=prepare_hsv
         self.region_of_interest = region_of_interest
         self.actual_resolution = None
+        self.last_processed_image_number = None
+
         if region_of_interest is None:
             self.fov = constants.camera_fov
         else:
@@ -134,7 +135,7 @@ class RobotCamera:
             t = time.time()
             if self.resize_resolution is not None:
                 self.original_frame = cv2.resize(self.original_frame, self.resize_resolution)
-            #cv2.imwrite("image_files/pic" + str(last_frame_num)+".png", self.original_frame)
+            cv2.imwrite("image_files/pic" + str(last_frame_num)+".png", self.original_frame)
 
             im = self.original_frame# self.undistort(self.original_frame)
             if(self.region_of_interest is not None and (self.region_of_interest[0]>0 or self.region_of_interest[1]>0 or self.region_of_interest[2]>0 or self.region_of_interest[3]>0)):
@@ -148,11 +149,11 @@ class RobotCamera:
             if self.prepare_gray:
                 #umat_im_gray = cv2.cvtColor(umat_im, cv2.COLOR_RGB2GRAY if constants.is_rgb_not_bgr else cv2.COLOR_BGR2GRAY)
                 umat_im_gray = cv2.cvtColor(umat_im, cv2.COLOR_BGR2GRAY)
-            with(self.image_lock):
-                self.image = umat_im
-                self.image_hsv = umat_im_hsv
-                self.image_gray = umat_im_gray
-                self.frame_timestamp = timestamp
+            self.image = umat_im
+            self.image_hsv = umat_im_hsv
+            self.image_gray = umat_im_gray
+            self.frame_timestamp = timestamp
+            self.image_num = last_frame_num
             if constants.performance_tracing_robot_camera_image_preparation: print('robot_camera.process_frames:',time.time()-t, 'lag:',time.time()-timestamp)
 
     def is_image_ready(self, expect_hsv, expect_gray):
@@ -164,7 +165,16 @@ class RobotCamera:
             return False
         return True
 
+    def __wait_till_next_image(self):
+        if self.last_processed_image_number is None:
+            self.last_processed_image_number = self.image_num
+            return
+        while self.last_processed_image_number >= self.image_num:
+            time.sleep(0.001)
+        self.last_processed_image_number = self.image_num
+
     def detect_aliens(self):
+        self.__wait_till_next_image()
         t = time.time()
         frame_timestamp = self.frame_timestamp
         aliens, detected_image = self.alien_detector.detect_aliens(self.image, self.image_hsv)
@@ -172,6 +182,7 @@ class RobotCamera:
         return aliens, frame_timestamp, detected_image
 
     def detect_coloured_sheets(self):
+        self.__wait_till_next_image()
         t = time.time()
         frame_timestamp = self.frame_timestamp
         coloured_sheets, detected_image = self.coloured_sheet_detector.detect_coloured_sheets(self.image, self.image_hsv)
@@ -179,6 +190,7 @@ class RobotCamera:
         return coloured_sheets, frame_timestamp, detected_image
 
     def detect_white_line(self):
+        self.__wait_till_next_image()
         t = time.time()
         frame_timestamp = self.frame_timestamp
         vector, detected_image = self.white_line_detector.detect_white_line(self.image, self.image_gray)
