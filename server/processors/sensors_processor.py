@@ -25,7 +25,7 @@ class SensorsProcessor:
     def start_sensor(self):
         try:
             if is_raspberry:
-                self.serial_connection = serial.Serial("/dev/ttyUSB0", 19200, timeout=1, parity=serial.PARITY_NONE,
+                self.serial_connection = serial.Serial("/dev/ttyACM0", 57600, timeout=1, parity=serial.PARITY_NONE,
                                                        stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS, )
             else:
                 self.serial_connection = serial.Serial("COM3", 19200, timeout=1, parity=serial.PARITY_NONE,
@@ -33,7 +33,7 @@ class SensorsProcessor:
             self.distance_controller_live = True
         except Exception as e:
             self.distance_controller_live = False
-            print("Could not open serial at /dev/ttyUSB0",e)
+            print("Could not open serial at /dev/ttyACM0",e)
             return
         start_new_thread(self.__process_sensor_messages,())
         try:
@@ -75,9 +75,9 @@ class SensorsProcessor:
                     #print("readings",readings)
                     payload = \
                         {'message': 'updateDistanceSensorsReadings', 'ts':time.time(), 'readings': {
-                            'L': float(readings[2])/10.0,
-                            'C': float(readings[1])/10.0,
-                            'R': float(readings[0])/10.0
+                            'L': float(readings[0]),
+                            'C': float(readings[2]),
+                            'R': float(readings[1])
                             },
                         }
                     if self.on_distance_update_handler is not None:

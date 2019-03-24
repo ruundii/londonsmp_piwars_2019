@@ -47,7 +47,7 @@ def distance_update(distances):
     if distances is not None and 'readings' in distances:
         current_distances = distances['readings']
         last_sensor_reading_timestamp = time.time()
-        #print("t", last_sensor_reading_timestamp, "sensor distance", current_distances)
+        #   print("t", last_sensor_reading_timestamp, "sensor distance", current_distances)
 
 orientation_update_num=0
 
@@ -142,16 +142,21 @@ def main():
         processor.set_camera_mode(1)
         while current_distances is None or current_orientation is None or current_sheets is None:
             time.sleep(0.005)
-        for target_colour in visit_order:
-            turn_until_colour(target_colour)
-            route = get_route_type()
-            print(route)
-            if route == ROUTE_DIAGONAL:
-                drive_diagonal()
-            elif route == ROUTE_FOLLOW_LEFT_WALL:
-                drive_by_the_to_wall(wall=LEFT)
-            else:
-                drive_by_the_to_wall(wall=RIGHT)
+        turn(direction=RIGHT)
+        turn(direction=RIGHT)
+        turn(direction=RIGHT)
+        turn(direction=RIGHT)
+        #
+        # for target_colour in visit_order:
+        #     turn_until_colour(target_colour)
+        #     route = get_route_type()
+        #     print(route)
+        #     if route == ROUTE_DIAGONAL:
+        #         drive_diagonal()
+        #     elif route == ROUTE_FOLLOW_LEFT_WALL:
+        #         drive_by_the_to_wall(wall=LEFT)
+        #     else:
+        #         drive_by_the_to_wall(wall=RIGHT)
         drive_robot(0,0)
         processor.close()
         time.sleep(0.5)

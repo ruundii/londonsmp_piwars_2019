@@ -16,9 +16,10 @@ last_drive_params = (0,0)
 processor = None
 LEFT = 0
 RIGHT = 1
-TARGET_WALL_FOLLOWING_DISTANCE = 14
+TARGET_WALL_FOLLOWING_DISTANCE = 20
 NUM_PREDICT_STEPS_AHEAD = 10
 MAX_DIFFERENCE_PER_CYCLE_TO_STEER = 0.3
+
 
 def alien_update(aliens):
     global current_aliens
@@ -57,11 +58,11 @@ def follow_alien(alien):
         print("updated alien details",aliens_by_id[0])
         if current_distances is not None and 'C' in current_distances:
             print("sensor distance",current_distances['C'])
-        if aliens_by_id[0]['distance'] < 18:
+        if aliens_by_id[0]['distance'] < 28:
             print("distance is too close. stopping", aliens_by_id[0]['distance'])
             drive_robot(0,0)
             return
-        if current_distances is not None and 'C' in current_distances and current_distances['C'] < 18:
+        if current_distances is not None and 'C' in current_distances and current_distances['C'] < 28:
             print("ultrasonic distance is too low. stopping")
             drive_robot(0,0)
             ultrasonic_low_distance_counter+=1
@@ -121,7 +122,7 @@ def keep_driving_n_sensor_cycles(n):
     actual_drive_cycles = 0
     ultrasonic_low_distance_counter = 0
     for i in range(n):
-        if current_distances is not None and 'C' in current_distances and current_distances['C'] < 18:
+        if current_distances is not None and 'C' in current_distances and current_distances['C'] < 26:
             print("ultrasonic distance is too low. stopping")
             prev_last_drive_params = last_drive_params
             drive_robot(0, 0)
@@ -142,12 +143,12 @@ def drive_robot(speed_left, speed_right):
 
 def drive_to_wall_ahead(follow_wall=None, forward_starting_distance = None):
     if(follow_wall is None):
-        drive_robot(25, 25)
+        drive_robot(15, 15)
         keep_driving_n_sensor_cycles(1000)
         return
     #initial measurement of direction
     last_difference = current_distances['R' if follow_wall == RIGHT else 'L'] - TARGET_WALL_FOLLOWING_DISTANCE
-    drive_robot(25, 25)
+    drive_robot(15, 15)
     wait_until_next_sensor_reading()
     cycles_driven, _ = keep_driving_n_sensor_cycles(7)
     low_forward_reading = False
@@ -176,12 +177,12 @@ def drive_to_wall_ahead(follow_wall=None, forward_starting_distance = None):
             sign_factor = steer_factor if follow_wall == RIGHT else -steer_factor
             if math.fabs(difference_derivative_per_cycle) < MAX_DIFFERENCE_PER_CYCLE_TO_STEER or difference_derivative_per_cycle/few_steps_ahead_prediction>0:
                 #if difference_derivative_per_cycle is not that big or we are looking to reduce it with steer in opposite direction
-                drive_robot(sign_factor*35, sign_factor*-35)
-                print("t", time.time(), "steerting driving", sign_factor*35, sign_factor*-35, "for",math.fabs(few_steps_ahead_prediction)*0.007)
+                drive_robot(sign_factor*30, sign_factor*-30)
+                print("t", time.time(), "steerting driving", sign_factor*30, sign_factor*-30, "for",math.fabs(few_steps_ahead_prediction)*0.007)
                 time.sleep(math.fabs(few_steps_ahead_prediction)*0.007)
         #go forward and calc next derivative from sensors
         print("t", time.time(), "finished steerting driving")
-        drive_robot(25, 25)
+        drive_robot(15, 15)
         wait_until_next_sensor_reading()
         current_difference = current_distances['R' if follow_wall==RIGHT else 'L']-TARGET_WALL_FOLLOWING_DISTANCE
         last_difference = current_difference
@@ -226,28 +227,16 @@ def main():
         global processor
         processor = RobotProcessor()
         processor.initialise()
+        processor.set_camera_mode(1)
         processor.set_distance_update_handler(distance_update)
         processor.set_orientation_update_handler(orientation_update)
         while current_distances is None or current_orientation is None:
             time.sleep(0.005)
-        little_kick(0.4)
-        drive_to_wall_ahead(follow_wall=RIGHT)
-        turn(direction=LEFT)
-        drive_to_wall_ahead(follow_wall=RIGHT)
-        turn(direction=LEFT)
-        drive_to_wall_ahead()
-        turn(direction=RIGHT)
-        drive_to_wall_ahead(follow_wall=LEFT)
-        turn(direction=RIGHT)
-        drive_to_wall_ahead()
-        turn(direction=LEFT)
-        drive_to_wall_ahead(follow_wall=RIGHT)
-        turn(direction=LEFT)
-        drive_to_wall_ahead(follow_wall=RIGHT)
-        turn(direction=LEFT)
-        drive_to_wall_ahead(follow_wall=RIGHT, forward_starting_distance=70)
-        turn(direction=RIGHT)
-        little_kick(0.4)
+
+        drive_robot(15, 15)
+        while current_distances['C']>20:
+            wait_until_next_sensor_reading()
+        drive_robot(0,0)
         processor.close()
         time.sleep(0.5)
     except KeyboardInterrupt:

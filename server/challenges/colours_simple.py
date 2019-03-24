@@ -94,7 +94,7 @@ def wait_until_next_camera_reading():
 def turn_until_colour(colour):
     x_angle = get_sheet_x_angle(colour)
     while x_angle is None:
-        drive_robot(70, -70)
+        drive_robot(50, -50)
         wait_until_next_camera_reading()
         x_angle = get_sheet_x_angle(colour)
     drive_robot(0, 0)
@@ -192,25 +192,25 @@ def get_route_type():
 def drive_diagonal(colour):
     drive_robot(15, 15)
     loop_number = 0
-    last_turn_loop_number = -10
+    last_turn_loop_number = -20
     sheet_time_stamp = last_coloured_sheet_timestamp
-    while current_distances['C'] > 33:
+    while current_distances['C'] > 27:
         loop_number+=1
-        if current_distances['C']>35 and last_coloured_sheet_timestamp>sheet_time_stamp and last_turn_loop_number<loop_number-10:
+        if current_distances['C']>27 and last_coloured_sheet_timestamp>sheet_time_stamp and last_turn_loop_number<loop_number-20:
             sheet_time_stamp = last_coloured_sheet_timestamp
             x_angle = get_sheet_x_angle(colour)
             if x_angle is None:
                 turn_until_colour(colour)
             else:
-                if math.fabs(x_angle) > 2:
-                    turn(RIGHT if x_angle>0 else LEFT, angle=math.fabs(x_angle)-2, stop=True)
+                if math.fabs(x_angle) > 3:
+                    turn(RIGHT if x_angle>0 else LEFT, angle=math.fabs(x_angle)-3, stop=True)
                     last_turn_loop_number = loop_number
         if (current_distances['C']>40):
             drive_robot(15, 15)
         elif (current_distances['C']>30):
-            drive_robot(6, 6)
+            drive_robot(10, 10)
         else:
-            drive_robot(2, 2)
+            drive_robot(3, 3)
         wait_until_next_sensor_reading()
     drive_robot(0, 0)
     #print("t", time.time() - processor.camera_processor.camera_mode_set_time if processor.camera_processor.camera_mode_set_time is not None else 0 ,"stoppp",current_distances['C'])
@@ -222,9 +222,9 @@ def drive_diagonal(colour):
             # else:
             #     print("after stoppp", current_distances['C'],
             #           time.time() - processor.camera_processor.camera_mode_set_time if processor.camera_processor.camera_mode_set_time is not None else 0)
-        if current_distances['C'] > 13:
+        if current_distances['C'] > 15:
             drive_robot(10, 10)
-            time.sleep(0.04*min((current_distances['C']-11),5))
+            time.sleep(0.04*min((current_distances['C']-12),5))
             drive_robot(0, 0)
         else:
             break
@@ -281,9 +281,9 @@ def reverse():
         if current_distances['C'] > 45:
             drive_robot(0,0)
             indeed_far = True
-            for i in range(4):
+            for i in range(7):
                 wait_until_next_sensor_reading()
-                if current_distances['C'] < 45:
+                if current_distances['C'] < 40:
                     indeed_far = False
                     break
             if indeed_far:
@@ -306,6 +306,7 @@ def main():
             time.sleep(0.005)
         for target_colour in visit_order:
             turn_until_colour(target_colour)
+            time.sleep(0.2)
             drive_diagonal(target_colour)
             reverse()
             # route = get_route_type()
