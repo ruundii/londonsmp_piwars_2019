@@ -16,12 +16,9 @@ last_drive_params = (0,0)
 processor = None
 LEFT = 0
 RIGHT = 1
-TARGET_WALL_FOLLOWING_DISTANCE = 20
+TARGET_WALL_FOLLOWING_DISTANCE = 23
 NUM_PREDICT_STEPS_AHEAD = 30
 MAX_DIFFERENCE_PER_CYCLE_TO_STEER = 0.1
-
-class RobotLostExpection(Exception):
-    pass
 
 def alien_update(aliens):
     global current_aliens
@@ -143,16 +140,7 @@ def drive_robot(speed_left, speed_right):
     last_drive_params = (speed_left,speed_right)
     processor.drive(speed_left,speed_right)
 
-def check_if_robot_is_lost(throw=True):
-    if (current_distances['R'] < 16 and current_distances['L'] < 16):
-        wait_until_next_sensor_reading()
-        if (current_distances['R'] < 16 and current_distances['L'] < 16):
-            drive_robot(0,0)
-            if throw: raise RobotLostExpection()
-
-
-
-def drive_to_wall_ahead(follow_wall=None):
+def drive_to_wall_ahead(follow_wall=None, forward_starting_distance = None):
     if(follow_wall is None):
         drive_robot(20, 20)
         keep_driving_n_sensor_cycles(1000)
@@ -162,22 +150,22 @@ def drive_to_wall_ahead(follow_wall=None):
     drive_robot(20, 20)
     wait_until_next_sensor_reading()
     cycles_driven, _ = keep_driving_n_sensor_cycles(15)
+    low_forward_reading = False
     while True:
-        check_if_robot_is_lost()
+        if forward_starting_distance is not None:
+            if current_distances['C']<forward_starting_distance:
+                if low_forward_reading:
+                    keep_driving_n_sensor_cycles(1000)
+                    return
+                else:
+                    low_forward_reading = True
+                    continue
+            else:
+                low_forward_reading = False
         current_difference = current_distances['R' if follow_wall==RIGHT else 'L']-TARGET_WALL_FOLLOWING_DISTANCE
-        #detect sudden disappearence of the wall
-        if current_difference > last_difference + 15:
-            #looks suspicious
-            for i in range(5):
-                wait_until_next_sensor_reading()
-                cycles_driven +=1
-            current_difference = current_distances['R' if follow_wall == RIGHT else 'L'] - TARGET_WALL_FOLLOWING_DISTANCE
-            if current_difference > last_difference + 15: #suspicion confirmed, side wall disappeared, drive to wall ahead
-                keep_driving_n_sensor_cycles(1000)
-                return
 
         difference_derivative_per_cycle  = (current_difference-last_difference)/cycles_driven if cycles_driven>0 else 0
-        print("current_difference", current_difference, "difference_derivative_per_cycle ", difference_derivative_per_cycle, "R",current_distances['R'], "L",current_distances['L'] )
+        print("current_difference", current_difference, "difference_derivative_per_cycle ", difference_derivative_per_cycle )
         few_steps_ahead_prediction = current_difference + NUM_PREDICT_STEPS_AHEAD * difference_derivative_per_cycle
         if math.fabs(few_steps_ahead_prediction)>5:
             #correct the course
@@ -185,7 +173,7 @@ def drive_to_wall_ahead(follow_wall=None):
                 steer_factor = few_steps_ahead_prediction/math.fabs(few_steps_ahead_prediction)
             else: #different sign, overshoot, need to steer reverse
                 steer_factor = -few_steps_ahead_prediction/math.fabs(few_steps_ahead_prediction)
-            sign_factor = steer_factor if follow_wall == RIGHT else -steer_factor
+            sign_factor = steer_factor #if follow_wall == RIGHT else -steer_factor
             if math.fabs(difference_derivative_per_cycle) < MAX_DIFFERENCE_PER_CYCLE_TO_STEER or difference_derivative_per_cycle/few_steps_ahead_prediction>0:
                 #if difference_derivative_per_cycle is not that big or we are looking to reduce it with steer in opposite direction
                 drive_robot(sign_factor*35, sign_factor*-35)
@@ -211,7 +199,6 @@ def turn(direction):
         drive_robot(-50, 50)
 
     while True:
-        check_if_robot_is_lost()
         if direction==RIGHT and current_orientation - start_orientation < -89:
             break
         if direction==LEFT and current_orientation - start_orientation > 89:
@@ -234,15 +221,6 @@ def turn(direction):
     #     wait_until_next_sensor_reading()
     #     cycles_turning +=1
 
-def determine_turn_direction():
-    print("determine_turn_direction. R:", current_distances['R'], "L", current_distances['L'])
-    if current_distances['R'] > 55 and current_distances['L']>55:
-        return RIGHT, LEFT, True
-    if current_distances['R'] < current_distances['L']:
-        return LEFT, RIGHT, False
-    else:
-        return RIGHT, LEFT, False
-
 def main():
     try:
         global processor
@@ -253,21 +231,23 @@ def main():
         while current_distances is None or current_orientation is None:
             time.sleep(0.005)
         little_kick(0.4)
-        follow_wall = RIGHT
-        while True:
-            try:
-                drive_to_wall_ahead(follow_wall=follow_wall)
-                turn_direction, follow_wall, is_last_turn = determine_turn_direction()
-                print("turn_direction",turn_direction, "follow_wall",follow_wall, "is_last_turn",is_last_turn)
-                turn(direction=turn_direction)
-            except RobotLostExpection:
-                print("Robot lost")
-                while check_if_robot_is_lost(throw=False):
-                    time.sleep(0.1)
-                print("Robot recovery")
-            if is_last_turn:
-                little_kick(0.8)
-                break
+        drive_to_wall_ahead(follow_wall=RIGHT)
+        turn(direction=LEFT)
+        drive_to_wall_ahead(follow_wall=RIGHT)
+        turn(direction=LEFT)
+        drive_to_wall_ahead()
+        turn(direction=RIGHT)
+        drive_to_wall_ahead(follow_wall=LEFT)
+        turn(direction=RIGHT)
+        drive_to_wall_ahead()
+        turn(direction=LEFT)
+        drive_to_wall_ahead(follow_wall=RIGHT)
+        turn(direction=LEFT)
+        drive_to_wall_ahead(follow_wall=RIGHT)
+        turn(direction=LEFT)
+        drive_to_wall_ahead(follow_wall=RIGHT, forward_starting_distance=35)
+        turn(direction=RIGHT)
+        little_kick(0.4)
         processor.close()
         time.sleep(0.5)
     except KeyboardInterrupt:
