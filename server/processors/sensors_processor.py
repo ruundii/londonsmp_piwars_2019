@@ -88,7 +88,7 @@ class SensorsProcessor:
                 pass
 
     def __process_gyro(self):
-        z_offset = 1.0003358778625953
+        z_offset = -1.0377557251908405
         to_degrees_factor =  360 / 36000
         z_sum = 0.0
         lag = 0
