@@ -1,4 +1,5 @@
 import time, math
+import RPi.GPIO as GPIO
 
 try:
     from processors.robot_processor import RobotProcessor
@@ -41,13 +42,15 @@ def get_sheet_x_angle(colour):
             return sheet['xAngle']
     return None
 
+distance_update_count = 0
 
 def distance_update(distances):
-    global current_distances,last_sensor_reading_timestamp
+    global current_distances,last_sensor_reading_timestamp,distance_update_count
     if distances is not None and 'readings' in distances:
+        distance_update_count +=1
         current_distances = distances['readings']
         last_sensor_reading_timestamp = time.time()
-        #   print("t", last_sensor_reading_timestamp, "sensor distance", current_distances)
+        if distance_update_count % 5 == 0: print("t", last_sensor_reading_timestamp, "sensor distance", current_distances)
 
 orientation_update_num=0
 
@@ -55,7 +58,7 @@ def orientation_update(orientation):
     global current_orientation,orientation_update_num
     current_orientation = orientation['angle']
     orientation_update_num+=1
-    if orientation_update_num %50==0: print("t", time.time(), "current_orientation", current_orientation)
+    if orientation_update_num %5==0: print("t", time.time(), "current_orientation", current_orientation)
 
 def drive_robot(speed_left, speed_right):
     global last_drive_params
@@ -64,6 +67,7 @@ def drive_robot(speed_left, speed_right):
 
 def turn(direction, angle=88, stop=False):
     start_orientation = current_orientation
+    print("start_orientation",start_orientation)
     if direction==RIGHT:
         drive_robot(70, -70)
     else:
@@ -77,6 +81,7 @@ def turn(direction, angle=88, stop=False):
         time.sleep(0.01)
     if stop:
         drive_robot(0, 0)
+    print("stop_orientation",current_orientation)
 
 def wait_until_next_sensor_reading():
     current_sensor_timestamp = last_sensor_reading_timestamp
@@ -142,10 +147,14 @@ def main():
         processor.set_camera_mode(1)
         while current_distances is None or current_orientation is None or current_sheets is None:
             time.sleep(0.005)
-        turn(direction=RIGHT)
-        turn(direction=RIGHT)
-        turn(direction=RIGHT)
-        turn(direction=RIGHT)
+        turn(direction=RIGHT, stop=True)
+        time.sleep(1)
+        turn(direction=RIGHT, stop=True)
+        time.sleep(1)
+        turn(direction=RIGHT, stop=True)
+        time.sleep(1)
+        turn(direction=RIGHT, stop=True)
+        time.sleep(1)
         #
         # for target_colour in visit_order:
         #     turn_until_colour(target_colour)
@@ -164,7 +173,11 @@ def main():
         processor.close()
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except:
+        GPIO.cleanup()
+
     # loop = asyncio.get_event_loop()
     # loop.run_until_complete(main())
     # loop.close()

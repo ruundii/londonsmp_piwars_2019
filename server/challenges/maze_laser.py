@@ -17,7 +17,7 @@ processor = None
 LEFT = 0
 RIGHT = 1
 TARGET_WALL_FOLLOWING_DISTANCE = 20
-NUM_PREDICT_STEPS_AHEAD = 30
+NUM_PREDICT_STEPS_AHEAD = 10
 MAX_DIFFERENCE_PER_CYCLE_TO_STEER = 0.1
 
 class RobotLostExpection(Exception):
@@ -36,7 +36,7 @@ def distance_update(distances):
         distance_update_count += 1
         current_distances = distances['readings']
         last_sensor_reading_timestamp = time.time()
-        if distance_update_count % 5 == 0: print("t", last_sensor_reading_timestamp, "sensor distance", current_distances)
+        if distance_update_count % 1 == 0: print("t", last_sensor_reading_timestamp, "sensor distance", current_distances)
 
 def orientation_update(orientation):
     global current_orientation
@@ -132,7 +132,7 @@ def keep_driving_n_sensor_cycles(n):
             prev_last_drive_params = last_drive_params
             drive_robot(0, 0)
             ultrasonic_low_distance_counter += 1
-            if ultrasonic_low_distance_counter >= 5:
+            if ultrasonic_low_distance_counter >= 2:
                 return actual_drive_cycles, True
             wait_until_next_sensor_reading()
             continue
@@ -157,21 +157,21 @@ def check_if_robot_is_lost(throw=True):
 
 def drive_to_wall_ahead(follow_wall=None):
     if(follow_wall is None):
-        drive_robot(20, 20)
+        drive_robot(15, 15)
         keep_driving_n_sensor_cycles(1000)
         return
     #initial measurement of direction
     last_difference = current_distances['R' if follow_wall == RIGHT else 'L'] - TARGET_WALL_FOLLOWING_DISTANCE
-    drive_robot(20, 20)
+    drive_robot(15, 15)
     wait_until_next_sensor_reading()
-    cycles_driven, _ = keep_driving_n_sensor_cycles(15)
+    cycles_driven, _ = keep_driving_n_sensor_cycles(7)
     while True:
         check_if_robot_is_lost()
         current_difference = current_distances['R' if follow_wall==RIGHT else 'L']-TARGET_WALL_FOLLOWING_DISTANCE
         #detect sudden disappearence of the wall
         if current_difference > last_difference + 15:
             #looks suspicious
-            for i in range(5):
+            for i in range(3):
                 wait_until_next_sensor_reading()
                 cycles_driven +=1
             current_difference = current_distances['R' if follow_wall == RIGHT else 'L'] - TARGET_WALL_FOLLOWING_DISTANCE
@@ -196,11 +196,12 @@ def drive_to_wall_ahead(follow_wall=None):
                 time.sleep(math.fabs(few_steps_ahead_prediction)*0.005)
         #go forward and calc next derivative from sensors
         print("t", time.time(), "finished steerting driving")
-        drive_robot(20, 20)
+        drive_robot(15, 15)
         wait_until_next_sensor_reading()
         current_difference = current_distances['R' if follow_wall==RIGHT else 'L']-TARGET_WALL_FOLLOWING_DISTANCE
         last_difference = current_difference
         cycles_driven, wall_ahead = keep_driving_n_sensor_cycles(NUM_PREDICT_STEPS_AHEAD)
+        print("wall ahead",wall_ahead)
         if wall_ahead:
             break
 

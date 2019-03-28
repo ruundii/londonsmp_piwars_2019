@@ -2,11 +2,13 @@ import time, math
 
 try:
     from processors.robot_processor import RobotProcessor
+    from processors.joystick_processor import JoystickProcessor
 except:
     import sys, os
 
     sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
     from processors.robot_processor import RobotProcessor
+    from processors.joystick_processor import JoystickProcessor, BUTTON_A, MODE_PROCESS_BUTTONS
 
 current_orientation = None
 current_vector = None
@@ -68,6 +70,9 @@ def main():
         processor.set_white_line_update_handler(white_line_update)
         processor.set_orientation_update_handler(orientation_update)
         processor.set_camera_mode(2)
+        joystick_processor = JoystickProcessor(processor, mode=MODE_PROCESS_BUTTONS)
+        joystick_processor.wait_till_button(BUTTON_A)
+        print("kicking")
         while current_orientation is None or current_vector is None:
             time.sleep(0.005)
         while True:

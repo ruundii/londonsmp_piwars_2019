@@ -76,8 +76,8 @@ class SensorsProcessor:
                     payload = \
                         {'message': 'updateDistanceSensorsReadings', 'ts':time.time(), 'readings': {
                             'L': float(readings[0]),
-                            'C': float(readings[2]),
-                            'R': float(readings[1])
+                            'C': float(readings[1]),
+                            'R': float(readings[2])
                             },
                         }
                     if self.on_distance_update_handler is not None:
