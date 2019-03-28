@@ -19,6 +19,9 @@ RIGHT = 1
 TARGET_WALL_FOLLOWING_DISTANCE = 20
 NUM_PREDICT_STEPS_AHEAD = 30
 MAX_DIFFERENCE_PER_CYCLE_TO_STEER = 0.1
+SPEED_FORWARD = 30
+DISTANCE_TO_WALL_THRESHOLD = 33
+MIN_SENSOR_READING_THRESHOLD = 16
 
 class RobotLostExpection(Exception):
     pass
@@ -36,7 +39,7 @@ def distance_update(distances):
         distance_update_count += 1
         current_distances = distances['readings']
         last_sensor_reading_timestamp = time.time()
-        if distance_update_count % 5 == 0: print("t", last_sensor_reading_timestamp, "sensor distance", current_distances)
+        #if distance_update_count % 50 == 0: print("t", last_sensor_reading_timestamp, "sensor distance", current_distances)
 
 def orientation_update(orientation):
     global current_orientation
@@ -51,68 +54,6 @@ def find_first_alien_target():
     print("first alien found:",central_alien)
     return central_alien
 
-def follow_alien(alien):
-    ultrasonic_low_distance_counter = 0
-    while True:
-        print("following alien", alien['id'])
-        aliens_by_id = [a for a in current_aliens if a['id']==alien['id']]
-        if aliens_by_id is None or len(aliens_by_id)<1:
-            print("missed alien. stopping", alien)
-            drive_robot(0,0)
-            return
-        print("updated alien details",aliens_by_id[0])
-        if current_distances is not None and 'C' in current_distances:
-            print("sensor distance",current_distances['C'])
-        if aliens_by_id[0]['distance'] < 33:
-            print("distance is too close. stopping", aliens_by_id[0]['distance'])
-            drive_robot(0,0)
-            return
-        if current_distances is not None and 'C' in current_distances and current_distances['C'] < 33:
-            print("ultrasonic distance is too low. stopping")
-            drive_robot(0,0)
-            ultrasonic_low_distance_counter+=1
-            if ultrasonic_low_distance_counter >=5:
-                return
-            time.sleep(0.15)
-            continue
-        else:
-            ultrasonic_low_distance_counter=0
-
-        if aliens_by_id[0]['xAngle']<7 and aliens_by_id[0]['xAngle']>-7:
-            print("straight angle, driving straight", aliens_by_id[0]['xAngle'])
-            drive_robot(10,10)
-        elif aliens_by_id[0]['xAngle']>=7:
-            print("alien to the right, driving right", aliens_by_id[0]['xAngle'])
-            drive_robot(20, 0)
-        elif aliens_by_id[0]['xAngle']<=-7:
-            print("alien to the left, driving right", aliens_by_id[0]['xAngle'])
-            drive_robot(0, 20)
-        time.sleep(0.001)
-
-def turn_to_next_alien(is_left_turn, last_alien):
-    while True:
-        if current_aliens is not None and len(current_aliens) > 0:
-            aliens_by_id = [a for a in current_aliens if a['id'] == last_alien['id']]
-            max_x_angle = 1000
-            min_x_angle = -1000
-            if aliens_by_id is not None and len(aliens_by_id) > 0:
-                if is_left_turn:
-                    max_x_angle = aliens_by_id[0]['xAngle']-1
-                else:
-                    min_x_angle = aliens_by_id[0]['xAngle']+1
-            if is_left_turn:
-                alien_candidates = [a for a in current_aliens if a['xAngle'] <= max_x_angle]
-            else:
-                alien_candidates = [a for a in current_aliens if a['xAngle'] >= min_x_angle]
-            if(len(alien_candidates)>0):
-                next_alien = sorted(alien_candidates,key=lambda r:r['xAngle'], reverse=is_left_turn)[0]
-                drive_robot(0,0)
-                return next_alien
-        if is_left_turn:
-            drive_robot(-35, 35)
-        else:
-            drive_robot(35, -35)
-            time.sleep(0.03)
 
 def little_kick(period):
     drive_robot(55, 55)
@@ -127,7 +68,7 @@ def keep_driving_n_sensor_cycles(n):
     actual_drive_cycles = 0
     ultrasonic_low_distance_counter = 0
     for i in range(n):
-        if current_distances is not None and 'C' in current_distances and current_distances['C'] < 33:
+        if current_distances is not None and 'C' in current_distances and current_distances['C'] < DISTANCE_TO_WALL_THRESHOLD:
             print("ultrasonic distance is too low. stopping")
             prev_last_drive_params = last_drive_params
             drive_robot(0, 0)
@@ -147,9 +88,9 @@ def drive_robot(speed_left, speed_right):
     processor.drive(speed_left,speed_right)
 
 def check_if_robot_is_lost(throw=True):
-    if (current_distances['R'] < 16 and current_distances['L'] < 16):
+    if (current_distances['R'] < MIN_SENSOR_READING_THRESHOLD and current_distances['L'] < MIN_SENSOR_READING_THRESHOLD):
         wait_until_next_sensor_reading()
-        if (current_distances['R'] < 16 and current_distances['L'] < 16):
+        if (current_distances['R'] < MIN_SENSOR_READING_THRESHOLD and current_distances['L'] < MIN_SENSOR_READING_THRESHOLD):
             drive_robot(0,0)
             if throw: raise RobotLostExpection()
 
@@ -157,14 +98,14 @@ def check_if_robot_is_lost(throw=True):
 
 def drive_to_wall_ahead(follow_wall=None):
     if(follow_wall is None):
-        drive_robot(20, 20)
+        drive_robot(SPEED_FORWARD, SPEED_FORWARD)
         keep_driving_n_sensor_cycles(1000)
         return
     #initial measurement of direction
     last_difference = current_distances['R' if follow_wall == RIGHT else 'L'] - TARGET_WALL_FOLLOWING_DISTANCE
-    drive_robot(20, 20)
+    drive_robot(SPEED_FORWARD, SPEED_FORWARD)
     wait_until_next_sensor_reading()
-    cycles_driven, _ = keep_driving_n_sensor_cycles(15)
+    cycles_driven, _ = keep_driving_n_sensor_cycles(int(NUM_PREDICT_STEPS_AHEAD/2))
     while True:
         check_if_robot_is_lost()
         current_difference = current_distances['R' if follow_wall==RIGHT else 'L']-TARGET_WALL_FOLLOWING_DISTANCE
@@ -179,7 +120,7 @@ def drive_to_wall_ahead(follow_wall=None):
                 keep_driving_n_sensor_cycles(1000)
                 return
 
-        difference_derivative_per_cycle  = (current_difference-last_difference)/cycles_driven if cycles_driven>0 else 0
+        difference_derivative_per_cycle  = (current_difference-last_difference)/cycles_driven if cycles_driven>10 else 0
         print("current_difference", current_difference, "difference_derivative_per_cycle ", difference_derivative_per_cycle, "R",current_distances['R'], "L",current_distances['L'] )
         few_steps_ahead_prediction = current_difference + NUM_PREDICT_STEPS_AHEAD * difference_derivative_per_cycle
         if math.fabs(few_steps_ahead_prediction)>5:
@@ -196,7 +137,7 @@ def drive_to_wall_ahead(follow_wall=None):
                 time.sleep(math.fabs(few_steps_ahead_prediction)*0.005)
         #go forward and calc next derivative from sensors
         print("t", time.time(), "finished steerting driving")
-        drive_robot(20, 20)
+        drive_robot(SPEED_FORWARD, SPEED_FORWARD)
         wait_until_next_sensor_reading()
         current_difference = current_distances['R' if follow_wall==RIGHT else 'L']-TARGET_WALL_FOLLOWING_DISTANCE
         last_difference = current_difference
@@ -212,14 +153,16 @@ def turn(direction):
         drive_robot(50, -50)
     else:
         drive_robot(-50, 50)
-
     while True:
         check_if_robot_is_lost()
-        if direction==RIGHT and current_orientation - start_orientation < -89:
-            break
-        if direction==LEFT and current_orientation - start_orientation > 89:
-            break
-        time.sleep(0.01)
+        if direction==RIGHT:
+            if current_orientation - start_orientation < -85:
+                break
+        if direction==LEFT:
+            if current_orientation - start_orientation > 85:
+                break
+            time.sleep(0.01)
+    drive_robot(0, 0)
 
     # cycles_turning = 0
     # while True:
@@ -238,13 +181,35 @@ def turn(direction):
     #     cycles_turning +=1
 
 def determine_turn_direction():
+    last_result = -1
+    result_in_a_row =0
     print("determine_turn_direction. R:", current_distances['R'], "L", current_distances['L'])
-    if current_distances['R'] > 55 and current_distances['L']>55:
-        return RIGHT, LEFT, True
-    if current_distances['R'] < current_distances['L']:
-        return LEFT, RIGHT, False
-    else:
-        return RIGHT, LEFT, False
+    while True:
+        if current_distances['R'] > 55 and current_distances['L']>55:
+            if last_result == 1:
+                if result_in_a_row == 5:
+                    return RIGHT, LEFT, True
+                result_in_a_row+=1
+            else:
+                last_result = 1
+                result_in_a_row = 1
+        elif current_distances['R'] < current_distances['L']:
+            if last_result == 2:
+                if result_in_a_row == 5:
+                    return LEFT, RIGHT, False
+                result_in_a_row+=1
+            else:
+                last_result = 2
+                result_in_a_row = 1
+        else:
+            if last_result == 3:
+                if result_in_a_row == 5:
+                    return RIGHT, LEFT, False
+                result_in_a_row+=1
+            else:
+                last_result = 3
+                result_in_a_row = 1
+        wait_until_next_sensor_reading()
 
 def main():
     try:
@@ -269,7 +234,7 @@ def main():
                     time.sleep(0.1)
                 print("Robot recovery")
             if is_last_turn:
-                little_kick(0.8)
+                little_kick(0.6)
                 break
         processor.close()
         time.sleep(0.5)
