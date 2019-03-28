@@ -94,7 +94,7 @@ def wait_until_next_camera_reading():
 def turn_until_colour(colour):
     x_angle = get_sheet_x_angle(colour)
     while x_angle is None:
-        drive_robot(50, -50)
+        drive_robot(60, -60)
         wait_until_next_camera_reading()
         x_angle = get_sheet_x_angle(colour)
     drive_robot(0, 0)
