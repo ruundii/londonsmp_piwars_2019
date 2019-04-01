@@ -229,7 +229,9 @@ def main():
         processor.set_distance_update_handler(distance_update)
         processor.set_orientation_update_handler(orientation_update)
         while current_distances is None or current_orientation is None:
-            time.sleep(0.005)
+            print("Waiting for sensor data")
+            time.sleep(0.5)
+        input("Ready to go. Press Enter to start")
         little_kick(0.4)
         drive_to_wall_ahead(follow_wall=RIGHT)
         turn(direction=LEFT)

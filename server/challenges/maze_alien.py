@@ -285,7 +285,9 @@ def main():
         processor.set_orientation_update_handler(orientation_update)
         processor.set_camera_mode(0)
         while current_distances is None or current_orientation is None:
-            time.sleep(0.005)
+            print("Waiting for sensor data")
+            time.sleep(0.5)
+        input("Ready to go. Press Enter to start")
         while True:
             try:
                 alien = find_next_alien_target()

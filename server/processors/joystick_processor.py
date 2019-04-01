@@ -25,7 +25,7 @@ class JoystickProcessor:
         self.speed_gear = 0.3
         self.pressed_buttons = {BUTTON_A:False,BUTTON_B:False,BUTTON_X:False,BUTTON_Y:False}
         try:
-            self.serial_connection = serial.Serial("/dev/ttyUSB0", 9600, timeout=1, parity=serial.PARITY_NONE,
+            self.serial_connection = serial.Serial("/dev/ttyUSB1", 9600, timeout=1, parity=serial.PARITY_NONE,
                                              stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS, )
             self.serial_present = True
         except:
@@ -64,7 +64,7 @@ class JoystickProcessor:
             if(self.speed_gear>=0.9): self.speed_gear=0.9
         else:
             self.speed_gear -= 0.3
-            if(self.speed_gear<=0.3): self.speed_gear=0.3
+            if(self.speed_gear<=0.4): self.speed_gear=0.4
 
     def process_joystick_robot_control(self):
         while self.process_joystick_commands:
@@ -74,8 +74,11 @@ class JoystickProcessor:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.process_joystick_commands = False
+                for i in range(10):
+                    if self.joystick.get_button(i):
+                        print(i, "pressed")
 
-                if self.serial_present and self.joystick.get_button(BUTTON_B):
+                if self.joystick.get_button(1):
                     print("B pressed")
                     self.serial_connection.write("1".encode())
                     self.serial_connection.flush()

@@ -55,13 +55,15 @@ def main():
         processor.set_orientation_update_handler(orientation_update)
         processor.set_camera_mode(2)
         while current_orientation is None or current_vector is None:
-            time.sleep(0.005)
+            print("Waiting for sensor data")
+            time.sleep(0.5)
+        input("Ready to go. Press Enter to start")
         while True:
             offset = get_direction_offset()
             if offset <8 and offset>-8:
-                drive_robot(45,45)
+                drive_robot(40,40)
             else:
-                drive_robot(10+1.5*offset,10-1.5*offset)
+                drive_robot(10+2*offset,10-2*offset)
             time.sleep(0.01)
         drive_robot(0,0)
         processor.close()

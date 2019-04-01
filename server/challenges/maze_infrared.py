@@ -160,12 +160,12 @@ def turn(direction):
         if direction==RIGHT:
             if current_orientation - start_orientation < -60:
                 drive_robot(40, -40)
-            if current_orientation - start_orientation < -85:
+            if current_orientation - start_orientation < -88:
                 break
         if direction==LEFT:
             if current_orientation - start_orientation > 60:
                 drive_robot(-40, 40)
-            if current_orientation - start_orientation > 85:
+            if current_orientation - start_orientation > 88:
                 break
         time.sleep(0.01)
     drive_robot(0, 0)
@@ -226,7 +226,9 @@ def main():
         processor.set_distance_update_handler(distance_update)
         processor.set_orientation_update_handler(orientation_update)
         while current_distances is None or current_orientation is None:
-            time.sleep(0.005)
+            print("Waiting for sensor data")
+            time.sleep(0.5)
+        input("Ready to go. Press Enter to start")
         little_kick(0.4)
         follow_wall = RIGHT
         # while True:

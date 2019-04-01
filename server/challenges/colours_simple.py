@@ -278,7 +278,7 @@ def reverse():
     drive_robot(-15,-15)
     while True:
         wait_until_next_sensor_reading()
-        if current_distances['C'] > 45:
+        if current_distances['C'] > 30:
             drive_robot(0,0)
             indeed_far = True
             for i in range(7):
@@ -303,7 +303,10 @@ def main():
         processor.set_distance_update_handler(distance_update)
         processor.set_orientation_update_handler(orientation_update)
         while current_distances is None or current_orientation is None or current_sheets is None:
-            time.sleep(0.005)
+            print("Waiting for sensor data")
+            time.sleep(0.5)
+        input("Ready to go. Press Enter to start")
+
         for target_colour in visit_order:
             turn_until_colour(target_colour)
             time.sleep(0.2)

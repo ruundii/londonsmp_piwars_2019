@@ -65,7 +65,7 @@ def drive_robot(speed_left, speed_right):
     last_drive_params = (speed_left,speed_right)
     processor.drive(speed_left,speed_right)
 
-def turn(direction, angle=88, stop=False):
+def turn(direction, angle=90, stop=False):
     start_orientation = current_orientation
     print("start_orientation",start_orientation)
     if direction==RIGHT:
@@ -74,11 +74,16 @@ def turn(direction, angle=88, stop=False):
         drive_robot(-70, 70)
     print("turn dir",direction,"angle",angle)
     while True:
-        if direction==RIGHT and current_orientation - start_orientation < -angle:
-            break
-        if direction==LEFT and current_orientation - start_orientation > angle:
-            break
-        time.sleep(0.01)
+        if direction==RIGHT:
+            if current_orientation - start_orientation < -angle+30:
+                drive_robot(40, -40)
+            if current_orientation - start_orientation < -angle+2:
+                break
+        if direction==LEFT:
+            if current_orientation - start_orientation > angle-30:
+                drive_robot(-40, 40)
+            if current_orientation - start_orientation > angle-2:
+                break
     if stop:
         drive_robot(0, 0)
     print("stop_orientation",current_orientation)
@@ -146,7 +151,9 @@ def main():
         processor.set_orientation_update_handler(orientation_update)
         processor.set_camera_mode(1)
         while current_distances is None or current_orientation is None or current_sheets is None:
-            time.sleep(0.005)
+            print("Waiting for sensor data")
+            time.sleep(0.5)
+        input("Ready to go. Press Enter to start")
         turn(direction=RIGHT, stop=True)
         time.sleep(1)
         turn(direction=RIGHT, stop=True)
@@ -155,6 +162,12 @@ def main():
         time.sleep(1)
         turn(direction=RIGHT, stop=True)
         time.sleep(1)
+        turn(direction=RIGHT, stop=False)
+        turn(direction=RIGHT, stop=False)
+        turn(direction=RIGHT, stop=False)
+        turn(direction=RIGHT, stop=False)
+        drive_robot(70, -70)
+        time.sleep(10)
         #
         # for target_colour in visit_order:
         #     turn_until_colour(target_colour)
